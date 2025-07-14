@@ -831,6 +831,22 @@
     "de": "Um mit vorgeschlagenen Aufgaben zu beginnen, verbinden Sie bitte Ihr GitHub-, GitLab- oder Bitbucket-Konto.",
     "uk": "Щоб розпочати роботу з запропонованими завданнями, підключіть свій обліковий запис GitHub, GitLab або Bitbucket."
   },
+  "TODO$CONNECT_PROVIDER_MESSAGE": {
+    "en": "To get started with this tool, please connect your GitHub, GitLab, or Bitbucket account.",
+    "ja": "このツールを始めるには、GitHub、GitLab、またはBitbucketアカウントを接続してください。",
+    "zh-CN": "要开始使用此工具，请连接您的GitHub、GitLab或Bitbucket账户。",
+    "zh-TW": "要開始使用此工具，請連接您的GitHub、GitLab或Bitbucket帳戶。",
+    "ko-KR": "이 도구를 시작하려면 GitHub, GitLab 또는 Bitbucket 계정을 연결하세요.",
+    "no": "For å komme i gang med dette verktøyet, vennligst koble til GitHub, GitLab eller Bitbucket-kontoen din.",
+    "it": "Per iniziare con questo strumento, collega il tuo account GitHub, GitLab o Bitbucket.",
+    "pt": "Para começar a usar esta ferramenta, conecte sua conta GitHub, GitLab ou Bitbucket.",
+    "es": "Para comenzar a usar esta herramienta, conecte su cuenta de GitHub, GitLab o Bitbucket.",
+    "ar": "للبدء في استخدام هذه الأداة، يرجى ربط حساب GitHub أو GitLab أو Bitbucket الخاص بك.",
+    "fr": "Pour commencer avec cet outil, veuillez connecter votre compte GitHub, GitLab ou Bitbucket.",
+    "tr": "Bu aracı kullanmaya başlamak için lütfen GitHub, GitLab veya Bitbucket hesabınızı bağlayın.",
+    "de": "Um mit diesem Tool zu beginnen, verbinden Sie bitte Ihr GitHub-, GitLab- oder Bitbucket-Konto.",
+    "uk": "Щоб розпочати роботу з цим інструментом, підключіть свій обліковий запис GitHub, GitLab або Bitbucket."
+  },
   "HOME$LETS_START_BUILDING": {
     "en": "Let's Start Building!",
     "ja": "構築を始めましょう！",

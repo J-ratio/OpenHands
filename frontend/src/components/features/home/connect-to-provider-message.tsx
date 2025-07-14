@@ -3,13 +3,13 @@ import { useTranslation } from "react-i18next";
 import { BrandButton } from "#/components/features/settings/brand-button";
 import { useSettings } from "#/hooks/query/use-settings";
 
-export function ConnectToProviderMessage() {
+export function ConnectToProviderMessage({ message }: { message?: string }) {
   const { isLoading } = useSettings();
   const { t } = useTranslation();
 
   return (
     <div className="flex flex-col gap-4">
-      <p>{t("HOME$CONNECT_PROVIDER_MESSAGE")}</p>
+      <p>{message ?? t("HOME$CONNECT_PROVIDER_MESSAGE")}</p>
       <Link
         data-testid="navigate-to-settings-button"
         to="/settings/integrations"
