@@ -9,6 +9,8 @@ import { RepoConnector } from "../repo-connector";
 import { BrandButton } from "../../settings/brand-button";
 import { VisuallyHidden } from "@heroui/react";
 import { SettingsInput } from "../../settings/settings-input";
+import { useUserProviders } from "#/hooks/use-user-providers";
+import toast from "#/utils/toast";
 
 const DialogContent = RawDialogContent as React.FC<
   React.PropsWithChildren<any>
@@ -29,6 +31,8 @@ export function ToolModal({
   image,
   description,
 }: ToolModalProps) {
+  const { providers } = useUserProviders();
+
   const [selectedRepoTitle, setSelectedRepoTitle] = React.useState<
     string | null
   >(null);
@@ -38,6 +42,8 @@ export function ToolModal({
   const [className, setClassName] = React.useState<string>("");
 
   const DialogTitle = RawDialogTitle as React.FC<{ children: React.ReactNode }>;
+
+  const providersAreSet = providers.length > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -77,7 +83,7 @@ export function ToolModal({
                 displayLaunchButton={false}
               />
             </div>
-            {title === "Generate Class Diagram" && (
+            {providersAreSet && title === "Generate Class Diagram" && (
               <div className="flex flex-col items-center w-full max-w-md mx-auto mt-4">
                 <SettingsInput
                   label="Class Name"
@@ -89,24 +95,28 @@ export function ToolModal({
                 />
               </div>
             )}
-            <div className="flex justify-center w-full">
-              <BrandButton
-                testId="tool-generate-button"
-                variant="primary"
-                type="button"
-                className="mt-4 max-w-md w-full text-lg font-bold"
-                isDisabled={
-                  !selectedRepoTitle ||
-                  !selectedBranchName ||
-                  (title === "Generate Class Diagram" && !className.trim())
-                }
-                onClick={() => {
-                  console.log(selectedRepoTitle, selectedBranchName, className);
-                }}
-              >
-                Create / Generate
-              </BrandButton>
-            </div>
+            {providersAreSet && (
+              <div className="flex justify-center w-full">
+                <BrandButton
+                  testId="tool-generate-button"
+                  variant="primary"
+                  type="button"
+                  className="mt-4 max-w-md w-full text-lg font-bold"
+                  isDisabled={
+                    !selectedRepoTitle ||
+                    !selectedBranchName ||
+                    (title === "Generate Class Diagram" && !className.trim())
+                  }
+                  onClick={() => {
+                    toast.info(
+                      `${selectedRepoTitle}, ${selectedBranchName}, ${className}`,
+                    );
+                  }}
+                >
+                  Create / Generate
+                </BrandButton>
+              </div>
+            )}
           </div>
         </div>
       </DialogContent>
