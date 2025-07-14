@@ -28,6 +28,7 @@ conversation_metadata_type_adapter = TypeAdapter(ConversationMetadata)
 @dataclass
 class FileConversationStore(ConversationStore):
     file_store: FileStore
+    _user_id: str | None = None
 
     async def save_metadata(self, metadata: ConversationMetadata) -> None:
         json_str = conversation_metadata_type_adapter.dump_json(metadata)
@@ -96,9 +97,16 @@ class FileConversationStore(ConversationStore):
         return ConversationMetadataResultSet(conversations, next_page_id)
 
     def get_conversation_metadata_dir(self) -> str:
+        # If we have a user_id, create a user-specific directory
+        if hasattr(self, '_user_id') and self._user_id:
+            return f"users/{self._user_id}/conversations"
         return CONVERSATION_BASE_DIR
 
     def get_conversation_metadata_filename(self, conversation_id: str) -> str:
+        if hasattr(self, '_user_id') and self._user_id:
+            from openhands.storage.locations import get_conversation_metadata_filename
+            return get_conversation_metadata_filename(conversation_id, self._user_id)
+        from openhands.storage.locations import get_conversation_metadata_filename
         return get_conversation_metadata_filename(conversation_id)
 
     @classmethod
@@ -111,7 +119,9 @@ class FileConversationStore(ConversationStore):
             config.file_store_web_hook_url,
             config.file_store_web_hook_headers,
         )
-        return FileConversationStore(file_store)
+        instance = FileConversationStore(file_store)
+        instance._user_id = user_id
+        return instance
 
 
 def _sort_key(conversation: ConversationMetadata) -> str:

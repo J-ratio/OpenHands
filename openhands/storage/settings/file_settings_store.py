@@ -33,10 +33,16 @@ class FileSettingsStore(SettingsStore):
     async def get_instance(
         cls, config: OpenHandsConfig, user_id: str | None
     ) -> FileSettingsStore:
-        file_store = file_store = get_file_store(
+        file_store = get_file_store(
             config.file_store,
             config.file_store_path,
             config.file_store_web_hook_url,
             config.file_store_web_hook_headers,
         )
-        return FileSettingsStore(file_store)
+
+        if user_id:
+            path = f'users/{user_id}/settings.json'
+        else:
+            path = 'settings.json'
+
+        return FileSettingsStore(file_store, path=path)

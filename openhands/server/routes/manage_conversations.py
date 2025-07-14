@@ -138,13 +138,9 @@ async def new_conversation(
         conversation_trigger == ConversationTrigger.REMOTE_API_KEY
         and not initial_user_msg
     ):
-        return JSONResponse(
-            content={
-                'status': 'error',
-                'message': 'Missing initial user message',
-                'msg_id': 'CONFIGURATION$MISSING_USER_MESSAGE',
-            },
-            status_code=status.HTTP_400_BAD_REQUEST,
+        logger.warning(
+            'No initial user message provided for REMOTE_API_KEY (BEARER auth) session. Proceeding with empty initial message.',
+            extra={'user_id': user_id}
         )
 
     try:

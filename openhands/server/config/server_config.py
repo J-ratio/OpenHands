@@ -27,7 +27,8 @@ class ServerConfig(ServerConfigInterface):
     )
     monitoring_listener_class: str = 'openhands.server.monitoring.MonitoringListener'
     user_auth_class: str = (
-        'openhands.server.user_auth.default_user_auth.DefaultUserAuth'
+        # 'openhands.server.user_auth.default_user_auth.DefaultUserAuth'
+        'openhands.server.user_auth.h2loop_user_auth.H2LoopUserAuth'
     )
 
     def verify_config(self):
