@@ -11,6 +11,7 @@ import { VisuallyHidden } from "@heroui/react";
 import { SettingsInput } from "../../settings/settings-input";
 import { useUserProviders } from "#/hooks/use-user-providers";
 import toast from "#/utils/toast";
+import { useTranslation } from "react-i18next";
 
 const DialogContent = RawDialogContent as React.FC<
   React.PropsWithChildren<any>
@@ -32,6 +33,7 @@ export function ToolModal({
   description,
 }: ToolModalProps) {
   const { providers } = useUserProviders();
+  const { t } = useTranslation();
 
   const [selectedRepoTitle, setSelectedRepoTitle] = React.useState<
     string | null
@@ -81,6 +83,7 @@ export function ToolModal({
                   setSelectedBranchName(branchName)
                 }
                 displayLaunchButton={false}
+                message={t("TODO$CONNECT_PROVIDER_MESSAGE")}
               />
             </div>
             {providersAreSet && title === "Generate Class Diagram" && (
