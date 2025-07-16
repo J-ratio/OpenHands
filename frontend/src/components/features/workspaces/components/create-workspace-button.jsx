@@ -64,7 +64,7 @@ const CreateWorkspaceButton = ({ onCreateSuccess }) => {
               label="Name"
               type="text"
               value={data.name}
-              onChange={(val) => setData({ ...data, name: val })}
+              onChange={(e) => setData({ ...data, name: e.target.value })}
               placeholder="Enter workspace name..."
               className="mt-1 w-full"
               required
