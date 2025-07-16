@@ -11,34 +11,34 @@ const WorkspacePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    async function fetchAllData() {
-      setLoading(true);
-      setError(null);
+  async function fetchAllData() {
+    setLoading(true);
+    setError(null);
 
-      const workspacesRes = await getAllWorkspaces();
-      if (!workspacesRes.success) {
-        setError(workspacesRes.errorMessage || "Failed to load workspaces");
-        setLoading(false);
-        return;
-      }
-
-      setWorkspaces(workspacesRes.data);
-
-      const sourcesMap = {};
-      await Promise.all(
-        workspacesRes.data.map(async (workspace) => {
-          const { success, data } = await getAllDataSourcesByWorkspaceId(
-            workspace.id,
-          );
-          sourcesMap[workspace.id] = success ? data : [];
-        }),
-      );
-
-      setDataSources(sourcesMap);
+    const workspacesRes = await getAllWorkspaces();
+    if (!workspacesRes.success) {
+      setError(workspacesRes.errorMessage || "Failed to load workspaces");
       setLoading(false);
+      return;
     }
 
+    setWorkspaces(workspacesRes.data);
+
+    const sourcesMap = {};
+    await Promise.all(
+      workspacesRes.data.map(async (workspace) => {
+        const { success, data } = await getAllDataSourcesByWorkspaceId(
+          workspace.id,
+        );
+        sourcesMap[workspace.id] = success ? data : [];
+      }),
+    );
+
+    setDataSources(sourcesMap);
+    setLoading(false);
+  }
+
+  useEffect(() => {
     fetchAllData();
   }, []);
 
@@ -48,7 +48,7 @@ const WorkspacePage = () => {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-3xl font-bold">Your Workspaces</h2>
-            <CreateWorkspaceButton />
+            <CreateWorkspaceButton onCreateSuccess={fetchAllData} />
           </div>
           {loading ? (
             <div className="flex justify-center items-center py-8">

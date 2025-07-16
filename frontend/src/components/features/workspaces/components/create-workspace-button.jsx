@@ -10,18 +10,18 @@ import {
   DialogClose,
   DialogTrigger,
 } from "../../../ui/dialog";
-import { Input } from "../../../ui/input";
-import { Label } from "../../../ui/label";
 import { Separator } from "../../../ui/separator";
-import { Textarea } from "../../../ui/textarea";
 import { createWorkspace } from "../../../../api/workspaces";
 import { toast } from "sonner";
+import { SettingsInput } from "../../settings/settings-input";
 
-const CreateWorkspaceButton = () => {
-  const [data, setData] = useState({
+const CreateWorkspaceButton = ({ onCreateSuccess }) => {
+  const initialData = {
     name: "",
     description: "",
-  });
+  };
+  const [data, setData] = useState(initialData);
+  const [open, setOpen] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,13 +29,20 @@ const CreateWorkspaceButton = () => {
     if (!data.name) {
       toast.error("Workspace Name is required");
     } else {
-      await createWorkspace(data.name, data.description);
-      window.location.reload();
+      const response = await createWorkspace(data.name, data.description);
+      if (response.success) {
+        toast.success("Workspace created.");
+        if (onCreateSuccess) onCreateSuccess();
+        setData(initialData);
+        setOpen(false);
+      } else {
+        toast.error(response.errorMessage);
+      }
     }
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>Create a Workspace</Button>
       </DialogTrigger>
@@ -49,25 +56,30 @@ const CreateWorkspaceButton = () => {
         </DialogHeader>
         <Separator />
 
-        <div>
-          <Label htmlFor="name">Name</Label>
-          <Input
-            type="text"
-            id="name"
-            value={data.name}
-            onChange={(e) => setData({ ...data, name: e.target.value })}
-            maxLength={100}
-            required
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="description">Description</Label>
-          <Textarea
-            id="description"
-            value={data.description}
-            onChange={(e) => setData({ ...data, description: e.target.value })}
-          />
+        <div className="space-y-4">
+          <div>
+            <SettingsInput
+              label="Name"
+              type="text"
+              value={data.name}
+              onChange={(val) => setData({ ...data, name: val })}
+              placeholder="Enter workspace name..."
+              className="w-full"
+              required
+              max={100}
+            />
+          </div>
+          <div>
+            <textarea
+              id="description"
+              value={data.description}
+              onChange={(e) =>
+                setData({ ...data, description: e.target.value })
+              }
+              placeholder="(Optional) Add a description..."
+              className="bg-tertiary border border-[#717888] w-full rounded-sm p-2 placeholder:italic placeholder:text-tertiary-alt disabled:bg-[#2D2F36] disabled:border-[#2D2F36] disabled:cursor-not-allowed text-content min-h-[80px]"
+            />
+          </div>
         </div>
 
         <DialogFooter>
