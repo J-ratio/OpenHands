@@ -3,6 +3,7 @@ import { getAllDataSourcesByWorkspaceId } from "../api/data-sources";
 import { getAllWorkspaces } from "../api/workspaces";
 import CreateWorkspaceButton from "../components/features/workspaces/components/create-workspace-button";
 import WorkspaceCard from "../components/features/workspaces/components/workspace-card";
+import { LoadingSpinner } from "../components/shared/loading-spinner";
 
 const WorkspacePage = () => {
   const [workspaces, setWorkspaces] = useState([]);
@@ -50,7 +51,9 @@ const WorkspacePage = () => {
             <CreateWorkspaceButton />
           </div>
           {loading ? (
-            <div className="text-lg text-gray-500">Loading...</div>
+            <div className="flex justify-center items-center py-8">
+              <LoadingSpinner size="large" />
+            </div>
           ) : error ? (
             <div className="text-lg text-red-500">{error}</div>
           ) : (
