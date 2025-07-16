@@ -7279,6 +7279,22 @@
     "de": "Arbeitsbereiche",
     "uk": "Робочі простори"
   },
+  "SIDEBAR$FILE_MANAGER": {
+  "en": "File Manager",
+  "ja": "ファイルマネージャー",
+  "zh-CN": "文件管理器",
+  "zh-TW": "檔案管理員",
+  "ko-KR": "파일 관리자",
+  "no": "Filbehandler",
+  "it": "Gestore file",
+  "pt": "Gerenciador de arquivos",
+  "es": "Administrador de archivos",
+  "ar": "مدير الملفات",
+  "fr": "Gestionnaire de fichiers",
+  "tr": "Dosya Yöneticisi",
+  "de": "Dateimanager",
+  "uk": "Файловий менеджер"
+},
   "SIDEBAR$DOCS": {
     "en": "Documentation",
     "ja": "ドキュメント",

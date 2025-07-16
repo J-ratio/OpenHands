@@ -20,6 +20,7 @@ import { I18nKey } from "#/i18n/declaration";
 import { t } from "i18next";
 import { MdOutlineAddHomeWork } from "react-icons/md";
 import { IoDocumentTextSharp } from "react-icons/io5";
+import { FaFile } from "react-icons/fa";
 
 export function Sidebar() {
   const location = useLocation();
@@ -112,6 +113,17 @@ export function Sidebar() {
               disabled={settings?.EMAIL_VERIFIED === false}
             >
               <MdOutlineAddHomeWork
+                size={24}
+                className={`text-[#9099AC] ${settings?.EMAIL_VERIFIED === false ? "opacity-50" : ""}`}
+              />
+            </TooltipButton>
+            <TooltipButton
+              tooltip={t(I18nKey.SIDEBAR$FILE_MANAGER)}
+              ariaLabel={t(I18nKey.SIDEBAR$FILE_MANAGER)}
+              navLinkTo="/file-manager"
+              disabled={settings?.EMAIL_VERIFIED === false}
+            >
+              <FaFile
                 size={24}
                 className={`text-[#9099AC] ${settings?.EMAIL_VERIFIED === false ? "opacity-50" : ""}`}
               />
