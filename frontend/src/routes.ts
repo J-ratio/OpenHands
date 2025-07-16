@@ -29,6 +29,8 @@ export default [
     ]),
     route("documents/", "routes/documents-page.tsx"),
     route("document/:documentId", "routes/document-detail-page.tsx"),
+
+    route("workspaces/", "routes/workspace-page.jsx"),
   ]),
 
   layout("routes/auth-layout.tsx", [

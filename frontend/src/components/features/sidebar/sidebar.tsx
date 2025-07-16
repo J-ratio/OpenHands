@@ -18,6 +18,7 @@ import { useCreateConversation } from "#/hooks/mutation/use-create-conversation"
 import { TooltipButton } from "#/components/shared/buttons/tooltip-button";
 import { I18nKey } from "#/i18n/declaration";
 import { t } from "i18next";
+import { MdOutlineAddHomeWork } from "react-icons/md";
 import { IoDocumentTextSharp } from "react-icons/io5";
 
 export function Sidebar() {
@@ -100,6 +101,17 @@ export function Sidebar() {
               disabled={settings?.EMAIL_VERIFIED === false}
             >
               <IoDocumentTextSharp
+                size={24}
+                className={`text-[#9099AC] ${settings?.EMAIL_VERIFIED === false ? "opacity-50" : ""}`}
+              />
+            </TooltipButton>
+            <TooltipButton
+              tooltip={t(I18nKey.SIDEBAR$WORKSPACES)}
+              ariaLabel={t(I18nKey.SIDEBAR$WORKSPACES)}
+              navLinkTo="/workspaces"
+              disabled={settings?.EMAIL_VERIFIED === false}
+            >
+              <MdOutlineAddHomeWork
                 size={24}
                 className={`text-[#9099AC] ${settings?.EMAIL_VERIFIED === false ? "opacity-50" : ""}`}
               />
