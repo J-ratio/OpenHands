@@ -21,7 +21,7 @@ const AddNewDataSource = ({ workspace, repoCount, fileCount }) => {
             workspace={workspace}
             canAdd={
               repoCount <
-              Number(process.env.NEXT_PUBLIC_MAX_REPOSITORY_PER_WORKSPACE)
+              Number(import.meta.env.VITE_PUBLIC_MAX_REPOSITORY_PER_WORKSPACE)
             }
           />
         </TabsContent>
@@ -29,7 +29,8 @@ const AddNewDataSource = ({ workspace, repoCount, fileCount }) => {
           <FileUpload
             workspace={workspace}
             canAdd={
-              fileCount < Number(process.env.NEXT_PUBLIC_MAX_FILE_PER_WORKSPACE)
+              fileCount <
+              Number(import.meta.env.VITE_PUBLIC_MAX_FILE_PER_WORKSPACE)
             }
           />
         </TabsContent>

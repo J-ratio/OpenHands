@@ -10,10 +10,11 @@ import {
   DialogClose,
   DialogTrigger,
 } from "../../../ui/dialog";
+import { Label } from "../../../ui/label";
+import { Input } from "../../../ui/input";
 import { Separator } from "../../../ui/separator";
 import { createWorkspace } from "../../../../api/workspaces";
 import { toast } from "sonner";
-import { SettingsInput } from "../../settings/settings-input";
 
 const CreateWorkspaceButton = ({ onCreateSuccess }) => {
   const initialData = {
@@ -58,18 +59,20 @@ const CreateWorkspaceButton = ({ onCreateSuccess }) => {
 
         <div className="space-y-4">
           <div>
-            <SettingsInput
+            <Label htmlFor="name">Name</Label>
+            <Input
               label="Name"
               type="text"
               value={data.name}
               onChange={(val) => setData({ ...data, name: val })}
               placeholder="Enter workspace name..."
-              className="w-full"
+              className="mt-1 w-full"
               required
               max={100}
             />
           </div>
           <div>
+            <Label htmlFor="description">Description</Label>
             <textarea
               id="description"
               value={data.description}
@@ -77,7 +80,7 @@ const CreateWorkspaceButton = ({ onCreateSuccess }) => {
                 setData({ ...data, description: e.target.value })
               }
               placeholder="(Optional) Add a description..."
-              className="bg-tertiary border border-[#717888] w-full rounded-sm p-2 placeholder:italic placeholder:text-tertiary-alt disabled:bg-[#2D2F36] disabled:border-[#2D2F36] disabled:cursor-not-allowed text-content min-h-[80px]"
+              className="mt-1 bg-tertiary border border-[#717888] w-full rounded-sm p-2 placeholder:italic placeholder:text-tertiary-alt disabled:bg-[#2D2F36] disabled:border-[#2D2F36] disabled:cursor-not-allowed text-content min-h-[80px]"
             />
           </div>
         </div>

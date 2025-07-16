@@ -122,7 +122,7 @@ const FileUpload = ({ workspace, canAdd }) => {
         <div className="group">
           <label
             htmlFor="fileInput"
-            className="cursor-pointer font-medium text-black group-focus-within:underline dark:text-white"
+            className="cursor-pointer font-medium text-black group-focus-within:underline text-white dark:text-white"
           >
             <input
               id="fileInput"

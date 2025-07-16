@@ -39,7 +39,7 @@ const ViewWorkspaceButton = ({
         className="max-w-4xl"
         onInteractOutside={(e) => e.preventDefault()}
       >
-        <DialogHeader>
+        <DialogHeader className="mt-8">
           <div className="flex items-center justify-between">
             <DialogTitle>{workspace.name}</DialogTitle>
             {selectedTab === "DATA_SOURCES" ? (
@@ -52,7 +52,6 @@ const ViewWorkspaceButton = ({
           </div>
           <DialogDescription>{truncatedDescription}</DialogDescription>
         </DialogHeader>
-
         <div className="flex items-center space-x-2">
           {tabs.map((tab) => (
             <Button
@@ -64,7 +63,6 @@ const ViewWorkspaceButton = ({
             </Button>
           ))}
         </div>
-
         {selectedTab === "DOCUMENTATION" ? (
           <DocumentationTab
             workspace={workspace}
@@ -79,8 +77,7 @@ const ViewWorkspaceButton = ({
             showAddSource={showAddSource}
           />
         )}
-
-        <DialogFooter className="-mt-4">
+        <DialogFooter className="mt-4">
           <DialogClose asChild>
             <Button variant="outline">Close</Button>
           </DialogClose>

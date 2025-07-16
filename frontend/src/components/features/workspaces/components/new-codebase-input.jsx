@@ -93,6 +93,7 @@ const NewCodebaseInput = ({ isAdding, workspace, canAdd }) => {
             checked={isPrivate}
             onCheckedChange={setIsPrivate}
             disabled={!canAdd}
+            className="bg-basic"
           />
           <label
             htmlFor="private-repo"
