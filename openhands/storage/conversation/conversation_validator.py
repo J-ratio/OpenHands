@@ -1,6 +1,10 @@
 import os
 
+from fastapi import Depends
+from pydantic import SecretStr
+from openhands.server.user_auth.h2loop_user_auth import H2LoopUserAuth
 from openhands.utils.import_utils import get_impl
+from openhands.server.user_auth import get_user_id
 
 
 class ConversationValidator:
@@ -23,7 +27,9 @@ class ConversationValidator:
         cookies_str: str,
         authorization_header: str | None = None,
     ) -> str | None:
-        return None
+        user_auth = H2LoopUserAuth(_access_token=SecretStr(authorization_header))
+        user_id = await user_auth.get_user_id()
+        return user_id
 
 
 def create_conversation_validator() -> ConversationValidator:

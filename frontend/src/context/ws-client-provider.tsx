@@ -28,6 +28,7 @@ import {
 } from "#/types/core/guards";
 import { useOptimisticUserMessage } from "#/hooks/use-optimistic-user-message";
 import { useWSErrorMessage } from "#/hooks/use-ws-error-message";
+import { isAuthenticated } from "#/utils/isAuth";
 
 export type WebSocketStatus = "CONNECTING" | "CONNECTED" | "DISCONNECTED";
 
@@ -309,12 +310,15 @@ export function WsClientProvider({
     // Set initial status...
     setWebSocketStatus("CONNECTING");
 
+    const { token } = isAuthenticated();
+
     const lastEvent = lastEventRef.current;
     const query = {
       latest_event_id: lastEvent?.id ?? -1,
       conversation_id: conversationId,
       providers_set: providers,
       session_api_key: conversation.session_api_key, // Have to set here because socketio doesn't support custom headers. :(
+      access_token: token,
     };
 
     let baseUrl = null;

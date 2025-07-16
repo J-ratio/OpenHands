@@ -66,11 +66,16 @@ async def connect(connection_id: str, environ: dict) -> None:
         cookies_str = environ.get('HTTP_COOKIE', '')
         # Get Authorization header from the environment
         # Headers in WSGI/ASGI are prefixed with 'HTTP_' and have dashes replaced with underscores
-        authorization_header = environ.get('HTTP_AUTHORIZATION', None)
+        # authorization_header = environ.get('HTTP_AUTHORIZATION', None)
+        access_token = query_params.get('access_token', [None])[0]
+
         conversation_validator = create_conversation_validator()
         user_id = await conversation_validator.validate(
-            conversation_id, cookies_str, authorization_header
+            conversation_id,
+            cookies_str,
+            access_token,
         )
+
         logger.info(
             f'User {user_id} is allowed to connect to conversation {conversation_id}'
         )
