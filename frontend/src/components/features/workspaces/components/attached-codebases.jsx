@@ -65,7 +65,7 @@ const Codebases = ({ attachedCodebases }) => {
     setTimeout(() => {
       toast.dismiss();
       window.location.reload();
-    }, 1000);
+    }, 500);
   };
 
   if (!attachedCodebases || attachedCodebases?.length === 0) {

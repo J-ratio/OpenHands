@@ -58,9 +58,7 @@ const NewCodebaseInput = ({ isAdding, workspace, canAdd }) => {
       toast.error(errorMessage || "Failed to add codebase");
     } else {
       toast.success("Codebase added successfully");
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      window.location.reload();
     }
     setIsLoading(false);
   }
@@ -118,7 +116,9 @@ const NewCodebaseInput = ({ isAdding, workspace, canAdd }) => {
             className="w-full "
             type="submit"
             onClick={handleSubmit}
-            disabled={isLoading || (isPrivate && !patToken)}
+            disabled={
+              isLoading || !newCodebaseUrl.trim() || (isPrivate && !patToken)
+            }
           >
             {isLoading ? (
               "Loading..."

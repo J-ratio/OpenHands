@@ -104,9 +104,7 @@ const FileUpload = ({ workspace, canAdd }) => {
 
       if (updatedResponse.success) {
         toast.success("Document added successfully");
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
+        window.location.reload();
       }
     }
   };
