@@ -1,3 +1,5 @@
+import FileManagerPage from "../components/features/files/file-manager-page";
+
 export default function FileManager() {
-  return <div>File Manager</div>;
+  return <FileManagerPage workspaceId={9} />;
 }
