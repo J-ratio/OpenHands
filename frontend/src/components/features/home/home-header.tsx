@@ -4,7 +4,7 @@ import { useIsCreatingConversation } from "#/hooks/use-is-creating-conversation"
 import { BrandButton } from "../settings/brand-button";
 import H2LoopLogo from "#/assets/branding/h2loop-logo.svg?react";
 import { WorkspaceSelect } from "../documents/_components/WorkspaceSelect";
-import { useState } from "react";
+import { useWorkspace } from "#/context/WorkspaceContext";
 
 export function HomeHeader() {
   const {
@@ -20,8 +20,12 @@ export function HomeHeader() {
   const isCreatingConversation =
     isPending || isSuccess || isCreatingConversationElsewhere;
 
-  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(undefined);
-  const [workspaces, setWorkspaces] = useState([]);
+  const {
+    selectedWorkspaceId,
+    setSelectedWorkspaceId,
+    workspaces,
+    setWorkspaces,
+  } = useWorkspace();
 
   return (
     <header className="flex flex-col gap-5">
