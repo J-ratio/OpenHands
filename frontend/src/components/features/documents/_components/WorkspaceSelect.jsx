@@ -39,8 +39,7 @@ export const WorkspaceSelect = ({
     getData();
   }, []);
 
-  if (loading)
-    return <div className="text-neutral-400">Loading Workspaces</div>;
+  if (loading) return <div className="text-neutral-400"></div>;
   if (error) {
     return <div className="text-lg text-red-400">{error}</div>;
   }

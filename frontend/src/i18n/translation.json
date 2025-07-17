@@ -7263,6 +7263,38 @@
     "de": "Dokumente",
     "uk": "Документи"
   },
+  "SIDEBAR$WORKSPACES": {
+    "en": "Workspaces",
+    "ja": "ワークスペース",
+    "zh-CN": "工作区",
+    "zh-TW": "工作區",
+    "ko-KR": "워크스페이스",
+    "no": "Arbeidsområder",
+    "it": "Spazi di lavoro",
+    "pt": "Espaços de trabalho",
+    "es": "Espacios de trabajo",
+    "ar": "مساحات العمل",
+    "fr": "Espaces de travail",
+    "tr": "Çalışma Alanları",
+    "de": "Arbeitsbereiche",
+    "uk": "Робочі простори"
+  },
+  "SIDEBAR$FILE_MANAGER": {
+  "en": "File Manager",
+  "ja": "ファイルマネージャー",
+  "zh-CN": "文件管理器",
+  "zh-TW": "檔案管理員",
+  "ko-KR": "파일 관리자",
+  "no": "Filbehandler",
+  "it": "Gestore file",
+  "pt": "Gerenciador de arquivos",
+  "es": "Administrador de archivos",
+  "ar": "مدير الملفات",
+  "fr": "Gestionnaire de fichiers",
+  "tr": "Dosya Yöneticisi",
+  "de": "Dateimanager",
+  "uk": "Файловий менеджер"
+},
   "SIDEBAR$DOCS": {
     "en": "Documentation",
     "ja": "ドキュメント",
