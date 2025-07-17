@@ -3,6 +3,8 @@ import { useCreateConversation } from "#/hooks/mutation/use-create-conversation"
 import { useIsCreatingConversation } from "#/hooks/use-is-creating-conversation";
 import { BrandButton } from "../settings/brand-button";
 import H2LoopLogo from "#/assets/branding/h2loop-logo.svg?react";
+import { WorkspaceSelect } from "../documents/_components/WorkspaceSelect";
+import { useState } from "react";
 
 export function HomeHeader() {
   const {
@@ -18,8 +20,20 @@ export function HomeHeader() {
   const isCreatingConversation =
     isPending || isSuccess || isCreatingConversationElsewhere;
 
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(undefined);
+  const [workspaces, setWorkspaces] = useState([]);
+
   return (
     <header className="flex flex-col gap-5">
+      <div className="flex w-full justify-end">
+        <WorkspaceSelect
+          selectedWorkspace={selectedWorkspaceId}
+          setSelectedWorkspace={setSelectedWorkspaceId}
+          workspaces={workspaces}
+          setWorkspaces={setWorkspaces}
+        />
+      </div>
+
       <H2LoopLogo width={100} height={100} />
 
       <div className="flex items-center justify-between">
