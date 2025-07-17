@@ -25,12 +25,14 @@ export function TrajectoryActions({
         onClick={onPositiveFeedback}
         icon={<ThumbsUpIcon width={15} height={15} />}
         tooltip={t(I18nKey.BUTTON$MARK_HELPFUL)}
+        disabled={true}
       />
       <TrajectoryActionButton
         testId="negative-feedback"
         onClick={onNegativeFeedback}
         icon={<ThumbDownIcon width={15} height={15} />}
         tooltip={t(I18nKey.BUTTON$MARK_NOT_HELPFUL)}
+        disabled={true}
       />
       <TrajectoryActionButton
         testId="export-trajectory"
