@@ -8,6 +8,14 @@ import { Button } from "../../ui/button";
 import { toast } from "sonner";
 import { formatDateTime } from "../../../utils/datetime-utils";
 import { ConfirmationModal } from "../../shared/modals/confirmation-modal";
+import AddNewDataSource from "../../features/workspaces/components/add-new-data-source";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "../../ui/dialog";
 
 function FileManagerPage({ workspaceId }) {
   const [data, setData] = useState([]);
@@ -16,6 +24,7 @@ function FileManagerPage({ workspaceId }) {
   const [search, setSearch] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [confirmDeleteName, setConfirmDeleteName] = useState("");
+  const [showAddSource, setShowAddSource] = useState(false);
 
   async function fetchData() {
     setLoading(true);
@@ -73,13 +82,34 @@ function FileManagerPage({ workspaceId }) {
             <h1 className="text-2xl font-bold text-neutral-100">
               File Manager
             </h1>
-            <Input
-              placeholder="Search files by name..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="max-w-sm bg-neutral-900 text-neutral-100 border border-neutral-700 placeholder:text-neutral-500 focus:ring-2 focus:ring-primary focus:border-primary outline-none rounded-md transition-colors duration-150"
-            />
+            <div className="flex gap-2 items-center">
+              <Input
+                placeholder="Search files by name..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="max-w-sm bg-neutral-900 text-neutral-100 border border-neutral-700 placeholder:text-neutral-500 focus:ring-2 focus:ring-primary focus:border-primary outline-none rounded-md transition-colors duration-150"
+              />
+              <Button
+                size="default"
+                variant="outline"
+                onClick={() => setShowAddSource(true)}
+              >
+                + Add File
+              </Button>
+            </div>
           </div>
+          <Dialog open={showAddSource} onOpenChange={setShowAddSource}>
+            <DialogContent>
+              <DialogHeader></DialogHeader>
+              <DialogTitle>Add New Data Source</DialogTitle>
+              <AddNewDataSource
+                workspace={{ id: workspaceId }}
+                repoCount={0} // TODO: pass actual repo count
+                fileCount={0} // TODO: pass actual file count
+              />
+              <div className="flex justify-end mt-2"></div>
+            </DialogContent>
+          </Dialog>
           <div className="rounded-md border h-[70vh] overflow-y-scroll mt-4">
             <table className="min-w-full divide-y divide-neutral-700">
               <thead className="bg-neutral-900">
@@ -143,7 +173,6 @@ function FileManagerPage({ workspaceId }) {
                       </td>
                       <td className="px-4 py-2">
                         <div className="flex gap-2">
-                          {/* Update action can be added here */}
                           <Button
                             size="sm"
                             variant="destructive"
