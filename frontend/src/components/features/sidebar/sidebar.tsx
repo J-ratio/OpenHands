@@ -21,6 +21,7 @@ import { t } from "i18next";
 import { MdOutlineAddHomeWork } from "react-icons/md";
 import { IoDocumentTextSharp } from "react-icons/io5";
 import { FaFile } from "react-icons/fa";
+import { TbTemplate } from "react-icons/tb";
 
 export function Sidebar() {
   const location = useLocation();
@@ -107,12 +108,12 @@ export function Sidebar() {
               />
             </TooltipButton>
             <TooltipButton
-              tooltip={t(I18nKey.SIDEBAR$WORKSPACES)}
-              ariaLabel={t(I18nKey.SIDEBAR$WORKSPACES)}
-              navLinkTo="/workspaces"
+              tooltip={t(I18nKey.SIDEBAR$TEMPLATES)}
+              ariaLabel={t(I18nKey.SIDEBAR$TEMPLATES)}
+              navLinkTo="/templates"
               disabled={settings?.EMAIL_VERIFIED === false}
             >
-              <MdOutlineAddHomeWork
+              <TbTemplate
                 size={24}
                 className={`text-[#9099AC] ${settings?.EMAIL_VERIFIED === false ? "opacity-50" : ""}`}
               />
@@ -124,6 +125,17 @@ export function Sidebar() {
               disabled={settings?.EMAIL_VERIFIED === false}
             >
               <FaFile
+                size={24}
+                className={`text-[#9099AC] ${settings?.EMAIL_VERIFIED === false ? "opacity-50" : ""}`}
+              />
+            </TooltipButton>
+            <TooltipButton
+              tooltip={t(I18nKey.SIDEBAR$WORKSPACES)}
+              ariaLabel={t(I18nKey.SIDEBAR$WORKSPACES)}
+              navLinkTo="/workspaces"
+              disabled={settings?.EMAIL_VERIFIED === false}
+            >
+              <MdOutlineAddHomeWork
                 size={24}
                 className={`text-[#9099AC] ${settings?.EMAIL_VERIFIED === false ? "opacity-50" : ""}`}
               />

@@ -33,6 +33,8 @@ export default [
     route("workspaces/", "routes/workspace-page.jsx"),
 
     route("file-manager/", "routes/file-manager.tsx"),
+
+    route("templates/", "components/features/templates/template-page.jsx"),
   ]),
 
   layout("routes/auth-layout.tsx", [

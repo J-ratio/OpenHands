@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { ArrowRight, CloudUploadIcon } from "lucide-react";
-import FileDetails from "./file-details";
+import FileDetails from "../../../shared/file-details";
 import {
   createADatasource,
   updateADataSourceWithFile,
