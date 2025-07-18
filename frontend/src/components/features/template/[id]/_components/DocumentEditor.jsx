@@ -6,7 +6,7 @@ import { getAllDataSourcesByWorkspaceId } from "../../../../../api/data-sources"
 import Content from "./Content";
 import { useParams } from "react-router";
 
-const TemplateEditor = () => {
+const DocumentEditor = () => {
   const { documentId } = useParams();
   const [data, setData] = useState({
     workspaceId: "",
@@ -72,4 +72,4 @@ const TemplateEditor = () => {
   );
 };
 
-export default TemplateEditor;
+export default DocumentEditor;

@@ -35,6 +35,11 @@ export default [
     route("file-manager/", "routes/file-manager.tsx"),
 
     route("templates/", "components/features/templates/template-page.jsx"),
+    route(
+      "template/:templateId",
+      // "components/features/templates/[id]/page.jsx",
+      "components/features/templates/[id]/single-template-page.jsx",
+    ),
   ]),
 
   layout("routes/auth-layout.tsx", [
