@@ -5,6 +5,11 @@ import { BrandButton } from "../settings/brand-button";
 import H2LoopLogo from "#/assets/branding/h2loop-logo.svg?react";
 import { WorkspaceSelect } from "../documents/_components/WorkspaceSelect";
 import { useWorkspace } from "#/context/WorkspaceContext";
+import { useSaveSettings } from "#/hooks/mutation/use-save-settings";
+import { useEffect } from "react";
+import toast from "#/utils/toast";
+import { useSettings } from "#/hooks/query/use-settings";
+import { useState } from "react";
 
 export function HomeHeader() {
   const {
@@ -27,11 +32,18 @@ export function HomeHeader() {
     setWorkspaces,
   } = useWorkspace();
 
+  const { mutate: saveUserSettings } = useSaveSettings();
+
+  useEffect(() => {
+    if (!selectedWorkspaceId) return;
+    saveUserSettings({ ACTIVE_WORKSPACE_ID: selectedWorkspaceId?.toString() });
+  }, [selectedWorkspaceId]);
+
   return (
     <header className="flex flex-col gap-5">
       <div className="flex w-full justify-end">
         <WorkspaceSelect
-          selectedWorkspace={selectedWorkspaceId}
+          selectedWorkspace={selectedWorkspaceId && Number(selectedWorkspaceId)}
           setSelectedWorkspace={setSelectedWorkspaceId}
           workspaces={workspaces}
           setWorkspaces={setWorkspaces}

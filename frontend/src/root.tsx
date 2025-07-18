@@ -37,9 +37,5 @@ export const meta: MetaFunction = () => [
 ];
 
 export default function App() {
-  return (
-    <WorkspaceProvider>
-      <Outlet />
-    </WorkspaceProvider>
-  );
+  return <Outlet />;
 }

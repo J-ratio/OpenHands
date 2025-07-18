@@ -43,6 +43,7 @@ class Settings(BaseModel):
     max_budget_per_task: float | None = None
     email: str | None = None
     email_verified: bool | None = None
+    active_workspace_id: str | None = None
 
     model_config = {
         'validate_assignment': True,

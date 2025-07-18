@@ -98,7 +98,9 @@ function FileManagerPage() {
                 className="max-w-sm bg-neutral-900 text-neutral-100 border border-neutral-700 placeholder:text-neutral-500 focus:ring-2 focus:ring-primary focus:border-primary outline-none rounded-md transition-colors duration-150"
               />
               <WorkspaceSelect
-                selectedWorkspace={selectedWorkspaceIdUi}
+                selectedWorkspace={
+                  selectedWorkspaceIdUi && Number(selectedWorkspaceIdUi)
+                }
                 setSelectedWorkspace={setSelectedWorkspaceIdUi}
                 workspaces={workspacesUi}
               />
