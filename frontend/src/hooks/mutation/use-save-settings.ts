@@ -27,6 +27,7 @@ const saveSettingsMutationFn = async (settings: Partial<PostSettings>) => {
       settings.ENABLE_PROACTIVE_CONVERSATION_STARTERS,
     search_api_key: settings.SEARCH_API_KEY?.trim() || "",
     max_budget_per_task: settings.MAX_BUDGET_PER_TASK,
+    active_workspace_id: settings.ACTIVE_WORKSPACE_ID,
   };
 
   await OpenHands.saveSettings(apiSettings);

@@ -32,6 +32,7 @@ const getSettingsQueryFn = async (): Promise<Settings> => {
     EMAIL_VERIFIED: apiSettings.email_verified,
     MCP_CONFIG: apiSettings.mcp_config,
     IS_NEW_USER: false,
+    ACTIVE_WORKSPACE_ID: apiSettings.active_workspace_id,
   };
 };
 

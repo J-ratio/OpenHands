@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
+import { useSettings } from "#/hooks/query/use-settings";
 
 interface WorkspaceContextType {
   selectedWorkspaceId: string | undefined;
@@ -12,10 +19,17 @@ const WorkspaceContext = createContext<WorkspaceContextType | undefined>(
 );
 
 export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
+  const { data: settings } = useSettings();
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<
     string | undefined
-  >(undefined);
+  >(settings?.ACTIVE_WORKSPACE_ID || undefined);
   const [workspaces, setWorkspaces] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (settings?.ACTIVE_WORKSPACE_ID) {
+      setSelectedWorkspaceId(settings.ACTIVE_WORKSPACE_ID);
+    }
+  }, [settings?.ACTIVE_WORKSPACE_ID]);
 
   return (
     <WorkspaceContext.Provider
