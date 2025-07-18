@@ -1,5 +1,5 @@
-import TemplateEditor from "#/components/features/template/[id]/_components/TemplateEditor";
+import DocumentEditor from "./../components/features/template/[id]/_components/DocumentEditor";
 
 export default function DocumentDetailPage() {
-  return <TemplateEditor />;
+  return <DocumentEditor />;
 }

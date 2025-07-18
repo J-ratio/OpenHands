@@ -107,7 +107,15 @@ const TemplateEditor = ({ data, templateId }) => {
   };
 
   useEffect(() => {
-    localStorage.clear();
+    Object.keys(localStorage).forEach((key) => {
+      if (
+        key.startsWith("lastUpdatedAtBE") ||
+        key.startsWith("lastUpdatedAtLocalstorage")
+      ) {
+        localStorage.removeItem(key);
+      }
+    });
+
     const curentTimeStamp = new Date().getTime();
     localStorage.setItem(
       `lastUpdatedAtBE-template-${templateId}`,
@@ -178,12 +186,12 @@ const TemplateEditor = ({ data, templateId }) => {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full text-content rounded-2xl p-4 md:p-8 shadow-lg">
       <div className="container mx-auto mb-3 flex items-center justify-between">
         {isEditingTitle ? (
           <input
             autoFocus
-            className="text-2xl font-bold bg-transparent border-b focus:outline-none min-w-[50%]"
+            className={`text-2xl font-bold bg-neutral-900 border border-neutral-700 focus:bg-neutral-800 focus:border-purple-600 focus:ring-0 focus:ring-purple-200 focus:outline-none transition-all duration-200 rounded px-2 py-1 min-w-[50%] text-content`}
             placeholder={title}
             value={title}
             onChange={handleTitleChange}
@@ -194,7 +202,7 @@ const TemplateEditor = ({ data, templateId }) => {
           />
         ) : (
           <h2
-            className="text-2xl w-full font-bold cursor-text"
+            className="text-2xl max-w-[50%] font-bold cursor-text truncate"
             onClick={() => setIsEditingTitle(true)}
           >
             {title}
@@ -203,13 +211,16 @@ const TemplateEditor = ({ data, templateId }) => {
 
         <CreateDocumentButton templateId={templateId} />
       </div>
-      <div className="border rounded-lg h-full">
-        <div className="max-h-[80vh] overflow-y-auto">
+      <div className="mt-2 border border-purple-900 rounded-lg h-full">
+        <div
+          className="min-h-[85vh] max-h-[90vh] overflow-y-auto flex-1 p-4"
+          style={{ backgroundColor: "#23272e" }}
+        >
           <BlockNoteView
             editor={editor}
             slashMenu={false}
             className="mt-4"
-            theme="light"
+            theme="dark"
             onChange={handleEditorChange}
           >
             <SuggestionMenuController
