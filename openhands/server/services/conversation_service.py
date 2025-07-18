@@ -57,6 +57,7 @@ async def create_new_conversation(
     settings_store = await SettingsStoreImpl.get_instance(config, user_id)
     settings = await settings_store.load()
     logger.info('Settings loaded')
+    active_workspace_id = settings.active_workspace_id
 
     session_init_args: dict[str, Any] = {}
     if settings:
@@ -114,6 +115,7 @@ async def create_new_conversation(
                 selected_branch=selected_branch,
                 git_provider=git_provider,
                 llm_model=conversation_init_data.llm_model,
+                workspace_id=active_workspace_id
             )
         )
 
