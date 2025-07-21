@@ -78,8 +78,10 @@ function FileManagerPage() {
     setConfirmDeleteName("");
   };
 
-  const filteredData = data.filter((item) =>
-    item.name?.toLowerCase().includes(search.toLowerCase()),
+  const filteredData = data.filter(
+    (item) =>
+      item.type === "FILE" &&
+      item.name?.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -135,9 +137,6 @@ function FileManagerPage() {
                     Name
                   </th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
-                    Type
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
                     Created At
                   </th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-neutral-400 uppercase tracking-wider">
@@ -178,9 +177,6 @@ function FileManagerPage() {
                     <tr key={item.id}>
                       <td className="px-4 py-2 text-neutral-100">
                         {item.name}
-                      </td>
-                      <td className="px-4 py-2 text-neutral-100">
-                        {item.type}
                       </td>
                       <td className="px-4 py-2 text-neutral-100">
                         {formatDateTime(item.created_at)}
