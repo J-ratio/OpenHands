@@ -20,12 +20,14 @@ import {
 import { createADatasource } from "#/api/data-sources";
 import { toast } from "sonner";
 import { useWorkspace } from "#/context/WorkspaceContext";
+import { composeRepoUrl } from "#/utils/map-provider";
 
 interface RepositorySelectionFormProps {
   onRepoSelection: (repoTitle: string | null) => void;
   onBranchSelection: (branchName: string | null) => void;
   displayLaunchButton?: boolean;
   displayLinkButton?: boolean;
+  linkedRepo?: GitRepository | null;
 }
 
 export function RepositorySelectionForm({
@@ -33,9 +35,10 @@ export function RepositorySelectionForm({
   onBranchSelection,
   displayLaunchButton = true,
   displayLinkButton = false,
+  linkedRepo = null,
 }: RepositorySelectionFormProps) {
   const [selectedRepository, setSelectedRepository] =
-    React.useState<GitRepository | null>(null);
+    React.useState<GitRepository | null>(linkedRepo);
   const [selectedBranch, setSelectedBranch] = React.useState<Branch | null>(
     null,
   );
@@ -86,6 +89,13 @@ export function RepositorySelectionForm({
       }
     }
   }, [branches, isLoadingBranches, selectedBranch]);
+
+  React.useEffect(() => {
+    if (linkedRepo) {
+      setSelectedRepository(linkedRepo);
+      onRepoSelection(linkedRepo.full_name);
+    }
+  }, [linkedRepo]);
 
   // We check for isSuccess because the app might require time to render
   // into the new conversation screen after the conversation is created.
@@ -150,10 +160,16 @@ export function RepositorySelectionForm({
     selectedWorkspaceId: string | undefined,
   ) => {
     async function linkRepoToWorkspace() {
+      const repoUrl = selectedRepository
+        ? composeRepoUrl(
+            selectedRepository.git_provider,
+            selectedRepository.full_name,
+          )
+        : "";
       const { success, errorMessage } = await createADatasource({
         name: null,
         type: "GIT_REPOSITORY",
-        url: selectedRepository?.full_name,
+        url: repoUrl,
         workspace_ids: [selectedWorkspaceId],
         PAT_TOKEN: "",
       });
@@ -191,6 +207,21 @@ export function RepositorySelectionForm({
               const sanitizedInput = sanitizeQuery(inputValue);
               return sanitizeQuery(textValue).includes(sanitizedInput);
             }}
+            isDisabled={!!linkedRepo}
+            selectedKey={
+              linkedRepo
+                ? (repositoriesItems || []).find(
+                    (item) =>
+                      item.label === decodeURIComponent(linkedRepo.full_name),
+                  )?.key
+                : selectedRepository
+                  ? (repositoriesItems || []).find(
+                      (item) =>
+                        item.label ===
+                        decodeURIComponent(selectedRepository.full_name),
+                    )?.key
+                  : undefined
+            }
           />
         </div>
         {displayLinkButton && (
@@ -199,6 +230,7 @@ export function RepositorySelectionForm({
             variant="primary"
             type="button"
             isDisabled={
+              !!linkedRepo ||
               !selectedRepository ||
               isCreatingConversation ||
               isLoadingRepositories ||

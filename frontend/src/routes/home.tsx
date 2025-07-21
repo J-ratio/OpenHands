@@ -1,16 +1,15 @@
 import React, { useEffect } from "react";
 import { PrefetchPageLinks } from "react-router";
 import { HomeHeader } from "#/components/features/home/home-header";
-import { RepoConnector } from "#/components/features/home/repo-connector";
+import {
+  DataSource,
+  RepoConnector,
+} from "#/components/features/home/repo-connector";
 import { TaskSuggestions } from "#/components/features/home/tasks/task-suggestions";
 import { useUserProviders } from "#/hooks/use-user-providers";
 import { ToolsSection } from "#/components/features/home/tools/tool-section";
 import { getAllDataSourcesByWorkspaceId } from "#/api/data-sources";
 import { useWorkspace } from "#/context/WorkspaceContext";
-import {
-  ConnectedRepoInfo,
-  DataSource,
-} from "#/components/features/home/connected-repo-info";
 
 <PrefetchPageLinks page="/conversations/:conversationId" />;
 
@@ -55,15 +54,16 @@ function HomeScreen() {
       <hr className="border-[#717888]" />
 
       <main className="flex flex-col md:flex-row justify-between gap-8">
-        {linkedRepo ? (
-          <ConnectedRepoInfo repo={linkedRepo} />
-        ) : (
-          <RepoConnector
-            onRepoSelection={(title) => setSelectedRepoTitle(title)}
-            onBranchSelection={(_) => {}}
-            heading="Connect a Repository to a Workspace"
-          />
-        )}
+        <RepoConnector
+          onRepoSelection={(title) => setSelectedRepoTitle(title)}
+          onBranchSelection={(_) => {}}
+          heading={
+            linkedRepo
+              ? "Repository Connected"
+              : "Connect a Repository to a Workspace"
+          }
+          linkedRepo={linkedRepo}
+        />
         <hr className="md:hidden border-[#717888]" />
         {providersAreSet && <TaskSuggestions filterFor={selectedRepoTitle} />}
       </main>

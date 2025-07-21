@@ -4,6 +4,28 @@ import { RepositorySelectionForm } from "./repo-selection-form";
 import { useConfig } from "#/hooks/query/use-config";
 import { RepoProviderLinks } from "./repo-provider-links";
 import { useUserProviders } from "#/hooks/use-user-providers";
+import { GitRepository } from "#/types/git";
+
+function dataSourceToGitRepository(ds: DataSource): GitRepository {
+  // TODO: make it dynamic here
+  return {
+    id: ds.id.toString(),
+    full_name: ds.name || ds.url || "",
+    git_provider: "github",
+    is_public: true,
+  };
+}
+export interface DataSource {
+  name: string | undefined;
+  type: "GIT_REPOSITORY" | "FILE";
+  url?: string;
+  id: number;
+  created_by: number;
+  versions: [];
+  workspace_ids: Array<number>;
+  created_at: string;
+  updated_at: string;
+}
 
 interface RepoConnectorProps {
   onRepoSelection: (repoTitle: string | null) => void;
@@ -11,6 +33,7 @@ interface RepoConnectorProps {
   displayLaunchButton?: boolean;
   heading?: string;
   message?: string;
+  linkedRepo?: DataSource;
 }
 
 export function RepoConnector({
@@ -19,6 +42,7 @@ export function RepoConnector({
   displayLaunchButton = true,
   heading,
   message,
+  linkedRepo,
 }: RepoConnectorProps) {
   const { providers } = useUserProviders();
   const { data: config } = useConfig();
@@ -33,6 +57,19 @@ export function RepoConnector({
       className="w-full flex flex-col gap-6"
     >
       <h2 className="heading">{heading ?? t("HOME$CONNECT_TO_REPOSITORY")}</h2>
+      {linkedRepo && (
+        <p>
+          This workspace is connected to the repo:
+          <a
+            href={linkedRepo?.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-400 underline underline-offset-2 hover:text-blue-300 transition-colors ml-1"
+          >
+            {linkedRepo?.name}
+          </a>
+        </p>
+      )}
 
       {!providersAreSet && <ConnectToProviderMessage message={message} />}
       {providersAreSet && (
@@ -41,6 +78,9 @@ export function RepoConnector({
           onBranchSelection={onBranchSelection}
           displayLaunchButton={displayLaunchButton}
           displayLinkButton={true}
+          linkedRepo={
+            linkedRepo ? dataSourceToGitRepository(linkedRepo) : undefined
+          }
         />
       )}
 
