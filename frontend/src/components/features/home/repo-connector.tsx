@@ -9,6 +9,7 @@ interface RepoConnectorProps {
   onRepoSelection: (repoTitle: string | null) => void;
   onBranchSelection: (branchName: string | null) => void;
   displayLaunchButton?: boolean;
+  heading?: string;
   message?: string;
 }
 
@@ -16,6 +17,7 @@ export function RepoConnector({
   onRepoSelection,
   onBranchSelection,
   displayLaunchButton = true,
+  heading,
   message,
 }: RepoConnectorProps) {
   const { providers } = useUserProviders();
@@ -30,7 +32,7 @@ export function RepoConnector({
       data-testid="repo-connector"
       className="w-full flex flex-col gap-6"
     >
-      <h2 className="heading">{t("HOME$CONNECT_TO_REPOSITORY")}</h2>
+      <h2 className="heading">{heading ?? t("HOME$CONNECT_TO_REPOSITORY")}</h2>
 
       {!providersAreSet && <ConnectToProviderMessage message={message} />}
       {providersAreSet && (
@@ -38,6 +40,7 @@ export function RepoConnector({
           onRepoSelection={onRepoSelection}
           onBranchSelection={onBranchSelection}
           displayLaunchButton={displayLaunchButton}
+          displayLinkButton={true}
         />
       )}
 

@@ -17,17 +17,22 @@ import {
   BranchLoadingState,
   BranchErrorState,
 } from "./repository-selection";
+import { createADatasource } from "#/api/data-sources";
+import { toast } from "sonner";
+import { useWorkspace } from "#/context/WorkspaceContext";
 
 interface RepositorySelectionFormProps {
   onRepoSelection: (repoTitle: string | null) => void;
   onBranchSelection: (branchName: string | null) => void;
   displayLaunchButton?: boolean;
+  displayLinkButton?: boolean;
 }
 
 export function RepositorySelectionForm({
   onRepoSelection,
   onBranchSelection,
   displayLaunchButton = true,
+  displayLinkButton = false,
 }: RepositorySelectionFormProps) {
   const [selectedRepository, setSelectedRepository] =
     React.useState<GitRepository | null>(null);
@@ -141,8 +146,25 @@ export function RepositorySelectionForm({
     }
   };
 
-  // Render the appropriate UI based on the loading/error state
-  const renderRepositorySelector = () => {
+  const renderRepositorySelector = (
+    selectedWorkspaceId: string | undefined,
+  ) => {
+    async function linkRepoToWorkspace() {
+      const { success, errorMessage } = await createADatasource({
+        name: null,
+        type: "GIT_REPOSITORY",
+        url: selectedRepository?.full_name,
+        workspace_ids: [selectedWorkspaceId],
+        PAT_TOKEN: "",
+      });
+
+      if (!success) {
+        toast.error(errorMessage || "Failed to link repo");
+      } else {
+        toast.success("Repo linked successfully");
+      }
+    }
+
     if (isLoadingRepositories) {
       return <RepositoryLoadingState />;
     }
@@ -152,20 +174,43 @@ export function RepositorySelectionForm({
     }
 
     return (
-      <RepositoryDropdown
-        items={repositoriesItems || []}
-        onSelectionChange={handleRepoSelection}
-        onInputChange={handleRepoInputChange}
-        defaultFilter={(textValue, inputValue) => {
-          if (!inputValue) return true;
+      <div className="flex items-center w-full">
+        <div className="flex-1 max-w-[500px]">
+          <RepositoryDropdown
+            items={repositoriesItems || []}
+            onSelectionChange={handleRepoSelection}
+            onInputChange={handleRepoInputChange}
+            defaultFilter={(textValue, inputValue) => {
+              if (!inputValue) return true;
 
-          const repo = allRepositories?.find((r) => r.full_name === textValue);
-          if (!repo) return false;
+              const repo = allRepositories?.find(
+                (r) => r.full_name === textValue,
+              );
+              if (!repo) return false;
 
-          const sanitizedInput = sanitizeQuery(inputValue);
-          return sanitizeQuery(textValue).includes(sanitizedInput);
-        }}
-      />
+              const sanitizedInput = sanitizeQuery(inputValue);
+              return sanitizeQuery(textValue).includes(sanitizedInput);
+            }}
+          />
+        </div>
+        {displayLinkButton && (
+          <BrandButton
+            testId="repo-link-button"
+            variant="primary"
+            type="button"
+            isDisabled={
+              !selectedRepository ||
+              isCreatingConversation ||
+              isLoadingRepositories ||
+              isRepositoriesError
+            }
+            onClick={linkRepoToWorkspace}
+            className="ml-2 w-20"
+          >
+            Link
+          </BrandButton>
+        )}
+      </div>
     );
   };
 
@@ -201,9 +246,11 @@ export function RepositorySelectionForm({
     );
   };
 
+  const { selectedWorkspaceId } = useWorkspace();
+
   return (
     <div className="flex flex-col gap-4">
-      {renderRepositorySelector()}
+      {renderRepositorySelector(selectedWorkspaceId)}
 
       {renderBranchSelector()}
 
