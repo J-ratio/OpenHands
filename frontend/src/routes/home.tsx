@@ -8,7 +8,6 @@ import {
 import { TaskSuggestions } from "#/components/features/home/tasks/task-suggestions";
 import { useUserProviders } from "#/hooks/use-user-providers";
 import { ToolsSection } from "#/components/features/home/tools/tool-section";
-import { getAllDataSourcesByWorkspaceId } from "#/api/data-sources";
 import { useWorkspace } from "#/context/WorkspaceContext";
 
 <PrefetchPageLinks page="/conversations/:conversationId" />;
@@ -18,31 +17,9 @@ function HomeScreen() {
   const [selectedRepoTitle, setSelectedRepoTitle] = React.useState<
     string | null
   >(null);
-  const [linkedRepo, setLinkedRepo] = React.useState<DataSource | undefined>(
-    undefined,
-  );
   const { selectedWorkspaceId } = useWorkspace();
 
   const providersAreSet = providers.length > 0;
-
-  useEffect(() => {
-    const getWorkspaceRepo = async () => {
-      const { success, data, errorMessage } =
-        await getAllDataSourcesByWorkspaceId(selectedWorkspaceId);
-      if (success) {
-        const firstLinkedRepo = data.filter(
-          (source: any) => source.type === "GIT_REPOSITORY",
-        )[0];
-        if (firstLinkedRepo) {
-          setLinkedRepo(firstLinkedRepo);
-        } else {
-          setLinkedRepo(undefined);
-        }
-      }
-    };
-
-    getWorkspaceRepo();
-  }, [selectedWorkspaceId]);
 
   return (
     <div
@@ -57,12 +34,7 @@ function HomeScreen() {
         <RepoConnector
           onRepoSelection={(title) => setSelectedRepoTitle(title)}
           onBranchSelection={(_) => {}}
-          heading={
-            linkedRepo
-              ? "Repository Connected"
-              : "Connect a Repository to a Workspace"
-          }
-          linkedRepo={linkedRepo}
+          heading={"Connect a Repository to a Workspace"}
         />
         <hr className="md:hidden border-[#717888]" />
         {providersAreSet && <TaskSuggestions filterFor={selectedRepoTitle} />}

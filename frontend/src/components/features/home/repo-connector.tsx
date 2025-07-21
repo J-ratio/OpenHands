@@ -5,6 +5,9 @@ import { useConfig } from "#/hooks/query/use-config";
 import { RepoProviderLinks } from "./repo-provider-links";
 import { useUserProviders } from "#/hooks/use-user-providers";
 import { GitRepository } from "#/types/git";
+import { useEffect, useState } from "react";
+import { getAllDataSourcesByWorkspaceId } from "#/api/data-sources";
+import { useWorkspace } from "#/context/WorkspaceContext";
 
 function dataSourceToGitRepository(ds: DataSource): GitRepository {
   // TODO: make it dynamic here
@@ -33,7 +36,6 @@ interface RepoConnectorProps {
   displayLaunchButton?: boolean;
   heading?: string;
   message?: string;
-  linkedRepo?: DataSource;
 }
 
 export function RepoConnector({
@@ -42,11 +44,37 @@ export function RepoConnector({
   displayLaunchButton = true,
   heading,
   message,
-  linkedRepo,
 }: RepoConnectorProps) {
   const { providers } = useUserProviders();
   const { data: config } = useConfig();
   const { t } = useTranslation();
+  const { selectedWorkspaceId } = useWorkspace();
+  const [linkedRepo, setLinkedRepo] = useState<DataSource | undefined>(
+    undefined,
+  );
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    if (!selectedWorkspaceId) {
+      setLinkedRepo(undefined);
+      return;
+    }
+
+    async function fetchLinkedRepo() {
+      const res = await getAllDataSourcesByWorkspaceId(selectedWorkspaceId);
+      if (res.success && Array.isArray(res.data)) {
+        const repo = res.data.find(
+          (ds: DataSource) => ds.type === "GIT_REPOSITORY",
+        );
+        setLinkedRepo(repo);
+      } else {
+        setLinkedRepo(undefined);
+      }
+    }
+    fetchLinkedRepo();
+  }, [selectedWorkspaceId, refreshKey]);
+
+  const handleRefreshLinkedRepo = () => setRefreshKey((k) => k + 1);
 
   const isSaaS = config?.APP_MODE === "saas";
   const providersAreSet = providers.length > 0;
@@ -81,6 +109,7 @@ export function RepoConnector({
           linkedRepo={
             linkedRepo ? dataSourceToGitRepository(linkedRepo) : undefined
           }
+          onLinkedRepoChanged={handleRefreshLinkedRepo}
         />
       )}
 

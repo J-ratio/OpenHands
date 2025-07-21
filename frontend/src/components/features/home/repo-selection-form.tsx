@@ -28,6 +28,7 @@ interface RepositorySelectionFormProps {
   displayLaunchButton?: boolean;
   displayLinkUnlinkButton?: boolean;
   linkedRepo?: GitRepository | null;
+  onLinkedRepoChanged?: () => void;
 }
 
 export function RepositorySelectionForm({
@@ -36,6 +37,7 @@ export function RepositorySelectionForm({
   displayLaunchButton = true,
   displayLinkUnlinkButton = false,
   linkedRepo = null,
+  onLinkedRepoChanged,
 }: RepositorySelectionFormProps) {
   const [selectedRepository, setSelectedRepository] =
     React.useState<GitRepository | null>(linkedRepo);
@@ -185,6 +187,7 @@ export function RepositorySelectionForm({
         toast.error(errorMessage || "Failed to link repo");
       } else {
         toast.success("Repo linked successfully");
+        if (onLinkedRepoChanged) onLinkedRepoChanged();
       }
     }
 
@@ -195,6 +198,7 @@ export function RepositorySelectionForm({
         toast.error(errorMessage || "Failed to unlink repo");
       } else {
         toast.success("Repo unlinked successfully");
+        if (onLinkedRepoChanged) onLinkedRepoChanged();
       }
     }
 
