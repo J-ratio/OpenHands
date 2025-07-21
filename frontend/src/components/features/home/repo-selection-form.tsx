@@ -17,7 +17,7 @@ import {
   BranchLoadingState,
   BranchErrorState,
 } from "./repository-selection";
-import { createADatasource } from "#/api/data-sources";
+import { createADatasource, deleteADataSource } from "#/api/data-sources";
 import { toast } from "sonner";
 import { useWorkspace } from "#/context/WorkspaceContext";
 import { composeRepoUrl } from "#/utils/map-provider";
@@ -26,7 +26,7 @@ interface RepositorySelectionFormProps {
   onRepoSelection: (repoTitle: string | null) => void;
   onBranchSelection: (branchName: string | null) => void;
   displayLaunchButton?: boolean;
-  displayLinkButton?: boolean;
+  displayLinkUnlinkButton?: boolean;
   linkedRepo?: GitRepository | null;
 }
 
@@ -34,7 +34,7 @@ export function RepositorySelectionForm({
   onRepoSelection,
   onBranchSelection,
   displayLaunchButton = true,
-  displayLinkButton = false,
+  displayLinkUnlinkButton = false,
   linkedRepo = null,
 }: RepositorySelectionFormProps) {
   const [selectedRepository, setSelectedRepository] =
@@ -66,6 +66,8 @@ export function RepositorySelectionForm({
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const { data: searchedRepos } = useSearchRepositories(debouncedSearchQuery);
 
+  const { selectedWorkspaceId } = useWorkspace();
+
   // Auto-select main or master branch if it exists, but only if the branch wasn't manually cleared
   React.useEffect(() => {
     if (
@@ -94,8 +96,13 @@ export function RepositorySelectionForm({
     if (linkedRepo) {
       setSelectedRepository(linkedRepo);
       onRepoSelection(linkedRepo.full_name);
+    } else {
+      setSelectedRepository(null);
+      onRepoSelection(null);
+      setSelectedBranch(null);
+      onBranchSelection(null);
     }
-  }, [linkedRepo]);
+  }, [linkedRepo, selectedWorkspaceId]);
 
   // We check for isSuccess because the app might require time to render
   // into the new conversation screen after the conversation is created.
@@ -181,6 +188,16 @@ export function RepositorySelectionForm({
       }
     }
 
+    async function unlinkRepoFromWorkspace(dataSourceId: string) {
+      const { success, errorMessage } = await deleteADataSource(dataSourceId);
+
+      if (!success) {
+        toast.error(errorMessage || "Failed to unlink repo");
+      } else {
+        toast.success("Repo unlinked successfully");
+      }
+    }
+
     if (isLoadingRepositories) {
       return <RepositoryLoadingState />;
     }
@@ -224,24 +241,36 @@ export function RepositorySelectionForm({
             }
           />
         </div>
-        {displayLinkButton && (
-          <BrandButton
-            testId="repo-link-button"
-            variant="primary"
-            type="button"
-            isDisabled={
-              !!linkedRepo ||
-              !selectedRepository ||
-              isCreatingConversation ||
-              isLoadingRepositories ||
-              isRepositoriesError
-            }
-            onClick={linkRepoToWorkspace}
-            className="ml-2 w-20"
-          >
-            Link
-          </BrandButton>
-        )}
+        {displayLinkUnlinkButton ? (
+          !linkedRepo ? (
+            <BrandButton
+              testId="repo-link-button"
+              variant="primary"
+              type="button"
+              isDisabled={
+                !!linkedRepo ||
+                !selectedRepository ||
+                isCreatingConversation ||
+                isLoadingRepositories ||
+                isRepositoriesError
+              }
+              onClick={linkRepoToWorkspace}
+              className="ml-2 w-20"
+            >
+              Link
+            </BrandButton>
+          ) : (
+            <BrandButton
+              testId="repo-link-button"
+              variant="primary"
+              type="button"
+              onClick={() => unlinkRepoFromWorkspace(linkedRepo.id)}
+              className="ml-2 w-20"
+            >
+              UnLink
+            </BrandButton>
+          )
+        ) : null}
       </div>
     );
   };
@@ -277,8 +306,6 @@ export function RepositorySelectionForm({
       />
     );
   };
-
-  const { selectedWorkspaceId } = useWorkspace();
 
   return (
     <div className="flex flex-col gap-4">

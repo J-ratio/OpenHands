@@ -77,7 +77,7 @@ export function RepoConnector({
           onRepoSelection={onRepoSelection}
           onBranchSelection={onBranchSelection}
           displayLaunchButton={displayLaunchButton}
-          displayLinkButton={true}
+          displayLinkUnlinkButton={true}
           linkedRepo={
             linkedRepo ? dataSourceToGitRepository(linkedRepo) : undefined
           }
