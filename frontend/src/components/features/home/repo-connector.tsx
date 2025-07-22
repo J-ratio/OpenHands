@@ -6,9 +6,14 @@ import { RepoProviderLinks } from "./repo-provider-links";
 import { useUserProviders } from "#/hooks/use-user-providers";
 import { GitRepository } from "#/types/git";
 import React, { useEffect, useState } from "react";
-import { getAllDataSourcesByWorkspaceId } from "#/api/data-sources";
+import {
+  deleteADataSource,
+  getAllDataSourcesByWorkspaceId,
+} from "#/api/data-sources";
 import { useWorkspace } from "#/context/WorkspaceContext";
 import NewCodebaseInput from "../workspaces/components/new-codebase-input";
+import { BrandButton } from "../settings/brand-button";
+import { toast } from "sonner";
 
 function dataSourceToGitRepository(ds: DataSource): GitRepository {
   // TODO: make it dynamic here
@@ -82,6 +87,17 @@ export function RepoConnector({
   const isSaaS = config?.APP_MODE === "saas";
   const providersAreSet = providers.length > 0;
 
+  async function unlinkRepoFromWorkspace(dataSourceId: string) {
+    const { success, errorMessage } = await deleteADataSource(dataSourceId);
+
+    if (!success) {
+      toast.error(errorMessage || "Failed to unlink repo");
+    } else {
+      toast.success("Repo unlinked successfully");
+      handleRefreshLinkedRepo();
+    }
+  }
+
   return (
     <section
       data-testid="repo-connector"
@@ -107,7 +123,7 @@ export function RepoConnector({
         </button>
       </div>
 
-      {selectedTab === "private" && (
+      {/* {selectedTab === "private" && (
         <>
           {linkedRepo && (
             <p>
@@ -121,6 +137,52 @@ export function RepoConnector({
                 {linkedRepo?.name}
               </a>
             </p>
+          )}
+
+          {linkedRepo && !providersAreSet && (
+            <BrandButton
+              testId="repo-link-button"
+              variant="primary"
+              type="button"
+              onClick={() =>
+                unlinkRepoFromWorkspace(linkedRepo?.id?.toString() ?? "")
+              }
+              className="ml-2 w-20"
+            >
+              UnLink
+            </BrandButton>
+          )} */}
+
+      {selectedTab === "private" && (
+        <>
+          {linkedRepo && (
+            <div className="flex items-center gap-8 flex-wrap">
+              <p className="flex items-center">
+                This workspace is connected to the repo:
+                <a
+                  href={linkedRepo?.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 underline underline-offset-2 hover:text-blue-300 transition-colors ml-1"
+                >
+                  {linkedRepo?.name}
+                </a>
+              </p>
+
+              {!providersAreSet && (
+                <BrandButton
+                  testId="repo-link-button"
+                  variant="primary"
+                  type="button"
+                  onClick={() =>
+                    unlinkRepoFromWorkspace(linkedRepo?.id?.toString() ?? "")
+                  }
+                  className="w-20"
+                >
+                  Unlink
+                </BrandButton>
+              )}
+            </div>
           )}
 
           {!providersAreSet && <ConnectToProviderMessage message={message} />}

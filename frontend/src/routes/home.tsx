@@ -17,7 +17,6 @@ function HomeScreen() {
   const [selectedRepoTitle, setSelectedRepoTitle] = React.useState<
     string | null
   >(null);
-  const { selectedWorkspaceId } = useWorkspace();
 
   const providersAreSet = providers.length > 0;
 
