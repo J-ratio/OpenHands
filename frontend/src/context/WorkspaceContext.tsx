@@ -6,12 +6,16 @@ import React, {
   useEffect,
 } from "react";
 import { useSettings } from "#/hooks/query/use-settings";
+import { DataSource } from "#/components/features/home/repo-connector";
+import { getAllDataSourcesByWorkspaceId } from "#/api/data-sources";
 
 interface WorkspaceContextType {
   selectedWorkspaceId: string | undefined;
   setSelectedWorkspaceId: (id: string | undefined) => void;
   workspaces: any[];
   setWorkspaces: (workspaces: any[]) => void;
+  linkedRepo: DataSource | undefined;
+  handleRefreshLinkedRepo: () => void;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(
@@ -24,12 +28,37 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     string | undefined
   >(settings?.ACTIVE_WORKSPACE_ID || undefined);
   const [workspaces, setWorkspaces] = useState<any[]>([]);
+  const [linkedRepo, setLinkedRepo] = useState<DataSource | undefined>(
+    undefined,
+  );
+  const [refreshKey, setRefreshKey] = useState<number>(0);
+
+  const handleRefreshLinkedRepo = () => setRefreshKey((k) => k + 1);
+
+  async function fetchLinkedRepo() {
+    const res = await getAllDataSourcesByWorkspaceId(selectedWorkspaceId);
+    if (res.success && Array.isArray(res.data)) {
+      const repo = res.data.find(
+        (ds: DataSource) => ds.type === "GIT_REPOSITORY",
+      );
+      setLinkedRepo(repo);
+    } else {
+      setLinkedRepo(undefined);
+    }
+  }
 
   useEffect(() => {
     if (settings?.ACTIVE_WORKSPACE_ID) {
       setSelectedWorkspaceId(settings.ACTIVE_WORKSPACE_ID);
+      fetchLinkedRepo();
+    } else {
+      setLinkedRepo(undefined);
     }
   }, [settings?.ACTIVE_WORKSPACE_ID]);
+
+  useEffect(() => {
+    fetchLinkedRepo();
+  }, [refreshKey]);
 
   return (
     <WorkspaceContext.Provider
@@ -38,6 +67,8 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
         setSelectedWorkspaceId,
         workspaces,
         setWorkspaces,
+        linkedRepo,
+        handleRefreshLinkedRepo,
       }}
     >
       {children}

@@ -54,35 +54,11 @@ export function RepoConnector({
   const { providers } = useUserProviders();
   const { data: config } = useConfig();
   const { t } = useTranslation();
-  const { selectedWorkspaceId } = useWorkspace();
-  const [linkedRepo, setLinkedRepo] = useState<DataSource | undefined>(
-    undefined,
-  );
-  const [refreshKey, setRefreshKey] = useState(0);
+  const { selectedWorkspaceId, linkedRepo, handleRefreshLinkedRepo } =
+    useWorkspace();
   const [selectedTab, setSelectedTab] = useState<"private" | "public">(
     "private",
   );
-
-  useEffect(() => {
-    if (!selectedWorkspaceId) {
-      setLinkedRepo(undefined);
-      return;
-    }
-    async function fetchLinkedRepo() {
-      const res = await getAllDataSourcesByWorkspaceId(selectedWorkspaceId);
-      if (res.success && Array.isArray(res.data)) {
-        const repo = res.data.find(
-          (ds: DataSource) => ds.type === "GIT_REPOSITORY",
-        );
-        setLinkedRepo(repo);
-      } else {
-        setLinkedRepo(undefined);
-      }
-    }
-    fetchLinkedRepo();
-  }, [selectedWorkspaceId, refreshKey]);
-
-  const handleRefreshLinkedRepo = () => setRefreshKey((k) => k + 1);
 
   const isSaaS = config?.APP_MODE === "saas";
   const providersAreSet = providers.length > 0;

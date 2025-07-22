@@ -8,7 +8,6 @@ import {
 import { TaskSuggestions } from "#/components/features/home/tasks/task-suggestions";
 import { useUserProviders } from "#/hooks/use-user-providers";
 import { ToolsSection } from "#/components/features/home/tools/tool-section";
-import { useWorkspace } from "#/context/WorkspaceContext";
 
 <PrefetchPageLinks page="/conversations/:conversationId" />;
 
