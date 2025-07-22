@@ -82,22 +82,24 @@ export function RepoConnector({
       <h2 className="heading">{heading ?? t("HOME$CONNECT_TO_REPOSITORY")}</h2>
 
       {/* Tab Bar */}
-      <div className="flex gap-2 max-w-md">
-        <button
-          className={`px-20 py-2 rounded-t-md border-b-2 transition-colors ${selectedTab === "private" ? "border-blue-500 bg-tertiary" : "border-transparent bg-transparent"}`}
-          onClick={() => setSelectedTab("private")}
-          type="button"
-        >
-          Private
-        </button>
-        <button
-          className={`px-20 py-2 rounded-t-md border-b-2 transition-colors ${selectedTab === "public" ? "border-blue-500 bg-tertiary" : "border-transparent bg-transparent"}`}
-          onClick={() => setSelectedTab("public")}
-          type="button"
-        >
-          Public
-        </button>
-      </div>
+      {!linkedRepo && (
+        <div className="flex gap-2 max-w-md">
+          <button
+            className={`px-20 py-2 rounded-t-md border-b-2 transition-colors ${selectedTab === "private" ? "border-blue-500 bg-tertiary" : "border-transparent bg-transparent"}`}
+            onClick={() => setSelectedTab("private")}
+            type="button"
+          >
+            Private
+          </button>
+          <button
+            className={`px-20 py-2 rounded-t-md border-b-2 transition-colors ${selectedTab === "public" ? "border-blue-500 bg-tertiary" : "border-transparent bg-transparent"}`}
+            onClick={() => setSelectedTab("public")}
+            type="button"
+          >
+            Public
+          </button>
+        </div>
+      )}
 
       {/* {selectedTab === "private" && (
         <>
