@@ -17,20 +17,30 @@ import {
   BranchLoadingState,
   BranchErrorState,
 } from "./repository-selection";
+import { createADatasource, deleteADataSource } from "#/api/data-sources";
+import { toast } from "sonner";
+import { useWorkspace } from "#/context/WorkspaceContext";
+import { composeRepoUrl } from "#/utils/map-provider";
 
 interface RepositorySelectionFormProps {
   onRepoSelection: (repoTitle: string | null) => void;
   onBranchSelection: (branchName: string | null) => void;
   displayLaunchButton?: boolean;
+  displayLinkUnlinkButton?: boolean;
+  linkedRepo?: GitRepository | null;
+  onLinkedRepoChanged?: () => void;
 }
 
 export function RepositorySelectionForm({
   onRepoSelection,
   onBranchSelection,
   displayLaunchButton = true,
+  displayLinkUnlinkButton = false,
+  linkedRepo = null,
+  onLinkedRepoChanged,
 }: RepositorySelectionFormProps) {
   const [selectedRepository, setSelectedRepository] =
-    React.useState<GitRepository | null>(null);
+    React.useState<GitRepository | null>(linkedRepo);
   const [selectedBranch, setSelectedBranch] = React.useState<Branch | null>(
     null,
   );
@@ -58,6 +68,8 @@ export function RepositorySelectionForm({
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const { data: searchedRepos } = useSearchRepositories(debouncedSearchQuery);
 
+  const { selectedWorkspaceId } = useWorkspace();
+
   // Auto-select main or master branch if it exists, but only if the branch wasn't manually cleared
   React.useEffect(() => {
     if (
@@ -81,6 +93,18 @@ export function RepositorySelectionForm({
       }
     }
   }, [branches, isLoadingBranches, selectedBranch]);
+
+  React.useEffect(() => {
+    if (linkedRepo) {
+      setSelectedRepository(linkedRepo);
+      onRepoSelection(linkedRepo.full_name);
+    } else {
+      setSelectedRepository(null);
+      onRepoSelection(null);
+      setSelectedBranch(null);
+      onBranchSelection(null);
+    }
+  }, [linkedRepo, selectedWorkspaceId]);
 
   // We check for isSuccess because the app might require time to render
   // into the new conversation screen after the conversation is created.
@@ -141,8 +165,43 @@ export function RepositorySelectionForm({
     }
   };
 
-  // Render the appropriate UI based on the loading/error state
-  const renderRepositorySelector = () => {
+  const renderRepositorySelector = (
+    selectedWorkspaceId: string | undefined,
+  ) => {
+    async function linkRepoToWorkspace() {
+      const repoUrl = selectedRepository
+        ? composeRepoUrl(
+            selectedRepository.git_provider,
+            selectedRepository.full_name,
+          )
+        : "";
+      const { success, errorMessage } = await createADatasource({
+        name: null,
+        type: "GIT_REPOSITORY",
+        url: repoUrl,
+        workspace_ids: [selectedWorkspaceId],
+        PAT_TOKEN: "",
+      });
+
+      if (!success) {
+        toast.error(errorMessage || "Failed to link repo");
+      } else {
+        toast.success("Repo linked successfully");
+        if (onLinkedRepoChanged) onLinkedRepoChanged();
+      }
+    }
+
+    async function unlinkRepoFromWorkspace(dataSourceId: string) {
+      const { success, errorMessage } = await deleteADataSource(dataSourceId);
+
+      if (!success) {
+        toast.error(errorMessage || "Failed to unlink repo");
+      } else {
+        toast.success("Repo unlinked successfully");
+        if (onLinkedRepoChanged) onLinkedRepoChanged();
+      }
+    }
+
     if (isLoadingRepositories) {
       return <RepositoryLoadingState />;
     }
@@ -152,20 +211,71 @@ export function RepositorySelectionForm({
     }
 
     return (
-      <RepositoryDropdown
-        items={repositoriesItems || []}
-        onSelectionChange={handleRepoSelection}
-        onInputChange={handleRepoInputChange}
-        defaultFilter={(textValue, inputValue) => {
-          if (!inputValue) return true;
+      <div className="flex items-center w-full">
+        <div className="flex-1 max-w-[500px]">
+          <RepositoryDropdown
+            items={repositoriesItems || []}
+            onSelectionChange={handleRepoSelection}
+            onInputChange={handleRepoInputChange}
+            defaultFilter={(textValue, inputValue) => {
+              if (!inputValue) return true;
 
-          const repo = allRepositories?.find((r) => r.full_name === textValue);
-          if (!repo) return false;
+              const repo = allRepositories?.find(
+                (r) => r.full_name === textValue,
+              );
+              if (!repo) return false;
 
-          const sanitizedInput = sanitizeQuery(inputValue);
-          return sanitizeQuery(textValue).includes(sanitizedInput);
-        }}
-      />
+              const sanitizedInput = sanitizeQuery(inputValue);
+              return sanitizeQuery(textValue).includes(sanitizedInput);
+            }}
+            isDisabled={!!linkedRepo}
+            selectedKey={
+              linkedRepo
+                ? (repositoriesItems || []).find(
+                    (item) =>
+                      item.label === decodeURIComponent(linkedRepo.full_name),
+                  )?.key
+                : selectedRepository
+                  ? (repositoriesItems || []).find(
+                      (item) =>
+                        item.label ===
+                        decodeURIComponent(selectedRepository.full_name),
+                    )?.key
+                  : undefined
+            }
+          />
+        </div>
+        {displayLinkUnlinkButton ? (
+          !linkedRepo ? (
+            <BrandButton
+              testId="repo-link-button"
+              variant="primary"
+              type="button"
+              isDisabled={
+                !!linkedRepo ||
+                !selectedRepository ||
+                isCreatingConversation ||
+                isLoadingRepositories ||
+                isRepositoriesError
+              }
+              onClick={linkRepoToWorkspace}
+              className="ml-2 w-20"
+            >
+              Link
+            </BrandButton>
+          ) : (
+            <BrandButton
+              testId="repo-link-button"
+              variant="primary"
+              type="button"
+              onClick={() => unlinkRepoFromWorkspace(linkedRepo.id)}
+              className="ml-2 w-20"
+            >
+              UnLink
+            </BrandButton>
+          )
+        ) : null}
+      </div>
     );
   };
 
@@ -203,7 +313,7 @@ export function RepositorySelectionForm({
 
   return (
     <div className="flex flex-col gap-4">
-      {renderRepositorySelector()}
+      {renderRepositorySelector(selectedWorkspaceId)}
 
       {renderBranchSelector()}
 

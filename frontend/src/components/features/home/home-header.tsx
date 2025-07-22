@@ -41,13 +41,20 @@ export function HomeHeader() {
 
   return (
     <header className="flex flex-col gap-5">
-      <div className="flex w-full justify-end">
-        <WorkspaceSelect
-          selectedWorkspace={selectedWorkspaceId && Number(selectedWorkspaceId)}
-          setSelectedWorkspace={setSelectedWorkspaceId}
-          workspaces={workspaces}
-          setWorkspaces={setWorkspaces}
-        />
+      <div className="flex w-full justify-end home-workspace-select-highlight flex-col items-end">
+        <div className="flex flex-col items-start w-[200px]">
+          <span className="mb-1 text-base font-semibold text-blue-300">
+            Workspace:
+          </span>
+          <WorkspaceSelect
+            selectedWorkspace={
+              selectedWorkspaceId && Number(selectedWorkspaceId)
+            }
+            setSelectedWorkspace={setSelectedWorkspaceId}
+            workspaces={workspaces}
+            setWorkspaces={setWorkspaces}
+          />
+        </div>
       </div>
 
       <H2LoopLogo width={100} height={100} />

@@ -63,3 +63,18 @@ code {
   scroll-behavior: smooth;
   scroll-timeline: 100ms;
 }
+
+/* Highlight the workspace select on the homepage */
+.home-workspace-select-highlight .radix-select-trigger,
+.home-workspace-select-highlight .bg-neutral-900.text-neutral-100.border.border-neutral-700 {
+  border: 2px solid #2563eb !important; /* blue-600 */
+  box-shadow: 0 0 0 2px #2563eb33;
+}
+
+.home-workspace-select-highlight .radix-select-trigger .radix-select-value,
+.home-workspace-select-highlight .text-neutral-500 {
+  color: #2563eb !important; /* blue-600 */
+  font-weight: bold;
+}
+
+/* Optionally, you can further style the dropdown if needed */

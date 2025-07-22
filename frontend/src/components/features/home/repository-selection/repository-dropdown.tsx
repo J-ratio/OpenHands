@@ -6,6 +6,8 @@ export interface RepositoryDropdownProps {
   onSelectionChange: (key: React.Key | null) => void;
   onInputChange: (value: string) => void;
   defaultFilter?: (textValue: string, inputValue: string) => boolean;
+  isDisabled?: boolean;
+  selectedKey?: string;
 }
 
 export function RepositoryDropdown({
@@ -13,6 +15,8 @@ export function RepositoryDropdown({
   onSelectionChange,
   onInputChange,
   defaultFilter,
+  isDisabled,
+  selectedKey,
 }: RepositoryDropdownProps) {
   return (
     <SettingsDropdownInput
@@ -24,6 +28,8 @@ export function RepositoryDropdown({
       onSelectionChange={onSelectionChange}
       onInputChange={onInputChange}
       defaultFilter={defaultFilter}
+      isDisabled={isDisabled}
+      selectedKey={selectedKey}
     />
   );
 }

@@ -25,7 +25,7 @@ import { useAuthCallback } from "#/hooks/use-auth-callback";
 import { LOCAL_STORAGE_KEYS } from "#/utils/local-storage";
 import { EmailVerificationGuard } from "#/components/features/guards/email-verification-guard";
 import { Toaster } from "../components/ui/sonner";
-import { WorkspaceProvider } from "../context/WorkspaceContext";
+import { WorkspaceProvider } from "#/context/WorkspaceContext";
 
 export function ErrorBoundary() {
   const error = useRouteError();

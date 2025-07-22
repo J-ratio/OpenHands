@@ -12,6 +12,7 @@ import { SettingsInput } from "../../settings/settings-input";
 import { useUserProviders } from "#/hooks/use-user-providers";
 import toast from "#/utils/toast";
 import { useTranslation } from "react-i18next";
+import { useWorkspace } from "#/context/WorkspaceContext";
 
 const DialogContent = RawDialogContent as React.FC<
   React.PropsWithChildren<any>
@@ -35,9 +36,10 @@ export function ToolModal({
   const { providers } = useUserProviders();
   const { t } = useTranslation();
 
+  const { linkedRepo } = useWorkspace();
   const [selectedRepoTitle, setSelectedRepoTitle] = React.useState<
     string | null
-  >(null);
+  >(linkedRepo?.name ?? "");
   const [selectedBranchName, setSelectedBranchName] = React.useState<
     string | null
   >(null);
@@ -86,7 +88,7 @@ export function ToolModal({
                 message={t("TODO$CONNECT_PROVIDER_MESSAGE")}
               />
             </div>
-            {providersAreSet && title === "Generate Class Diagram" && (
+            {linkedRepo && title === "Generate Class Diagram" && (
               <div className="flex flex-col items-center w-full max-w-md mx-auto mt-4">
                 <SettingsInput
                   label="Class Name"
@@ -98,7 +100,7 @@ export function ToolModal({
                 />
               </div>
             )}
-            {providersAreSet && (
+            {linkedRepo && (
               <div className="flex justify-center w-full">
                 <BrandButton
                   testId="tool-generate-button"
@@ -107,7 +109,6 @@ export function ToolModal({
                   className="mt-4 max-w-md w-full text-lg font-bold"
                   isDisabled={
                     !selectedRepoTitle ||
-                    !selectedBranchName ||
                     (title === "Generate Class Diagram" && !className.trim())
                   }
                   onClick={() => {

@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { PrefetchPageLinks } from "react-router";
 import { HomeHeader } from "#/components/features/home/home-header";
-import { RepoConnector } from "#/components/features/home/repo-connector";
+import {
+  DataSource,
+  RepoConnector,
+} from "#/components/features/home/repo-connector";
 import { TaskSuggestions } from "#/components/features/home/tasks/task-suggestions";
 import { useUserProviders } from "#/hooks/use-user-providers";
 import { ToolsSection } from "#/components/features/home/tools/tool-section";
@@ -29,6 +32,7 @@ function HomeScreen() {
         <RepoConnector
           onRepoSelection={(title) => setSelectedRepoTitle(title)}
           onBranchSelection={(_) => {}}
+          heading={"Connect a Repository to a Workspace"}
         />
         <hr className="md:hidden border-[#717888]" />
         {providersAreSet && <TaskSuggestions filterFor={selectedRepoTitle} />}

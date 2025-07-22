@@ -29,3 +29,20 @@ export const mapProvider = (provider: string) =>
   Object.keys(MAP_PROVIDER).includes(provider)
     ? MAP_PROVIDER[provider as keyof typeof MAP_PROVIDER]
     : provider;
+
+/**
+ * Compose a repository URL from a git provider and full_name.
+ * @param provider - The git provider (e.g., 'github', 'gitlab', 'bitbucket')
+ * @param fullName - The full name of the repository (e.g., 'user/repo')
+ * @returns The full URL to the repository on the provider.
+ */
+export function composeRepoUrl(provider: string, fullName: string): string {
+  if (provider === "github") {
+    return `https://github.com/${fullName}`;
+  } else if (provider === "gitlab") {
+    return `https://gitlab.com/${fullName}`;
+  } else if (provider === "bitbucket") {
+    return `https://bitbucket.org/${fullName}`;
+  }
+  return "";
+}
