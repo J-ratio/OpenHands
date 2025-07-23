@@ -17,7 +17,6 @@ const TemplatePage = () => {
   const navigate = useNavigate();
 
   async function getData() {
-    setLoading(true);
     const data = await getAllTemplates();
     if (data.success) {
       setData(data.data);
@@ -71,7 +70,11 @@ const TemplatePage = () => {
                 <div className="text-lg text-gray-500">No templates found</div>
               )}
               {data?.map((template, _idx) => (
-                <TemplateCard key={"template-" + _idx} data={template} />
+                <TemplateCard
+                  key={"template-" + _idx}
+                  data={template}
+                  onDeleteTemplate={getData}
+                />
               ))}
             </div>
           )}
