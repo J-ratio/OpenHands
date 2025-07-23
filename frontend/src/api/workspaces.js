@@ -116,6 +116,36 @@ export const getASingleWorkspace = async (workspaceId) => {
   }
 };
 
+export const deleteWorkspace = async (id) => {
+  try {
+    const { isAuthenticated, token, message } = getAuthStatus();
+
+    if (!isAuthenticated) {
+      return {
+        errorMessage: message,
+        success: false,
+      };
+    }
+
+    const res = await axios.delete(routes.deleteWorkspace(id), {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return {
+      data: res.data,
+      success: true,
+    };
+  } catch (error) {
+    handleError(routes.deleteWorkspace(id), error);
+    return {
+      errorMessage: error?.response?.data?.detail,
+      success: false,
+    };
+  }
+};
+
 export const generateRepoDocumentationForAWorkspace = async (workspaceId) => {
   try {
     const { isAuthenticated, token, message } = getAuthStatus();
