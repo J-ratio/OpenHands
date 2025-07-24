@@ -10,6 +10,8 @@ import { DataSource } from "#/components/features/home/repo-connector";
 import { getAllDataSourcesByWorkspaceId } from "#/api/data-sources";
 
 interface WorkspaceContextType {
+  selectedWorkspace: any;
+  setSelectedWorkspace: (workspace: any) => void;
   selectedWorkspaceId: string | undefined;
   setSelectedWorkspaceId: (id: string | undefined) => void;
   workspaces: any[];
@@ -24,6 +26,7 @@ const WorkspaceContext = createContext<WorkspaceContextType | undefined>(
 
 export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   const { data: settings } = useSettings();
+  const [selectedWorkspace, setSelectedWorkspace] = useState();
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<
     string | undefined
   >(settings?.ACTIVE_WORKSPACE_ID || undefined);
@@ -67,6 +70,8 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   return (
     <WorkspaceContext.Provider
       value={{
+        selectedWorkspace,
+        setSelectedWorkspace,
         selectedWorkspaceId,
         setSelectedWorkspaceId,
         workspaces,

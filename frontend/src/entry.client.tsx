@@ -16,7 +16,6 @@ import store from "./store";
 import OpenHands from "./api/open-hands";
 import { displayErrorToast } from "./utils/custom-toast-handlers";
 import { queryClient } from "./query-client-config";
-import { WorkspaceProvider } from "./context/WorkspaceContext";
 
 function PosthogInit() {
   const [posthogClientKey, setPosthogClientKey] = React.useState<string | null>(
