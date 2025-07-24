@@ -14,6 +14,7 @@ import { KeyStatusIcon } from "#/components/features/settings/key-status-icon";
 import { SettingsInput } from "#/components/features/settings/settings-input";
 import { useSaveSettings } from "#/hooks/mutation/use-save-settings";
 import { extractModelAndProvider } from "#/utils/extract-model-and-provider";
+import { useWorkspace } from "#/context/WorkspaceContext";
 
 interface SettingsFormProps {
   settings: Settings;
@@ -34,6 +35,7 @@ export function SettingsForm({ settings, models, onClose }: SettingsFormProps) {
   const formRef = React.useRef<HTMLFormElement>(null);
   const [confirmEndSessionModalOpen, setConfirmEndSessionModalOpen] =
     React.useState(false);
+  const { selectedWorkspaceId } = useWorkspace();
 
   const initialModel = settings.LLM_MODEL;
   const initialProvider = extractModelAndProvider(initialModel).provider;
@@ -55,7 +57,11 @@ export function SettingsForm({ settings, models, onClose }: SettingsFormProps) {
   );
 
   const handleFormSubmission = async (formData: FormData) => {
-    const newSettings = extractSettings(formData);
+    const newSettings = {
+      ...extractSettings(formData),
+      ACTIVE_WORKSPACE_ID: selectedWorkspaceId?.toString(),
+    };
+    console.log(newSettings);
     await saveUserSettings(newSettings, {
       onSuccess: () => {
         onClose();

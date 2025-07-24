@@ -16,8 +16,8 @@ const WorkspaceCard = ({ workspace, dataSources, onDeleteWorkspace }) => {
   const files = dataSources?.filter((source) => source.type === "FILE");
 
   const truncatedDescription =
-    workspace?.description?.length > 90
-      ? `${workspace.description.slice(0, 90)}...`
+    workspace?.description?.length > 100
+      ? `${workspace.description.slice(0, 100)}...`
       : workspace?.description || null;
 
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);

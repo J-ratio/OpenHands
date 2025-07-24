@@ -6,6 +6,7 @@ import H2LoopLogo from "#/assets/branding/h2loop-logo.svg?react";
 import { useWorkspace } from "#/context/WorkspaceContext";
 import { useSaveSettings } from "#/hooks/mutation/use-save-settings";
 import { useEffect } from "react";
+import { useSettings } from "#/hooks/query/use-settings";
 
 export function HomeHeader() {
   const {
@@ -15,6 +16,7 @@ export function HomeHeader() {
   } = useCreateConversation();
   const isCreatingConversationElsewhere = useIsCreatingConversation();
   const { t } = useTranslation();
+  const { data: settings } = useSettings();
 
   // We check for isSuccess because the app might require time to render
   // into the new conversation screen after the conversation is created.
@@ -28,7 +30,7 @@ export function HomeHeader() {
   const { mutate: saveUserSettings } = useSaveSettings();
 
   useEffect(() => {
-    if (!selectedWorkspaceId) return;
+    if (!selectedWorkspaceId || !settings?.LLM_MODEL) return;
     saveUserSettings({ ACTIVE_WORKSPACE_ID: selectedWorkspaceId?.toString() });
   }, [selectedWorkspaceId]);
 

@@ -29,6 +29,8 @@ export const WorkspaceSelect = ({
       setData(response.data);
       if (workspaces) workspaces = response.data;
       if (setWorkspaces) setWorkspaces(response.data);
+      if (!selectedWorkspace && workspaces)
+        setSelectedWorkspace(workspaces[0].id);
     } else {
       setError(response.errorMessage);
     }

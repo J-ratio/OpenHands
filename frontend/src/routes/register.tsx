@@ -10,6 +10,7 @@ import {
 import H2LoopLogo from "#/assets/branding/h2loop-logo.svg?react";
 import { register as registerApi } from "#/api/auth-service";
 import { validateEmail } from "#/utils/validators";
+import { createWorkspace } from "#/api/workspaces";
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -33,13 +34,25 @@ export default function Register() {
     setLoading(true);
     try {
       const response = await registerApi(email, password);
+      const accessToken = response?.data?.access_token;
+      if (accessToken) {
+        localStorage.setItem("token", accessToken);
+      }
+      const createWsResponse = await createWorkspace(
+        "Default Workspace",
+        "This is your default workspace, automatically created during registration. It will be used unless you create or switch to another workspace.",
+      );
+      if (!createWsResponse.success) {
+      }
       displaySuccessToast(
         response.data.message ?? "Registration successful! Please log in.",
       );
       setTimeout(() => navigate("/login"), 100);
     } catch (err: any) {
+      console.log(err);
       const msg =
         err?.response?.data?.message ||
+        err?.response?.data?.detail ||
         "Registration failed. Please try again.";
       setError(msg);
       displayErrorToast(msg);
