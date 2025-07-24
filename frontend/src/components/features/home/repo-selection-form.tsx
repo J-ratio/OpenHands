@@ -95,7 +95,7 @@ export function RepositorySelectionForm({
   }, [branches, isLoadingBranches, selectedBranch]);
 
   React.useEffect(() => {
-    if (linkedRepo) {
+    if (linkedRepo || linkedRepo!==null) {
       setSelectedRepository(linkedRepo);
       onRepoSelection(linkedRepo.full_name);
     } else {
