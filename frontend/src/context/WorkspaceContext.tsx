@@ -10,6 +10,8 @@ import { DataSource } from "#/components/features/home/repo-connector";
 import { getAllDataSourcesByWorkspaceId } from "#/api/data-sources";
 
 interface WorkspaceContextType {
+  selectedWorkspace: any;
+  setSelectedWorkspace: (workspace: any) => void;
   selectedWorkspaceId: string | undefined;
   setSelectedWorkspaceId: (id: string | undefined) => void;
   workspaces: any[];
@@ -24,6 +26,7 @@ const WorkspaceContext = createContext<WorkspaceContextType | undefined>(
 
 export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   const { data: settings } = useSettings();
+  const [selectedWorkspace, setSelectedWorkspace] = useState();
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<
     string | undefined
   >(settings?.ACTIVE_WORKSPACE_ID || undefined);
@@ -35,8 +38,12 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
 
   const handleRefreshLinkedRepo = () => setRefreshKey((k) => k + 1);
 
-  async function fetchLinkedRepo() {
-    const res = await getAllDataSourcesByWorkspaceId(selectedWorkspaceId);
+  async function fetchLinkedRepo(workspaceId?: string) {
+    if (!workspaceId) {
+      setLinkedRepo(undefined);
+      return;
+    }
+    const res = await getAllDataSourcesByWorkspaceId(workspaceId);
     if (res.success && Array.isArray(res.data)) {
       const repo = res.data.find(
         (ds: DataSource) => ds.type === "GIT_REPOSITORY",
@@ -50,7 +57,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (settings?.ACTIVE_WORKSPACE_ID) {
       setSelectedWorkspaceId(settings.ACTIVE_WORKSPACE_ID);
-      fetchLinkedRepo();
+      fetchLinkedRepo(settings.ACTIVE_WORKSPACE_ID);
     } else {
       setLinkedRepo(undefined);
     }
@@ -63,6 +70,8 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   return (
     <WorkspaceContext.Provider
       value={{
+        selectedWorkspace,
+        setSelectedWorkspace,
         selectedWorkspaceId,
         setSelectedWorkspaceId,
         workspaces,
