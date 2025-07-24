@@ -9,6 +9,7 @@ import { ConfirmDeleteModal } from "./confirm-delete-modal";
 import { LoadingSpinner } from "#/components/shared/loading-spinner";
 import { ExitConversationModal } from "./exit-conversation-modal";
 import { useClickOutsideElement } from "#/hooks/use-click-outside-element";
+import { useWorkspace } from "#/context/WorkspaceContext";
 
 interface ConversationPanelProps {
   onClose: () => void;
@@ -19,6 +20,7 @@ export function ConversationPanel({ onClose }: ConversationPanelProps) {
   const { conversationId: currentConversationId } = useParams();
   const ref = useClickOutsideElement<HTMLDivElement>(onClose);
   const navigate = useNavigate();
+  const { selectedWorkspaceId } = useWorkspace();
 
   const [confirmDeleteModalVisible, setConfirmDeleteModalVisible] =
     React.useState(false);
@@ -60,6 +62,12 @@ export function ConversationPanel({ onClose }: ConversationPanelProps) {
       data-testid="conversation-panel"
       className="w-[350px] h-full border border-neutral-700 bg-base-secondary rounded-xl overflow-y-auto absolute"
     >
+      <div className="flex flex-col items-center justify-center mt-2 mb-4">
+        <span className="text-sm text-neutral-400 font-medium px-3 py-1 bg-neutral-800 rounded">
+          Workspace: {selectedWorkspaceId}
+        </span>
+        <div className="w-full h-px bg-neutral-700 mt-2" />
+      </div>
       {isFetching && (
         <div className="w-full h-full absolute flex justify-center items-center">
           <LoadingSpinner size="small" />
@@ -97,7 +105,6 @@ export function ConversationPanel({ onClose }: ConversationPanelProps) {
           )}
         </NavLink>
       ))}
-
       {confirmDeleteModalVisible && (
         <ConfirmDeleteModal
           onConfirm={() => {
@@ -107,7 +114,6 @@ export function ConversationPanel({ onClose }: ConversationPanelProps) {
           onCancel={() => setConfirmDeleteModalVisible(false)}
         />
       )}
-
       {confirmExitConversationModalVisible && (
         <ExitConversationModal
           onConfirm={() => {

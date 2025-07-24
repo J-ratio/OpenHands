@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
-import { isAuthenticated as checkAuth } from "#/utils/isAuth";
 import HomeScreen from "./home";
 import { useAuthTokenStatus } from "#/hooks/use-auth-token";
 

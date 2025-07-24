@@ -3,11 +3,9 @@ import { useCreateConversation } from "#/hooks/mutation/use-create-conversation"
 import { useIsCreatingConversation } from "#/hooks/use-is-creating-conversation";
 import { BrandButton } from "../settings/brand-button";
 import H2LoopLogo from "#/assets/branding/h2loop-logo.svg?react";
-import { WorkspaceSelect } from "../documents/_components/WorkspaceSelect";
 import { useWorkspace } from "#/context/WorkspaceContext";
 import { useSaveSettings } from "#/hooks/mutation/use-save-settings";
 import { useEffect } from "react";
-import toast from "#/utils/toast";
 import { useSettings } from "#/hooks/query/use-settings";
 
 export function HomeHeader() {
@@ -27,9 +25,6 @@ export function HomeHeader() {
 
   const {
     selectedWorkspaceId,
-    setSelectedWorkspaceId,
-    workspaces,
-    setWorkspaces,
   } = useWorkspace();
 
   const { mutate: saveUserSettings } = useSaveSettings();
@@ -41,22 +36,6 @@ export function HomeHeader() {
 
   return (
     <header className="flex flex-col gap-5">
-      <div className="flex w-full justify-end home-workspace-select-highlight flex-col items-end">
-        <div className="flex flex-col items-start w-[200px]">
-          <span className="mb-1 text-base font-semibold text-blue-300">
-            Workspace:
-          </span>
-          <WorkspaceSelect
-            selectedWorkspace={
-              selectedWorkspaceId && Number(selectedWorkspaceId)
-            }
-            setSelectedWorkspace={setSelectedWorkspaceId}
-            workspaces={workspaces}
-            setWorkspaces={setWorkspaces}
-          />
-        </div>
-      </div>
-
       <H2LoopLogo width={100} height={100} />
 
       <div className="flex items-center justify-between">

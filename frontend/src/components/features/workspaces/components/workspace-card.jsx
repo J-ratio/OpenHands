@@ -2,8 +2,12 @@
 import { useState } from "react";
 import { Card, CardDescription, CardHeader, CardTitle } from "../../../ui/card";
 import ViewWorkspaceButton from "./view-workspace-button";
+import { Button } from "../../../ui/button";
+import { deleteWorkspace } from "../../../../api/workspaces";
+import toast from "../../../../utils/toast";
+import { ConfirmationModal } from "../../../shared/modals/confirmation-modal";
 
-const WorkspaceCard = ({ workspace, dataSources }) => {
+const WorkspaceCard = ({ workspace, dataSources, onDeleteWorkspace }) => {
   const [showAddSource, setShowAddSource] = useState(false);
 
   const repositories = dataSources?.filter(
@@ -16,6 +20,37 @@ const WorkspaceCard = ({ workspace, dataSources }) => {
       ? `${workspace.description.slice(0, 100)}...`
       : workspace?.description || null;
 
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [confirmDeleteName, setConfirmDeleteName] = useState(null);
+
+  const handleDelete = async (id) => {
+    const { success, errorMessage } = await deleteWorkspace(id);
+    if (success) {
+      toast.success("Workspace deleted successfully");
+      if (onDeleteWorkspace) onDeleteWorkspace();
+    } else {
+      toast.error(errorMessage || "Failed to delete a workspace");
+    }
+  };
+
+  const handleDeleteClick = (id, name) => {
+    setConfirmDeleteId(id);
+    setConfirmDeleteName(name);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (confirmDeleteId) {
+      await handleDelete(confirmDeleteId);
+      setConfirmDeleteId(null);
+      setConfirmDeleteName("");
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setConfirmDeleteId(null);
+    setConfirmDeleteName("");
+  };
+
   return (
     <Card className="flex flex-col justify-between space-y-0 gap-0 h-fit">
       <CardHeader className=" inline-flex ">
@@ -23,15 +58,31 @@ const WorkspaceCard = ({ workspace, dataSources }) => {
         <CardDescription className="h-10">
           {truncatedDescription ?? "No description available"}
         </CardDescription>
-        <ViewWorkspaceButton
-          workspace={workspace}
-          truncatedDescription={truncatedDescription}
-          repositories={repositories}
-          files={files}
-          showAddSource={showAddSource}
-          setShowAddSource={setShowAddSource}
-        />
+        <div className="flex items-space-between justify-space-between gap-8">
+          <ViewWorkspaceButton
+            workspace={workspace}
+            truncatedDescription={truncatedDescription}
+            repositories={repositories}
+            files={files}
+            showAddSource={showAddSource}
+            setShowAddSource={setShowAddSource}
+          />
+          <Button
+            variant="outline"
+            onClick={() => handleDeleteClick(workspace.id, workspace.name)}
+          >
+            Delete
+          </Button>
+        </div>
       </CardHeader>
+
+      {confirmDeleteId && (
+        <ConfirmationModal
+          text={`Are you sure you want to delete ${confirmDeleteName}?`}
+          onConfirm={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+        />
+      )}
     </Card>
   );
 };
