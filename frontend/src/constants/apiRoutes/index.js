@@ -23,6 +23,7 @@ export const routes = {
   getTemplate: (id) => `${API_URL}/templates/${id}`,
   updateTemplate: (id) => `${API_URL}/templates/${id}`,
   updateTemplateWithFile: (id) => `${API_URL}/templates/${id}/file`,
+  deleteTemplate: (id) => `${API_URL}/templates/${id}`,
 
   createDocuments: `${API_URL}/documents/`,
   getAllDocuments: `${API_URL}/documents/`,

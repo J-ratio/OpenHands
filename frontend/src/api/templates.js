@@ -188,3 +188,33 @@ export const updateATemplateWithFile = async ({ file, templateId }) => {
     };
   }
 };
+
+export const deleteTemplate = async (id) => {
+  try {
+    const { isAuthenticated, token, message } = getAuthStatus();
+
+    if (!isAuthenticated) {
+      return {
+        errorMessage: message,
+        success: false,
+      };
+    }
+
+    const res = await axios.delete(routes.deleteTemplate(id), {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return {
+      data: res.data,
+      success: true,
+    };
+  } catch (error) {
+    handleError(routes.deleteTemplate(id), error);
+    return {
+      errorMessage: error?.response?.data?.detail,
+      success: false,
+    };
+  }
+};

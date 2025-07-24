@@ -66,6 +66,7 @@ const WorkspacePage = () => {
                     key={workspace.id}
                     workspace={workspace}
                     dataSources={dataSources[workspace.id] || []}
+                    onDeleteWorkspace={fetchAllData}
                   />
                 ))
               )}
