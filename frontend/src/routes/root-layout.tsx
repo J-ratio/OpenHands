@@ -25,7 +25,8 @@ import { useAuthCallback } from "#/hooks/use-auth-callback";
 import { LOCAL_STORAGE_KEYS } from "#/utils/local-storage";
 import { EmailVerificationGuard } from "#/components/features/guards/email-verification-guard";
 import { Toaster } from "../components/ui/sonner";
-import { WorkspaceProvider } from "#/context/WorkspaceContext";
+import { useWorkspace, WorkspaceProvider } from "#/context/WorkspaceContext";
+import { WorkspaceSelect } from "#/components/features/documents/_components/WorkspaceSelect";
 
 export function ErrorBoundary() {
   const error = useRouteError();
@@ -167,15 +168,15 @@ export default function MainApp() {
     <WorkspaceProvider>
       <div
         data-testid="root-layout"
-        className="bg-base p-3 h-screen md:min-w-[1024px] flex flex-col md:flex-row gap-3"
+        className="bg-base p-3 h-screen md:min-w-[1024px] flex flex-col md:flex-row gap-3 overflow-y-hidden"
       >
         <Toaster />
         <Sidebar />
-
         <div
           id="root-outlet"
-          className="h-[calc(100%-50px)] md:h-full w-full relative overflow-auto"
+          className="h-[calc(100%-50px)] md:h-full w-full relative"
         >
+          <WorkspaceSelector />
           <EmailVerificationGuard>
             <Outlet />
           </EmailVerificationGuard>
@@ -196,3 +197,26 @@ export default function MainApp() {
     </WorkspaceProvider>
   );
 }
+
+const WorkspaceSelector = () => {
+  const {
+    selectedWorkspaceId,
+    setSelectedWorkspaceId,
+    workspaces,
+    setWorkspaces,
+  } = useWorkspace();
+
+  return (
+    <div className="flex mr-4 mb-2 justify-end home-workspace-select-highlight items-end">
+      <div className="flex items-center gap-2 w-[200px]">
+        <span className="font-semibold text-white/60">Workspace:</span>
+        <WorkspaceSelect
+          selectedWorkspace={selectedWorkspaceId && Number(selectedWorkspaceId)}
+          setSelectedWorkspace={setSelectedWorkspaceId}
+          workspaces={workspaces}
+          setWorkspaces={setWorkspaces}
+        />
+      </div>
+    </div>
+  );
+};

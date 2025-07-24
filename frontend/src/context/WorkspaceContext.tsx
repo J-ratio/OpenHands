@@ -36,7 +36,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   const handleRefreshLinkedRepo = () => setRefreshKey((k) => k + 1);
 
   async function fetchLinkedRepo(workspaceId?: string) {
-    if(!workspaceId) {
+    if (!workspaceId) {
       setLinkedRepo(undefined);
       return;
     }
