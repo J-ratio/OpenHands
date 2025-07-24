@@ -61,12 +61,13 @@ const WorkspacePage = () => {
               {workspaces.length === 0 ? (
                 <div className="text-lg text-gray-500">No workspaces found</div>
               ) : (
-                workspaces.map((workspace) => (
+                workspaces.map((workspace, index) => (
                   <WorkspaceCard
                     key={workspace.id}
                     workspace={workspace}
                     dataSources={dataSources[workspace.id] || []}
                     onDeleteWorkspace={fetchAllData}
+                    isDeletable={index !== 0}
                   />
                 ))
               )}

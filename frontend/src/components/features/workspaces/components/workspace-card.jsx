@@ -7,7 +7,12 @@ import { deleteWorkspace } from "../../../../api/workspaces";
 import toast from "../../../../utils/toast";
 import { ConfirmationModal } from "../../../shared/modals/confirmation-modal";
 
-const WorkspaceCard = ({ workspace, dataSources, onDeleteWorkspace }) => {
+const WorkspaceCard = ({
+  workspace,
+  dataSources,
+  isDeletable = true,
+  onDeleteWorkspace,
+}) => {
   const [showAddSource, setShowAddSource] = useState(false);
 
   const repositories = dataSources?.filter(
@@ -67,12 +72,14 @@ const WorkspaceCard = ({ workspace, dataSources, onDeleteWorkspace }) => {
             showAddSource={showAddSource}
             setShowAddSource={setShowAddSource}
           />
-          <Button
-            variant="outline"
-            onClick={() => handleDeleteClick(workspace.id, workspace.name)}
-          >
-            Delete
-          </Button>
+          {isDeletable && (
+            <Button
+              variant="outline"
+              onClick={() => handleDeleteClick(workspace.id, workspace.name)}
+            >
+              Delete
+            </Button>
+          )}
         </div>
       </CardHeader>
 
