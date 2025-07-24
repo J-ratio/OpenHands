@@ -55,7 +55,7 @@ export const WorkspaceSelect = ({
     >
       <SelectTrigger
         className={
-          (fullWidth ? "w-full" : "w-[200px]") +
+          (fullWidth ? "w-full" : "w-[150px]") +
           " bg-neutral-900 text-neutral-100 border border-neutral-700 placeholder:text-neutral-500 focus:ring-0 outline-none rounded-md transition-colors duration-150"
         }
       >
@@ -70,7 +70,9 @@ export const WorkspaceSelect = ({
               onClick={() => setSelectedWorkspace(workspace.id)}
               className="hover:bg-neutral-800 focus:bg-neutral-800 text-neutral-100 cursor-pointer transition-colors duration-100 rounded"
             >
-              {workspace.name}
+              {workspace.name.length < 30
+                ? workspace.name
+                : `${workspace.name.substring(0, 30)}...`}
             </SelectItem>
           ))}
         </SelectGroup>
