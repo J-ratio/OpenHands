@@ -3,9 +3,6 @@ import { useCreateConversation } from "#/hooks/mutation/use-create-conversation"
 import { useIsCreatingConversation } from "#/hooks/use-is-creating-conversation";
 import { BrandButton } from "../settings/brand-button";
 import H2LoopLogo from "#/assets/branding/h2loop-logo.svg?react";
-import { useWorkspace } from "#/context/WorkspaceContext";
-import { useSaveSettings } from "#/hooks/mutation/use-save-settings";
-import { useEffect } from "react";
 import { useSettings } from "#/hooks/query/use-settings";
 
 export function HomeHeader() {
@@ -22,17 +19,6 @@ export function HomeHeader() {
   // into the new conversation screen after the conversation is created.
   const isCreatingConversation =
     isPending || isSuccess || isCreatingConversationElsewhere;
-
-  const {
-    selectedWorkspaceId,
-  } = useWorkspace();
-
-  const { mutate: saveUserSettings } = useSaveSettings();
-
-  useEffect(() => {
-    if (!selectedWorkspaceId || !settings?.LLM_MODEL) return;
-    saveUserSettings({ ACTIVE_WORKSPACE_ID: selectedWorkspaceId?.toString() });
-  }, [selectedWorkspaceId]);
 
   return (
     <header className="flex flex-col gap-5">

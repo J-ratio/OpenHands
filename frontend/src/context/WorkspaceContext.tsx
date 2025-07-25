@@ -8,6 +8,7 @@ import React, {
 import { useSettings } from "#/hooks/query/use-settings";
 import { DataSource } from "#/components/features/home/repo-connector";
 import { getAllDataSourcesByWorkspaceId } from "#/api/data-sources";
+import { useSaveSettings } from "#/hooks/mutation/use-save-settings";
 
 interface WorkspaceContextType {
   selectedWorkspace: any;
@@ -35,6 +36,8 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     undefined,
   );
   const [refreshKey, setRefreshKey] = useState<number>(0);
+
+  const { mutate: saveUserSettings } = useSaveSettings();
 
   const handleRefreshLinkedRepo = () => setRefreshKey((k) => k + 1);
 
@@ -66,6 +69,11 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     fetchLinkedRepo();
   }, [refreshKey]);
+
+  useEffect(() => {
+    if (!selectedWorkspaceId || !settings?.LLM_MODEL) return;
+    saveUserSettings({ ACTIVE_WORKSPACE_ID: selectedWorkspaceId?.toString() });
+  }, [selectedWorkspaceId]);
 
   return (
     <WorkspaceContext.Provider
