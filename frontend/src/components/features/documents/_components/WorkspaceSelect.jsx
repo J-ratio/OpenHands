@@ -9,6 +9,7 @@ import {
 } from "../../../ui/select";
 import { getAllWorkspaces } from "../../../../api/workspaces";
 import { useEffect, useState } from "react";
+import CreateWorkspaceButton from "../../../features/workspaces/components/create-workspace-button";
 
 export const WorkspaceSelect = ({
   workspaces,
@@ -75,6 +76,9 @@ export const WorkspaceSelect = ({
                 : `${workspace.name.substring(0, 30)}...`}
             </SelectItem>
           ))}
+          <div className="my-2 text-center">
+            <CreateWorkspaceButton onCreateSuccess={getData} />
+          </div>
         </SelectGroup>
       </SelectContent>
     </Select>

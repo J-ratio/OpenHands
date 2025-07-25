@@ -31,8 +31,8 @@ const WorkspaceCard = ({
   const handleDelete = async (id) => {
     const { success, errorMessage } = await deleteWorkspace(id);
     if (success) {
-      toast.success("Workspace deleted successfully");
       if (onDeleteWorkspace) onDeleteWorkspace();
+      toast.success("Workspace deleted successfully");
     } else {
       toast.error(errorMessage || "Failed to delete a workspace");
     }
