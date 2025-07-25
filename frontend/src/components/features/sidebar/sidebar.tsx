@@ -61,9 +61,11 @@ export function Sidebar() {
     ) {
       // We don't show toast errors for settings in the global error handler
       // because we have a special case for 404 errors
-      displayErrorToast(
-        "Something went wrong while fetching settings. Please reload the page.",
-      );
+      if (location.pathname === "/settings") {
+        displayErrorToast(
+          "Something went wrong while fetching settings. Please reload the page.",
+        );
+      }
     } else if (config?.APP_MODE === "oss" && settingsError?.status === 404) {
       setSettingsModalIsOpen(true);
     }
