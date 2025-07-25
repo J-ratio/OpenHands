@@ -7,7 +7,12 @@ import { deleteWorkspace } from "../../../../api/workspaces";
 import toast from "../../../../utils/toast";
 import { ConfirmationModal } from "../../../shared/modals/confirmation-modal";
 
-const WorkspaceCard = ({ workspace, dataSources, onDeleteWorkspace }) => {
+const WorkspaceCard = ({
+  workspace,
+  dataSources,
+  isDeletable = true,
+  onDeleteWorkspace,
+}) => {
   const [showAddSource, setShowAddSource] = useState(false);
 
   const repositories = dataSources?.filter(
@@ -26,8 +31,8 @@ const WorkspaceCard = ({ workspace, dataSources, onDeleteWorkspace }) => {
   const handleDelete = async (id) => {
     const { success, errorMessage } = await deleteWorkspace(id);
     if (success) {
-      toast.success("Workspace deleted successfully");
       if (onDeleteWorkspace) onDeleteWorkspace();
+      toast.success("Workspace deleted successfully");
     } else {
       toast.error(errorMessage || "Failed to delete a workspace");
     }
@@ -67,12 +72,14 @@ const WorkspaceCard = ({ workspace, dataSources, onDeleteWorkspace }) => {
             showAddSource={showAddSource}
             setShowAddSource={setShowAddSource}
           />
-          <Button
-            variant="outline"
-            onClick={() => handleDeleteClick(workspace.id, workspace.name)}
-          >
-            Delete
-          </Button>
+          {isDeletable && (
+            <Button
+              variant="outline"
+              onClick={() => handleDeleteClick(workspace.id, workspace.name)}
+            >
+              Delete
+            </Button>
+          )}
         </div>
       </CardHeader>
 

@@ -78,16 +78,37 @@ export function ToolModal({
           </div>
           <div className="w-full flex flex-col items-center gap-4 mt-2">
             {/* Repo/Branch selection */}
-            <div className="flex flex-col items-center w-full max-w-md mx-auto">
-              <RepoConnector
-                onRepoSelection={(title) => setSelectedRepoTitle(title)}
-                onBranchSelection={(branchName) =>
-                  setSelectedBranchName(branchName)
-                }
-                displayLaunchButton={false}
-                message={t("TODO$CONNECT_PROVIDER_MESSAGE")}
-              />
-            </div>
+            {!linkedRepo && (
+              <p className="font-semibold">
+                Please, Link a repository to a workspace to continue using this
+                tool.
+              </p>
+            )}
+            {linkedRepo && (
+              <p className="flex items-center">
+                This workspace is connected to the repo:
+                <a
+                  href={linkedRepo?.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 underline underline-offset-2 hover:text-blue-300 transition-colors ml-1"
+                >
+                  {linkedRepo?.name}
+                </a>
+              </p>
+            )}
+            {/* {linkedRepo && providersAreSet && (
+              <div className="flex flex-col items-center w-full max-w-md mx-auto">
+                <RepoConnector
+                  onRepoSelection={(title) => setSelectedRepoTitle(title)}
+                  onBranchSelection={(branchName) =>
+                    setSelectedBranchName(branchName)
+                  }
+                  displayLaunchButton={false}
+                  message={t("TODO$CONNECT_PROVIDER_MESSAGE")}
+                />
+              </div>
+            )} */}
             {linkedRepo && title === "Generate Class Diagram" && (
               <div className="flex flex-col items-center w-full max-w-md mx-auto mt-4">
                 <SettingsInput
@@ -108,7 +129,7 @@ export function ToolModal({
                   type="button"
                   className="mt-4 max-w-md w-full text-lg font-bold"
                   isDisabled={
-                    !selectedRepoTitle ||
+                    (!linkedRepo && !selectedRepoTitle) ||
                     (title === "Generate Class Diagram" && !className.trim())
                   }
                   onClick={() => {

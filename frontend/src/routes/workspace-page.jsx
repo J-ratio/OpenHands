@@ -4,9 +4,15 @@ import { getAllWorkspaces } from "../api/workspaces";
 import CreateWorkspaceButton from "../components/features/workspaces/components/create-workspace-button";
 import WorkspaceCard from "../components/features/workspaces/components/workspace-card";
 import { LoadingSpinner } from "../components/shared/loading-spinner";
+import { useWorkspace } from "../context/WorkspaceContext";
 
 const WorkspacePage = () => {
-  const [workspaces, setWorkspaces] = useState([]);
+  const {
+    workspaces,
+    setWorkspaces,
+    selectedWorkspaceId,
+    setSelectedWorkspaceId,
+  } = useWorkspace();
   const [dataSources, setDataSources] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,6 +29,19 @@ const WorkspacePage = () => {
     }
 
     setWorkspaces(workspacesRes.data);
+    const data = workspacesRes.data;
+
+    // case: if the currently selected workspace gets deleted
+    if (
+      selectedWorkspaceId &&
+      !data.some((ws) => ws.id.toString() === selectedWorkspaceId)
+    ) {
+      if (data.length > 0) {
+        setSelectedWorkspaceId(data[0].id);
+      } else {
+        setSelectedWorkspaceId(undefined);
+      }
+    }
 
     const sourcesMap = {};
     await Promise.all(
@@ -61,12 +80,13 @@ const WorkspacePage = () => {
               {workspaces.length === 0 ? (
                 <div className="text-lg text-gray-500">No workspaces found</div>
               ) : (
-                workspaces.map((workspace) => (
+                workspaces.map((workspace, index) => (
                   <WorkspaceCard
                     key={workspace.id}
                     workspace={workspace}
                     dataSources={dataSources[workspace.id] || []}
                     onDeleteWorkspace={fetchAllData}
+                    isDeletable={index !== 0}
                   />
                 ))
               )}
