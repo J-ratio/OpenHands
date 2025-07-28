@@ -95,7 +95,7 @@ export function RepositorySelectionForm({
   }, [branches, isLoadingBranches, selectedBranch]);
 
   React.useEffect(() => {
-    if (linkedRepo || linkedRepo!==null) {
+    if (linkedRepo || linkedRepo !== null) {
       setSelectedRepository(linkedRepo);
       onRepoSelection(linkedRepo.full_name);
     } else {
@@ -312,7 +312,7 @@ export function RepositorySelectionForm({
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 w-full">
       {renderRepositorySelector(selectedWorkspaceId)}
 
       {renderBranchSelector()}

@@ -4,26 +4,14 @@ import { RepositorySelectionForm } from "./repo-selection-form";
 import { useConfig } from "#/hooks/query/use-config";
 import { RepoProviderLinks } from "./repo-provider-links";
 import { useUserProviders } from "#/hooks/use-user-providers";
-import { GitRepository } from "#/types/git";
-import React, { useEffect, useState } from "react";
-import {
-  deleteADataSource,
-  getAllDataSourcesByWorkspaceId,
-} from "#/api/data-sources";
+import { useState } from "react";
+import { deleteADataSource } from "#/api/data-sources";
 import { useWorkspace } from "#/context/WorkspaceContext";
 import NewCodebaseInput from "../workspaces/components/new-codebase-input";
 import { BrandButton } from "../settings/brand-button";
 import { toast } from "sonner";
+import { dataSourceToGitRepository } from "#/utils/utils.ts";
 
-function dataSourceToGitRepository(ds: DataSource): GitRepository {
-  // TODO: make it dynamic here
-  return {
-    id: ds.id.toString(),
-    full_name: ds.name || ds.url || "",
-    git_provider: "github",
-    is_public: true,
-  };
-}
 export interface DataSource {
   name: string | undefined;
   type: "GIT_REPOSITORY" | "FILE";

@@ -5,7 +5,6 @@ import {
   DialogContent as RawDialogContent,
 } from "#/components/ui/dialog";
 import styles from "./ToolCard.module.css";
-import { RepoConnector } from "../repo-connector";
 import { BrandButton } from "../../settings/brand-button";
 import { VisuallyHidden } from "@heroui/react";
 import { SettingsInput } from "../../settings/settings-input";
@@ -13,6 +12,8 @@ import { useUserProviders } from "#/hooks/use-user-providers";
 import toast from "#/utils/toast";
 import { useTranslation } from "react-i18next";
 import { useWorkspace } from "#/context/WorkspaceContext";
+import { RepositorySelectionForm } from "../repo-selection-form";
+import { dataSourceToGitRepository } from "#/utils/utils.ts";
 
 const DialogContent = RawDialogContent as React.FC<
   React.PropsWithChildren<any>
@@ -109,38 +110,55 @@ export function ToolModal({
                 />
               </div>
             )} */}
-            {linkedRepo && title === "Generate Class Diagram" && (
-              <div className="flex flex-col items-center w-full max-w-md mx-auto mt-4">
-                <SettingsInput
-                  label="Class Name"
-                  type="text"
-                  value={className}
-                  onChange={setClassName}
-                  placeholder="Enter a class name..."
-                  className="w-full"
-                />
-              </div>
-            )}
+
             {linkedRepo && (
-              <div className="flex justify-center w-full">
-                <BrandButton
-                  testId="tool-generate-button"
-                  variant="primary"
-                  type="button"
-                  className="mt-4 max-w-md w-full text-lg font-bold"
-                  isDisabled={
-                    (!linkedRepo && !selectedRepoTitle) ||
-                    (title === "Generate Class Diagram" && !className.trim())
-                  }
-                  onClick={() => {
-                    toast.info(
-                      `${selectedRepoTitle}, ${selectedBranchName}, ${className}`,
-                    );
-                  }}
-                >
-                  Create / Generate
-                </BrandButton>
-              </div>
+              <>
+                <div className="flex flex-col items-center w-full max-w-md mx-auto mt-4 gap-8">
+                  <RepositorySelectionForm
+                    onRepoSelection={setSelectedRepoTitle}
+                    onBranchSelection={setSelectedBranchName}
+                    displayLaunchButton={false}
+                    displayLinkUnlinkButton={false}
+                    linkedRepo={
+                      linkedRepo
+                        ? dataSourceToGitRepository(linkedRepo)
+                        : undefined
+                    }
+                    onLinkedRepoChanged={() => {}}
+                  />
+                  {linkedRepo && title === "Generate Class Diagram" && (
+                    <SettingsInput
+                      label="Class Name"
+                      type="text"
+                      value={className}
+                      onChange={setClassName}
+                      placeholder="Enter a class name..."
+                      className="w-full"
+                    />
+                  )}
+                </div>
+                <div className="flex justify-center w-full">
+                  <BrandButton
+                    testId="tool-generate-button"
+                    variant="primary"
+                    type="button"
+                    className="mt-4 max-w-md w-full text-lg font-bold"
+                    isDisabled={
+                      !linkedRepo ||
+                      !selectedBranchName ||
+                      !selectedRepoTitle ||
+                      (title === "Generate Class Diagram" && !className.trim())
+                    }
+                    onClick={() => {
+                      toast.info(
+                        `${selectedRepoTitle}, ${selectedBranchName}, ${className}`,
+                      );
+                    }}
+                  >
+                    Create / Generate
+                  </BrandButton>
+                </div>
+              </>
             )}
           </div>
         </div>
