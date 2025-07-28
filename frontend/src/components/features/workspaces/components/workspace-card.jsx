@@ -4,8 +4,11 @@ import { Card, CardDescription, CardHeader, CardTitle } from "../../../ui/card";
 import ViewWorkspaceButton from "./view-workspace-button";
 import { Button } from "../../../ui/button";
 import { deleteWorkspace } from "../../../../api/workspaces";
-import toast from "../../../../utils/toast";
 import { ConfirmationModal } from "../../../shared/modals/confirmation-modal";
+import {
+  displayErrorToast,
+  displaySuccessToast,
+} from "../../../../utils/custom-toast-handlers";
 
 const WorkspaceCard = ({
   workspace,
@@ -32,9 +35,9 @@ const WorkspaceCard = ({
     const { success, errorMessage } = await deleteWorkspace(id);
     if (success) {
       if (onDeleteWorkspace) onDeleteWorkspace();
-      toast.success("Workspace deleted successfully");
+      displaySuccessToast("Workspace deleted successfully");
     } else {
-      toast.error(errorMessage || "Failed to delete a workspace");
+      displayErrorToast(errorMessage || "Failed to delete a workspace");
     }
   };
 
