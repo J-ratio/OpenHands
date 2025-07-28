@@ -9,7 +9,7 @@ import { BrandButton } from "../../settings/brand-button";
 import { VisuallyHidden } from "@heroui/react";
 import { SettingsInput } from "../../settings/settings-input";
 import { useUserProviders } from "#/hooks/use-user-providers";
-import toast from "#/utils/toast";
+import { useCreateConversation } from "#/hooks/mutation/use-create-conversation";
 import { useTranslation } from "react-i18next";
 import { useWorkspace } from "#/context/WorkspaceContext";
 import { RepositorySelectionForm } from "../repo-selection-form";
@@ -34,9 +34,6 @@ export function ToolModal({
   image,
   description,
 }: ToolModalProps) {
-  const { providers } = useUserProviders();
-  const { t } = useTranslation();
-
   const { linkedRepo } = useWorkspace();
   const [selectedRepoTitle, setSelectedRepoTitle] = React.useState<
     string | null
@@ -45,10 +42,13 @@ export function ToolModal({
     string | null
   >(null);
   const [className, setClassName] = React.useState<string>("");
+  const {
+    mutate: createConversation,
+    isPending,
+    isSuccess,
+  } = useCreateConversation();
 
   const DialogTitle = RawDialogTitle as React.FC<{ children: React.ReactNode }>;
-
-  const providersAreSet = providers.length > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -150,9 +150,20 @@ export function ToolModal({
                       (title === "Generate Class Diagram" && !className.trim())
                     }
                     onClick={() => {
-                      toast.info(
-                        `${selectedRepoTitle}, ${selectedBranchName}, ${className}`,
-                      );
+                      createConversation({
+                        selectedRepository:
+                          dataSourceToGitRepository(linkedRepo),
+                        selected_branch: selectedBranchName ?? "",
+                        q: `Generate a complete UML class diagram for the class named "${className}".
+                            The diagram should include:
+                            - All properties with their access modifiers and data types
+                            - All methods with their parameters, return types, and access modifiers
+                            - Relationships with other classes (such as inheritance, composition, aggregation, associations)
+                            - Any interfaces it implements
+                            - Abstract or static modifiers, if any
+                            The context is from the repository at branch "${selectedBranchName ?? "main"}".
+                            Ensure the diagram reflects the current implementation from that branch.`,
+                      });
                     }}
                   >
                     Create / Generate
