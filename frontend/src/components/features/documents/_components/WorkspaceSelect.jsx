@@ -56,8 +56,8 @@ export const WorkspaceSelect = ({
     >
       <SelectTrigger
         className={
-          (fullWidth ? "w-full" : "w-[150px]") +
-          " bg-neutral-900 text-neutral-100 border border-neutral-700 placeholder:text-neutral-500 focus:ring-0 outline-none rounded-md transition-colors duration-150"
+          (fullWidth ? "w-full" : "w-[250px]") +
+          " text-lg font-semibold bg-neutral-900 text-neutral-100 border border-neutral-700 placeholder:text-neutral-500 focus:ring-0 outline-none rounded-md transition-colors duration-150"
         }
       >
         <SelectValue placeholder={label} className="text-neutral-500" />

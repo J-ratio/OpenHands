@@ -207,8 +207,8 @@ const WorkspaceSelector = () => {
   } = useWorkspace();
 
   return (
-    <div className="flex mr-12 mb-2 justify-end home-workspace-select-highlight items-end">
-      <div className="flex items-center gap-2 w-[200px]">
+    <div className="flex mb-2 justify-end home-workspace-select-highlight items-end">
+      <div className="flex items-center gap-2 max-w-[500px]">
         <span className="font-semibold text-white/60">Workspace:</span>
         <WorkspaceSelect
           selectedWorkspace={selectedWorkspaceId && Number(selectedWorkspaceId)}

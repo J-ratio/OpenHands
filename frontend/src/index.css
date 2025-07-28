@@ -67,7 +67,7 @@ code {
 /* Highlight the workspace select on the homepage */
 .home-workspace-select-highlight .radix-select-trigger,
 .home-workspace-select-highlight .bg-neutral-900.text-neutral-100.border.border-neutral-700 {
-  border: 2px solid #2563eb !important; /* blue-600 */
+  border: 1px solid #2563eb !important; /* blue-600 */
   box-shadow: 0 0 0 2px #2563eb33;
 }
 
