@@ -83,27 +83,28 @@ const TemplateEditor = ({ data, templateId }) => {
   };
 
   const saveBlocksToBackend = async () => {
-    try {
-      const { success, errorMessage } = await updateATemplate({
-        templateId: templateId,
-        content: JSON.stringify(editor.topLevelBlocks),
-        name: title,
-      });
-      if (success) {
-        localStorage.setItem(
-          `lastUpdatedAtBE-template-${templateId}`,
-          new Date().getTime(),
-        );
-        toast.success("Template autosaved");
-        return true;
-      } else {
-        toast.error("Error saving template");
-        return false;
-      }
-    } catch (error) {
-      toast.error("Error saving template");
-      return false;
-    }
+    // try {
+    console.log(JSON.stringify(editor.document));
+    //   const { success, errorMessage } = await updateATemplate({
+    //     templateId: templateId,
+    //     content: JSON.stringify(editor.document),
+    //     name: title,
+    //   });
+    //   if (success) {
+    //     localStorage.setItem(
+    //       `lastUpdatedAtBE-template-${templateId}`,
+    //       new Date().getTime(),
+    //     );
+    //     toast.success("Template autosaved");
+    //     return true;
+    //   } else {
+    //     toast.error("Error saving template");
+    //     return false;
+    //   }
+    // } catch (error) {
+    //   toast.error("Error saving template");
+    //   return false;
+    // }
   };
 
   useEffect(() => {
@@ -144,6 +145,8 @@ const TemplateEditor = ({ data, templateId }) => {
   }, [title, localStorage, loading]);
 
   const handleEditorChange = (editor) => {
+    console.log("handle editor change");
+    console.log(editor.topLevelBlocks);
     const blocksJSON = editor.topLevelBlocks;
     setBlocks(blocksJSON);
     saveBlocks();
@@ -161,6 +164,7 @@ const TemplateEditor = ({ data, templateId }) => {
       try {
         let parsedContent;
         parsedContent = JSON.parse(data.content || "[]");
+        console.log(JSON.parse(data.content));
 
         if (!editor) {
           console.log("Editor destroyed");
@@ -168,7 +172,9 @@ const TemplateEditor = ({ data, templateId }) => {
         }
 
         if (parsedContent.length !== 0) {
-          editor.replaceBlocks(editor.document, parsedContent);
+          setTimeout(() => {
+            editor.replaceBlocks(editor.document, parsedContent);
+          }, 10);
         }
         setBlocks(parsedContent);
       } catch (error) {
