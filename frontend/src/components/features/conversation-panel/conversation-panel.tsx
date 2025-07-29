@@ -10,6 +10,8 @@ import { LoadingSpinner } from "#/components/shared/loading-spinner";
 import { ExitConversationModal } from "./exit-conversation-modal";
 import { useClickOutsideElement } from "#/hooks/use-click-outside-element";
 import { useWorkspace } from "#/context/WorkspaceContext";
+import { BrandButton } from "../settings/brand-button";
+import { useCreateConversation } from "#/hooks/mutation/use-create-conversation";
 
 interface ConversationPanelProps {
   onClose: () => void;
@@ -32,6 +34,7 @@ export function ConversationPanel({ onClose }: ConversationPanelProps) {
     string | null
   >(null);
 
+  const { mutate: createConversation } = useCreateConversation();
   const { data: conversations, isFetching, error } = useUserConversations();
 
   const { mutate: deleteConversation } = useDeleteConversation();
@@ -80,10 +83,20 @@ export function ConversationPanel({ onClose }: ConversationPanelProps) {
         </div>
       )}
       {conversations?.length === 0 && (
-        <div className="flex flex-col items-center justify-center h-full">
+        <div className="flex flex-col items-center justify-center h-full gap-4">
           <p className="text-neutral-400">
             {t(I18nKey.CONVERSATION$NO_CONVERSATIONS)}
           </p>
+          <BrandButton
+            type="button"
+            variant="primary"
+            onClick={() => {
+              createConversation({});
+              onClose();
+            }}
+          >
+            Create New Conversation
+          </BrandButton>
         </div>
       )}
       {conversations?.map((project) => (
