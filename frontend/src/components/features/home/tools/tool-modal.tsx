@@ -119,6 +119,7 @@ export function ToolModal({
                     onBranchSelection={setSelectedBranchName}
                     displayLaunchButton={false}
                     displayLinkUnlinkButton={false}
+                    displayRepoSelector={false}
                     linkedRepo={
                       linkedRepo
                         ? dataSourceToGitRepository(linkedRepo)
