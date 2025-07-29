@@ -10,6 +10,7 @@ from openhands.integrations.provider import (
 from openhands.integrations.service_types import (
     AuthenticationError,
     Branch,
+    GitService,
     Repository,
     SuggestedTask,
     UnknownException,
@@ -189,6 +190,7 @@ async def get_suggested_tasks(
 @app.get('/repository/branches', response_model=list[Branch])
 async def get_repository_branches(
     repository: str,
+    provider:str,
     provider_tokens: PROVIDER_TOKEN_TYPE | None = Depends(get_provider_tokens),
     access_token: SecretStr | None = Depends(get_access_token),
     user_id: str | None = Depends(get_user_id),
@@ -220,12 +222,45 @@ async def get_repository_branches(
                 content=str(e),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+    else:
+        service: GitService
 
-    logger.info(
-        f'Returning 401 Unauthorized - Git provider token required for user_id: {user_id}'
-    )
+        if provider == "github":
+            from openhands.integrations.github.github_service import GitHubService
+            service = GitHubService(token=None)
+        elif provider == "gitlab":
+            from openhands.integrations.gitlab.gitlab_service import GitLabService
+            service = GitLabService(token=None)
+        elif provider == "bitbucket":
+            from openhands.integrations.bitbucket.bitbucket_service import BitbucketService
+            service = BitbucketService(token=None)
+        else:
+            return JSONResponse(
+                content="Unsupported provider",
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
 
-    return JSONResponse(
-        content='Git provider token required. (such as GitHub).',
-        status_code=status.HTTP_401_UNAUTHORIZED,
-    )
+        try:
+            branch_list: list[Branch] = await service.get_branches(repository)
+            return branch_list
+
+        except AuthenticationError as e:
+            return JSONResponse(
+                content=str(e),
+                status_code=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        except UnknownException as e:
+            return JSONResponse(
+                content=str(e),
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    # logger.info(
+    #     f'Returning 401 Unauthorized - Git provider token required for user_id: {user_id}'
+    # )
+
+    # return JSONResponse(
+    #     content='Git provider token required. (such as GitHub).',
+    #     status_code=status.HTTP_401_UNAUTHORIZED,
+    # )

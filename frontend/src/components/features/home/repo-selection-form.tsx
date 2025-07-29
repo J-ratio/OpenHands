@@ -55,7 +55,10 @@ export function RepositorySelectionForm({
     data: branches,
     isLoading: isLoadingBranches,
     isError: isBranchesError,
-  } = useRepositoryBranches(selectedRepository?.full_name || null);
+  } = useRepositoryBranches(
+    selectedRepository?.full_name || null,
+    selectedRepository?.git_provider,
+  );
   const {
     mutate: createConversation,
     isPending,
