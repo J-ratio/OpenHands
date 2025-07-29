@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 from jinja2 import Environment, FileSystemLoader
 from pydantic import BaseModel, Field
+import requests
 
 from openhands.core.config.llm_config import LLMConfig
 from openhands.core.logger import openhands_logger as logger
@@ -107,6 +108,7 @@ async def new_conversation(
     data: InitSessionRequest,
     user_id: str = Depends(get_user_id),
     provider_tokens: PROVIDER_TOKEN_TYPE = Depends(get_provider_tokens),
+    settings: SettingsStore = Depends(get_user_settings),
     user_secrets: UserSecrets = Depends(get_user_secrets),
     auth_type: AuthType | None = Depends(get_auth_type),
 ) -> ConversationResponse:
@@ -165,6 +167,8 @@ async def new_conversation(
             conversation_id=conversation_id,
         )
 
+        await trigger_default_llm_model(settings)
+
         return ConversationResponse(
             status='ok',
             conversation_id=conversation_id,
@@ -200,6 +204,13 @@ async def new_conversation(
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
+
+async def trigger_default_llm_model(settings):
+    deafult_llm_model_base_url = "https://h2loop--qwen25-coder-32b-serve.modal.run/v1"
+    if(settings.llm_base_url == deafult_llm_model_base_url):
+        requests.get(deafult_llm_model_base_url, headers={
+            "Authorization": f"Bearer ${os.environ.get("DEFAULT_LLM_MODEL_SECRET_KEY")}"
+        })
 
 @app.get('/conversations')
 async def search_conversations(
