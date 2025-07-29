@@ -9,7 +9,7 @@ import { TrajectoryActions } from "../trajectory/trajectory-actions";
 import { createChatMessage } from "#/services/chat-service";
 import { InteractiveChatBox } from "./interactive-chat-box";
 import { RootState } from "#/store";
-import { AgentState } from "#/types/agent-state";
+import { AgentState, RUNTIME_INACTIVE_STATES } from "#/types/agent-state";
 import { generateAgentStateChangeEvent } from "#/services/agent-state-service";
 import { FeedbackModal } from "../feedback/feedback-modal";
 import { useScrollToBottom } from "#/hooks/use-scroll-to-bottom";
@@ -59,13 +59,14 @@ export function ChatInterface() {
   const { data: config } = useConfig();
 
   const { curAgentState } = useSelector((state: RootState) => state.agent);
+  const isRuntimeInactive = RUNTIME_INACTIVE_STATES.includes(curAgentState);
 
   const [feedbackPolarity, setFeedbackPolarity] = React.useState<
     "positive" | "negative"
   >("positive");
   const [feedbackModalIsOpen, setFeedbackModalIsOpen] = React.useState(false);
   const [messageToSend, setMessageToSend] = React.useState<string | null>(null);
-  const { selectedRepository, replayJson } = useSelector(
+  const { selectedRepository, replayJson, initialPrompt } = useSelector(
     (state: RootState) => state.initialQuery,
   );
   const params = useParams();
@@ -163,6 +164,18 @@ export function ChatInterface() {
     setHitBottom,
     onChatBodyScroll,
   };
+
+  if (isRuntimeInactive && initialPrompt) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[85vh] gap-8">
+        <LoadingSpinner size="large" />
+
+        <div className="text-center justify-center text-2xl text-tertiary-light">
+          {t("DIFF_VIEWER$WAITING_FOR_RUNTIME")}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <ScrollProvider value={scrollProviderValue}>
