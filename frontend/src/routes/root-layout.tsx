@@ -204,6 +204,7 @@ const WorkspaceSelector = () => {
     setSelectedWorkspaceId,
     workspaces,
     setWorkspaces,
+    setSelectedWorkspaceName,
   } = useWorkspace();
 
   return (
@@ -215,6 +216,7 @@ const WorkspaceSelector = () => {
           setSelectedWorkspace={setSelectedWorkspaceId}
           workspaces={workspaces}
           setWorkspaces={setWorkspaces}
+          setSelectedWorkspaceName={setSelectedWorkspaceName}
         />
       </div>
     </div>

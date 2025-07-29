@@ -20,7 +20,7 @@ export function ConversationPanel({ onClose }: ConversationPanelProps) {
   const { conversationId: currentConversationId } = useParams();
   const ref = useClickOutsideElement<HTMLDivElement>(onClose);
   const navigate = useNavigate();
-  const { selectedWorkspaceId } = useWorkspace();
+  const { selectedWorkspaceName } = useWorkspace();
 
   const [confirmDeleteModalVisible, setConfirmDeleteModalVisible] =
     React.useState(false);
@@ -64,7 +64,8 @@ export function ConversationPanel({ onClose }: ConversationPanelProps) {
     >
       <div className="flex flex-col items-center justify-center mt-2 mb-4">
         <span className="text-sm text-neutral-400 font-medium px-3 py-1 bg-neutral-800 rounded">
-          Workspace: {selectedWorkspaceId}
+          Workspace:{" "}
+          <span className="font-semibold">{selectedWorkspaceName}</span>
         </span>
         <div className="w-full h-px bg-neutral-700 mt-2" />
       </div>

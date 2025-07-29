@@ -16,6 +16,7 @@ export const WorkspaceSelect = ({
   setWorkspaces,
   selectedWorkspace,
   setSelectedWorkspace,
+  setSelectedWorkspaceName,
   fullWidth = false,
   label = "Select a Workspace",
 }) => {
@@ -32,6 +33,7 @@ export const WorkspaceSelect = ({
       if (setWorkspaces) setWorkspaces(response.data);
       if (!selectedWorkspace && workspaces)
         setSelectedWorkspace(workspaces[0].id);
+      setSelectedWorkspaceName(workspaces[0].name);
     } else {
       setError(response.errorMessage);
     }
@@ -51,7 +53,13 @@ export const WorkspaceSelect = ({
     <Select
       defaultValue={selectedWorkspace}
       value={selectedWorkspace}
-      onValueChange={(value) => setSelectedWorkspace(value)}
+      onValueChange={(value) => {
+        setSelectedWorkspace(value);
+        const selectedWorkspace = (workspaces || data).find(
+          (workspace) => workspace.id === value,
+        );
+        setSelectedWorkspaceName(selectedWorkspace.name);
+      }}
       className="bg-neutral-900 text-neutral-100 rounded-md border border-neutral-700"
     >
       <SelectTrigger
@@ -68,7 +76,10 @@ export const WorkspaceSelect = ({
             <SelectItem
               value={workspace.id}
               key={workspace.id}
-              onClick={() => setSelectedWorkspace(workspace.id)}
+              onClick={() => {
+                setSelectedWorkspace(workspace.id);
+                setSelectedWorkspaceName(workspace.name);
+              }}
               className="hover:bg-neutral-800 focus:bg-neutral-800 text-neutral-100 cursor-pointer transition-colors duration-100 rounded"
             >
               {workspace.name.length < 30
