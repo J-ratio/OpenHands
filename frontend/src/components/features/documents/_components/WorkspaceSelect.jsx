@@ -10,6 +10,7 @@ import {
 import { getAllWorkspaces } from "../../../../api/workspaces";
 import { useEffect, useState } from "react";
 import CreateWorkspaceButton from "../../../features/workspaces/components/create-workspace-button";
+import { getWorkspaceNameFromId } from "../../../../utils/workspace-utils";
 
 export const WorkspaceSelect = ({
   workspaces,
@@ -31,9 +32,10 @@ export const WorkspaceSelect = ({
       setData(response.data);
       if (workspaces) workspaces = response.data;
       if (setWorkspaces) setWorkspaces(response.data);
-      if (!selectedWorkspace && workspaces)
+      if (!selectedWorkspace && workspaces) {
         setSelectedWorkspace(workspaces[0].id);
-      setSelectedWorkspaceName(workspaces[0].name);
+        setSelectedWorkspaceName(workspaces[0].name);
+      }
     } else {
       setError(response.errorMessage);
     }
@@ -55,10 +57,9 @@ export const WorkspaceSelect = ({
       value={selectedWorkspace}
       onValueChange={(value) => {
         setSelectedWorkspace(value);
-        const selectedWorkspace = (workspaces || data).find(
-          (workspace) => workspace.id === value,
+        setSelectedWorkspaceName(
+          getWorkspaceNameFromId(workspaces || data, value),
         );
-        setSelectedWorkspaceName(selectedWorkspace.name);
       }}
       className="bg-neutral-900 text-neutral-100 rounded-md border border-neutral-700"
     >
