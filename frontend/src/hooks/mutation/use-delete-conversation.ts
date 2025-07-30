@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import OpenHands from "#/api/open-hands";
+import { Conversation, ResultSet } from "#/api/open-hands.types";
 
 export const useDeleteConversation = () => {
   const queryClient = useQueryClient();
@@ -16,8 +17,8 @@ export const useDeleteConversation = () => {
 
       queryClient.setQueryData(
         ["user", "conversations"],
-        (old: { conversation_id: string }[] | undefined) =>
-          old?.filter(
+        (old: ResultSet<Conversation> | undefined) =>
+          old?.results.filter(
             (conv) => conv.conversation_id !== variables.conversationId,
           ),
       );

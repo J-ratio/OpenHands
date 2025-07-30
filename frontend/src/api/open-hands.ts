@@ -243,11 +243,19 @@ class OpenHands {
     return data;
   }
 
-  static async getUserConversations(): Promise<Conversation[]> {
+  static async getUserConversations(
+    pageId?: string,
+  ): Promise<ResultSet<Conversation>> {
     const { data } = await openHands.get<ResultSet<Conversation>>(
-      "/api/conversations?limit=20",
+      "/api/conversations",
+      {
+        params: {
+          limit: 20,
+          ...(pageId && { page_id: pageId }),
+        },
+      },
     );
-    return data.results;
+    return data;
   }
 
   static async deleteUserConversation(conversationId: string): Promise<void> {

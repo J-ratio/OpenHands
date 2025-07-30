@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 from jinja2 import Environment, FileSystemLoader
 from pydantic import BaseModel, Field
+import requests
 
 from openhands.core.config.llm_config import LLMConfig
 from openhands.core.logger import openhands_logger as logger
@@ -107,6 +108,7 @@ async def new_conversation(
     data: InitSessionRequest,
     user_id: str = Depends(get_user_id),
     provider_tokens: PROVIDER_TOKEN_TYPE = Depends(get_provider_tokens),
+    settings: SettingsStore = Depends(get_user_settings),
     user_secrets: UserSecrets = Depends(get_user_secrets),
     auth_type: AuthType | None = Depends(get_auth_type),
 ) -> ConversationResponse:
@@ -165,6 +167,8 @@ async def new_conversation(
             conversation_id=conversation_id,
         )
 
+        await trigger_default_llm_model(settings)
+
         return ConversationResponse(
             status='ok',
             conversation_id=conversation_id,
@@ -201,6 +205,13 @@ async def new_conversation(
         )
 
 
+async def trigger_default_llm_model(settings):
+    deafult_llm_model_base_url = "https://h2loop--qwen25-coder-32b-serve.modal.run/v1"
+    if(settings.llm_base_url == deafult_llm_model_base_url):
+        requests.get(deafult_llm_model_base_url, headers={
+            "Authorization": f"Bearer ${os.environ.get("DEFAULT_LLM_MODEL_SECRET_KEY")}"
+        })
+
 @app.get('/conversations')
 async def search_conversations(
     page_id: str | None = None,
@@ -208,9 +219,12 @@ async def search_conversations(
     conversation_store: ConversationStore = Depends(get_conversation_store),
     settings_store: SettingsStore = Depends(get_user_settings_store),
 ) -> ConversationInfoResultSet:
-    conversation_metadata_result_set = await conversation_store.search(page_id, limit)
-
     user_settings = await settings_store.load()
+    if not user_settings:
+            logger.warning("User settings not found. Returning empty results.")
+            return ConversationInfoResultSet(results=[], next_page_id=None)
+
+    conversation_metadata_result_set = await conversation_store.search(user_settings.active_workspace_id, page_id, limit)
 
     # Filter out conversations older than max_age and conversations from the same workspace
     now = datetime.now(timezone.utc)
@@ -221,7 +235,6 @@ async def search_conversations(
         if hasattr(conversation, 'created_at')
         and (now - conversation.created_at.replace(tzinfo=timezone.utc)).total_seconds()
         <= max_age
-        and (user_settings and user_settings.active_workspace_id == conversation.workspace_id)
     ]
 
     conversation_ids = set(

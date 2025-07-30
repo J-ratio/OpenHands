@@ -15,6 +15,8 @@ interface WorkspaceContextType {
   setSelectedWorkspace: (workspace: any) => void;
   selectedWorkspaceId: string | undefined;
   setSelectedWorkspaceId: (id: string | undefined) => void;
+  selectedWorkspaceName: string | undefined;
+  setSelectedWorkspaceName: (name: string | undefined) => void;
   workspaces: any[];
   setWorkspaces: (workspaces: any[]) => void;
   linkedRepo: DataSource | undefined;
@@ -31,6 +33,9 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<
     string | undefined
   >(settings?.ACTIVE_WORKSPACE_ID || undefined);
+  const [selectedWorkspaceName, setSelectedWorkspaceName] = useState<
+    string | undefined
+  >();
   const [workspaces, setWorkspaces] = useState<any[]>([]);
   const [linkedRepo, setLinkedRepo] = useState<DataSource | undefined>(
     undefined,
@@ -86,6 +91,8 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
         setWorkspaces,
         linkedRepo,
         handleRefreshLinkedRepo,
+        selectedWorkspaceName,
+        setSelectedWorkspaceName,
       }}
     >
       {children}

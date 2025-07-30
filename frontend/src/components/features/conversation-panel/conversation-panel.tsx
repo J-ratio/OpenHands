@@ -10,6 +10,10 @@ import { LoadingSpinner } from "#/components/shared/loading-spinner";
 import { ExitConversationModal } from "./exit-conversation-modal";
 import { useClickOutsideElement } from "#/hooks/use-click-outside-element";
 import { useWorkspace } from "#/context/WorkspaceContext";
+import { BrandButton } from "../settings/brand-button";
+import { useCreateConversation } from "#/hooks/mutation/use-create-conversation";
+import OpenHands from "#/api/open-hands";
+import { displayErrorToast } from "#/utils/custom-toast-handlers";
 
 interface ConversationPanelProps {
   onClose: () => void;
@@ -20,7 +24,7 @@ export function ConversationPanel({ onClose }: ConversationPanelProps) {
   const { conversationId: currentConversationId } = useParams();
   const ref = useClickOutsideElement<HTMLDivElement>(onClose);
   const navigate = useNavigate();
-  const { selectedWorkspaceId } = useWorkspace();
+  const { selectedWorkspaceName } = useWorkspace();
 
   const [confirmDeleteModalVisible, setConfirmDeleteModalVisible] =
     React.useState(false);
@@ -32,9 +36,21 @@ export function ConversationPanel({ onClose }: ConversationPanelProps) {
     string | null
   >(null);
 
-  const { data: conversations, isFetching, error } = useUserConversations();
+  const [conversations, setConversations] = React.useState<any[]>([]);
+  const [nextPageId, setNextPageId] = React.useState<string | null>(null);
+  const [isLoadingMore, setIsLoadingMore] = React.useState(false);
+
+  const { mutate: createConversation } = useCreateConversation();
+  const { data, isFetching, error } = useUserConversations();
 
   const { mutate: deleteConversation } = useDeleteConversation();
+
+  React.useEffect(() => {
+    if (data?.results) {
+      setConversations(data.results);
+      setNextPageId(data.next_page_id);
+    }
+  }, [data]);
 
   const handleDeleteProject = (conversationId: string) => {
     setConfirmDeleteModalVisible(true);
@@ -56,6 +72,23 @@ export function ConversationPanel({ onClose }: ConversationPanelProps) {
     }
   };
 
+  const handleLoadMore = async () => {
+    if (!nextPageId || isLoadingMore) return;
+
+    setIsLoadingMore(true);
+    try {
+      const response = await OpenHands.getUserConversations(nextPageId);
+
+      setConversations((prev) => [...prev, ...response.results]);
+      setNextPageId(response.next_page_id);
+    } catch (error) {
+      console.error("Failed to load more conversations:", error);
+      displayErrorToast("Failed to load more conversations");
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
   return (
     <div
       ref={ref}
@@ -64,7 +97,8 @@ export function ConversationPanel({ onClose }: ConversationPanelProps) {
     >
       <div className="flex flex-col items-center justify-center mt-2 mb-4">
         <span className="text-sm text-neutral-400 font-medium px-3 py-1 bg-neutral-800 rounded">
-          Workspace: {selectedWorkspaceId}
+          Workspace:{" "}
+          <span className="font-semibold">{selectedWorkspaceName}</span>
         </span>
         <div className="w-full h-px bg-neutral-700 mt-2" />
       </div>
@@ -78,14 +112,24 @@ export function ConversationPanel({ onClose }: ConversationPanelProps) {
           <p className="text-danger">{error.message}</p>
         </div>
       )}
-      {conversations?.length === 0 && (
-        <div className="flex flex-col items-center justify-center h-full">
+      {conversations.length === 0 && !isFetching && (
+        <div className="flex flex-col items-center justify-center h-full gap-4">
           <p className="text-neutral-400">
             {t(I18nKey.CONVERSATION$NO_CONVERSATIONS)}
           </p>
+          <BrandButton
+            type="button"
+            variant="primary"
+            onClick={() => {
+              createConversation({});
+              onClose();
+            }}
+          >
+            Create New Conversation
+          </BrandButton>
         </div>
       )}
-      {conversations?.map((project) => (
+      {conversations.map((project) => (
         <NavLink
           key={project.conversation_id}
           to={`/conversations/${project.conversation_id}`}
@@ -105,6 +149,21 @@ export function ConversationPanel({ onClose }: ConversationPanelProps) {
           )}
         </NavLink>
       ))}
+      {nextPageId !== null && (
+        <div className="flex justify-center my-4">
+          <button
+            onClick={handleLoadMore}
+            disabled={isLoadingMore}
+            className={`px-4 py-2 text-sm font-medium rounded ${
+              isLoadingMore
+                ? "bg-neutral-700 text-neutral-400 cursor-not-allowed"
+                : "bg-primary text-white hover:bg-primary-dark"
+            }`}
+          >
+            {isLoadingMore ? "Loading..." : "Load More"}
+          </button>
+        </div>
+      )}
       {confirmDeleteModalVisible && (
         <ConfirmDeleteModal
           onConfirm={() => {
