@@ -77,8 +77,6 @@ export function ChatInterface() {
 
   const events = parsedEvents.filter(shouldRenderEvent);
 
-  // const displayLoaderOnIntialPrompt =
-
   const handleSendMessage = async (
     content: string,
     images: File[],
@@ -166,9 +164,11 @@ export function ChatInterface() {
     onChatBodyScroll,
   };
 
-  const displayLoaderUntilInitialPromptInput =
-    initialPrompt && curAgentState !== AgentState.AWAITING_USER_INPUT;
-  if (displayLoaderUntilInitialPromptInput) {
+  console.log(curAgentState);
+  const displayLoaderUntilInitialPromptRun =
+    initialPrompt &&
+    (curAgentState === AgentState.INIT || curAgentState === AgentState.LOADING);
+  if (displayLoaderUntilInitialPromptRun) {
     return (
       <div className="flex flex-col items-center justify-center h-[85vh] gap-8">
         <LoadingSpinner size="large" />
