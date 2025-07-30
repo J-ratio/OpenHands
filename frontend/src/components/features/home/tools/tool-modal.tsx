@@ -48,6 +48,8 @@ export function ToolModal({
     isSuccess,
   } = useCreateConversation();
 
+  const isCreatingConversation = isPending || isSuccess;
+
   const DialogTitle = RawDialogTitle as React.FC<{ children: React.ReactNode }>;
 
   return (
@@ -119,6 +121,7 @@ export function ToolModal({
                     onBranchSelection={setSelectedBranchName}
                     displayLaunchButton={false}
                     displayLinkUnlinkButton={false}
+                    displayRepoSelector={false}
                     linkedRepo={
                       linkedRepo
                         ? dataSourceToGitRepository(linkedRepo)
@@ -147,6 +150,7 @@ export function ToolModal({
                       !linkedRepo ||
                       !selectedBranchName ||
                       !selectedRepoTitle ||
+                      isCreatingConversation ||
                       (title === "Generate Class Diagram" && !className.trim())
                     }
                     onClick={() => {
@@ -154,19 +158,28 @@ export function ToolModal({
                         selectedRepository:
                           dataSourceToGitRepository(linkedRepo),
                         selected_branch: selectedBranchName ?? "",
-                        q: `Generate a complete UML class diagram for the class named "${className}".
+                        q: `Generate mermaid class diagram code for the class named "${className}".
                             The diagram should include:
                             - All properties with their access modifiers and data types
                             - All methods with their parameters, return types, and access modifiers
                             - Relationships with other classes (such as inheritance, composition, aggregation, associations)
                             - Any interfaces it implements
                             - Abstract or static modifiers, if any
-                            The context is from the repository at branch "${selectedBranchName ?? "main"}".
-                            Ensure the diagram reflects the current implementation from that branch.`,
+                          Leave out any standard library classes from relationships.
+                          Set the following config value for mermaid code.
+                          ---
+                              config:
+                                  class:
+                                      hideEmptyMembersBox: true
+                          ---
+                          The context is from the repository at branch "${selectedBranchName ?? "main"}".
+                          `,
                       });
                     }}
                   >
-                    Create / Generate
+                    {isCreatingConversation
+                      ? "Creating.."
+                      : "Create / Generate"}
                   </BrandButton>
                 </div>
               </>

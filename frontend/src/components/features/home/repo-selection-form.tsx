@@ -29,6 +29,7 @@ interface RepositorySelectionFormProps {
   displayLinkUnlinkButton?: boolean;
   linkedRepo?: GitRepository | null;
   onLinkedRepoChanged?: () => void;
+  displayRepoSelector?: boolean;
 }
 
 export function RepositorySelectionForm({
@@ -38,6 +39,7 @@ export function RepositorySelectionForm({
   displayLinkUnlinkButton = false,
   linkedRepo = null,
   onLinkedRepoChanged,
+  displayRepoSelector = true,
 }: RepositorySelectionFormProps) {
   const [selectedRepository, setSelectedRepository] =
     React.useState<GitRepository | null>(linkedRepo);
@@ -46,16 +48,23 @@ export function RepositorySelectionForm({
   );
   // Add a ref to track if the branch was manually cleared by the user
   const branchManuallyClearedRef = React.useRef<boolean>(false);
+
   const {
     data: repositories,
     isLoading: isLoadingRepositories,
     isError: isRepositoriesError,
-  } = useUserRepositories();
+  } = displayRepoSelector
+    ? useUserRepositories()
+    : { data: null, isError: false, isLoading: false };
+
   const {
     data: branches,
     isLoading: isLoadingBranches,
     isError: isBranchesError,
-  } = useRepositoryBranches(selectedRepository?.full_name || null);
+  } = useRepositoryBranches(
+    selectedRepository?.full_name || null,
+    selectedRepository?.git_provider,
+  );
   const {
     mutate: createConversation,
     isPending,
@@ -313,9 +322,15 @@ export function RepositorySelectionForm({
 
   return (
     <div className="flex flex-col gap-4 w-full">
-      {renderRepositorySelector(selectedWorkspaceId)}
+      {displayRepoSelector && renderRepositorySelector(selectedWorkspaceId)}
 
-      {renderBranchSelector()}
+      {
+        <div>
+          {!displayRepoSelector && <span className="text-sm">Branch Name</span>}
+          <div className="mb-2"></div>
+          {renderBranchSelector()}
+        </div>
+      }
 
       {displayLaunchButton && (
         <BrandButton

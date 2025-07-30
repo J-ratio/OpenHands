@@ -74,10 +74,14 @@ class GitHubService(BaseGitService, GitService):
         if not self.token:
             self.token = await self.get_latest_token()
 
-        return {
-            'Authorization': f'Bearer {self.token.get_secret_value() if self.token else ""}',
+        headers = {
             'Accept': 'application/vnd.github.v3+json',
         }
+
+        if self.token:
+            headers['Authorization'] = f'Bearer {self.token.get_secret_value()}'
+
+        return headers
 
     def _has_token_expired(self, status_code: int) -> bool:
         return status_code == 401

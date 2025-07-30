@@ -38,7 +38,6 @@ export function code({
 
     if (!isMultiline) {
       return (
-        <div className="relative">
           <code
             className={className}
             style={{
@@ -51,13 +50,10 @@ export function code({
           >
             {children}
           </code>
-          <RenderCopyButton />
-        </div>
       );
     }
 
     return (
-      <div className="relative">
         <pre
           style={{
             backgroundColor: "#2a3038",
@@ -72,8 +68,6 @@ export function code({
             {String(children).replace(/\n$/, "")}
           </code>
         </pre>
-        <RenderCopyButton />
-      </div>
     );
   }
 
