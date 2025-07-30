@@ -52,6 +52,7 @@ class ConversationStore(ABC):
     @abstractmethod
     async def search(
         self,
+        active_workspace_id: str | None = None,
         page_id: str | None = None,
         limit: int = 20,
     ) -> ConversationMetadataResultSet:

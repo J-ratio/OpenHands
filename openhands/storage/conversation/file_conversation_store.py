@@ -67,6 +67,7 @@ class FileConversationStore(ConversationStore):
 
     async def search(
         self,
+        active_workspace_id: str | None = None,
         page_id: str | None = None,
         limit: int = 20,
     ) -> ConversationMetadataResultSet:
@@ -80,17 +81,22 @@ class FileConversationStore(ConversationStore):
             ]
         except FileNotFoundError:
             return ConversationMetadataResultSet([])
-        num_conversations = len(conversation_ids)
-        start = page_id_to_offset(page_id)
-        end = min(limit + start, num_conversations)
+
         conversations = []
         for conversation_id in conversation_ids:
             try:
-                conversations.append(await self.get_metadata(conversation_id))
+                metadata = await self.get_metadata(conversation_id)
+                if active_workspace_id is None or metadata.workspace_id == active_workspace_id:
+                    conversations.append(metadata)
             except Exception:
                 logger.warning(
                     f'Could not load conversation metadata: {conversation_id}'
                 )
+
+        num_conversations = len(conversations)
+        start = page_id_to_offset(page_id)
+        end = min(limit + start, num_conversations)
+
         conversations.sort(key=_sort_key, reverse=True)
         conversations = conversations[start:end]
         next_page_id = offset_to_page_id(end, end < num_conversations)
