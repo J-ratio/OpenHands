@@ -51,7 +51,6 @@ export function code({
           >
             {children}
           </code>
-          <RenderCopyButton />
         </div>
       );
     }
@@ -72,7 +71,6 @@ export function code({
             {String(children).replace(/\n$/, "")}
           </code>
         </pre>
-        <RenderCopyButton />
       </div>
     );
   }
