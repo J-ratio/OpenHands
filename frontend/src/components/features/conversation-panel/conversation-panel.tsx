@@ -41,7 +41,8 @@ export function ConversationPanel({ onClose }: ConversationPanelProps) {
   const [isLoadingMore, setIsLoadingMore] = React.useState(false);
 
   const { mutate: createConversation } = useCreateConversation();
-  const { data, isFetching, error } = useUserConversations();
+  const { data, isFetching, error, isFetchedAfterMount } =
+    useUserConversations();
 
   const { mutate: deleteConversation } = useDeleteConversation();
 
@@ -112,7 +113,7 @@ export function ConversationPanel({ onClose }: ConversationPanelProps) {
           <p className="text-danger">{error.message}</p>
         </div>
       )}
-      {conversations.length === 0 && !isFetching && (
+      {conversations.length === 0 && !isFetching && isFetchedAfterMount && (
         <div className="flex flex-col items-center justify-center h-full gap-4">
           <p className="text-neutral-400">
             {t(I18nKey.CONVERSATION$NO_CONVERSATIONS)}
