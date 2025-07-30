@@ -219,9 +219,12 @@ async def search_conversations(
     conversation_store: ConversationStore = Depends(get_conversation_store),
     settings_store: SettingsStore = Depends(get_user_settings_store),
 ) -> ConversationInfoResultSet:
-    conversation_metadata_result_set = await conversation_store.search(page_id, limit)
-
     user_settings = await settings_store.load()
+    if not user_settings:
+            logger.warning("User settings not found. Returning empty results.")
+            return ConversationInfoResultSet(results=[], next_page_id=None)
+
+    conversation_metadata_result_set = await conversation_store.search(user_settings.active_workspace_id, page_id, limit)
 
     # Filter out conversations older than max_age and conversations from the same workspace
     now = datetime.now(timezone.utc)
@@ -232,7 +235,6 @@ async def search_conversations(
         if hasattr(conversation, 'created_at')
         and (now - conversation.created_at.replace(tzinfo=timezone.utc)).total_seconds()
         <= max_age
-        and (user_settings and user_settings.active_workspace_id == conversation.workspace_id)
     ]
 
     conversation_ids = set(
