@@ -9,6 +9,7 @@ import { useSettings } from "#/hooks/query/use-settings";
 import { DataSource } from "#/components/features/home/repo-connector";
 import { getAllDataSourcesByWorkspaceId } from "#/api/data-sources";
 import { useSaveSettings } from "#/hooks/mutation/use-save-settings";
+import { getWorkspaceNameFromId } from "#/utils/workspace-utils";
 
 interface WorkspaceContextType {
   selectedWorkspace: any;
@@ -63,9 +64,14 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   }
 
   useEffect(() => {
-    if (settings?.ACTIVE_WORKSPACE_ID) {
-      setSelectedWorkspaceId(settings.ACTIVE_WORKSPACE_ID);
-      fetchLinkedRepo(settings.ACTIVE_WORKSPACE_ID);
+    const activeWorkspaceId = settings?.ACTIVE_WORKSPACE_ID;
+    if (activeWorkspaceId) {
+      setSelectedWorkspaceId(activeWorkspaceId);
+      fetchLinkedRepo(activeWorkspaceId);
+
+      setSelectedWorkspaceName(
+        getWorkspaceNameFromId(workspaces, Number(activeWorkspaceId)),
+      );
     } else {
       setLinkedRepo(undefined);
     }
