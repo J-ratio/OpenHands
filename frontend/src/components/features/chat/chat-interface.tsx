@@ -59,7 +59,6 @@ export function ChatInterface() {
   const { data: config } = useConfig();
 
   const { curAgentState } = useSelector((state: RootState) => state.agent);
-  const isRuntimeInactive = RUNTIME_INACTIVE_STATES.includes(curAgentState);
 
   const [feedbackPolarity, setFeedbackPolarity] = React.useState<
     "positive" | "negative"
@@ -77,6 +76,8 @@ export function ChatInterface() {
   const errorMessage = getErrorMessage();
 
   const events = parsedEvents.filter(shouldRenderEvent);
+
+  // const displayLoaderOnIntialPrompt =
 
   const handleSendMessage = async (
     content: string,
@@ -165,7 +166,9 @@ export function ChatInterface() {
     onChatBodyScroll,
   };
 
-  if (isRuntimeInactive && initialPrompt) {
+  const displayLoaderUntilInitialPromptInput =
+    initialPrompt && curAgentState !== AgentState.AWAITING_USER_INPUT;
+  if (displayLoaderUntilInitialPromptInput) {
     return (
       <div className="flex flex-col items-center justify-center h-[85vh] gap-8">
         <LoadingSpinner size="large" />
