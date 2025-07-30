@@ -5,14 +5,15 @@ import {
   DialogContent as RawDialogContent,
 } from "#/components/ui/dialog";
 import styles from "./ToolCard.module.css";
-import { RepoConnector } from "../repo-connector";
 import { BrandButton } from "../../settings/brand-button";
 import { VisuallyHidden } from "@heroui/react";
 import { SettingsInput } from "../../settings/settings-input";
 import { useUserProviders } from "#/hooks/use-user-providers";
-import toast from "#/utils/toast";
+import { useCreateConversation } from "#/hooks/mutation/use-create-conversation";
 import { useTranslation } from "react-i18next";
 import { useWorkspace } from "#/context/WorkspaceContext";
+import { RepositorySelectionForm } from "../repo-selection-form";
+import { dataSourceToGitRepository } from "#/utils/utils.ts";
 
 const DialogContent = RawDialogContent as React.FC<
   React.PropsWithChildren<any>
@@ -33,9 +34,6 @@ export function ToolModal({
   image,
   description,
 }: ToolModalProps) {
-  const { providers } = useUserProviders();
-  const { t } = useTranslation();
-
   const { linkedRepo } = useWorkspace();
   const [selectedRepoTitle, setSelectedRepoTitle] = React.useState<
     string | null
@@ -44,10 +42,13 @@ export function ToolModal({
     string | null
   >(null);
   const [className, setClassName] = React.useState<string>("");
+  const {
+    mutate: createConversation,
+    isPending,
+    isSuccess,
+  } = useCreateConversation();
 
   const DialogTitle = RawDialogTitle as React.FC<{ children: React.ReactNode }>;
-
-  const providersAreSet = providers.length > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -109,38 +110,66 @@ export function ToolModal({
                 />
               </div>
             )} */}
-            {linkedRepo && title === "Generate Class Diagram" && (
-              <div className="flex flex-col items-center w-full max-w-md mx-auto mt-4">
-                <SettingsInput
-                  label="Class Name"
-                  type="text"
-                  value={className}
-                  onChange={setClassName}
-                  placeholder="Enter a class name..."
-                  className="w-full"
-                />
-              </div>
-            )}
+
             {linkedRepo && (
-              <div className="flex justify-center w-full">
-                <BrandButton
-                  testId="tool-generate-button"
-                  variant="primary"
-                  type="button"
-                  className="mt-4 max-w-md w-full text-lg font-bold"
-                  isDisabled={
-                    (!linkedRepo && !selectedRepoTitle) ||
-                    (title === "Generate Class Diagram" && !className.trim())
-                  }
-                  onClick={() => {
-                    toast.info(
-                      `${selectedRepoTitle}, ${selectedBranchName}, ${className}`,
-                    );
-                  }}
-                >
-                  Create / Generate
-                </BrandButton>
-              </div>
+              <>
+                <div className="flex flex-col items-center w-full max-w-md mx-auto mt-4 gap-8">
+                  <RepositorySelectionForm
+                    onRepoSelection={setSelectedRepoTitle}
+                    onBranchSelection={setSelectedBranchName}
+                    displayLaunchButton={false}
+                    displayLinkUnlinkButton={false}
+                    linkedRepo={
+                      linkedRepo
+                        ? dataSourceToGitRepository(linkedRepo)
+                        : undefined
+                    }
+                    onLinkedRepoChanged={() => {}}
+                  />
+                  {linkedRepo && title === "Generate Class Diagram" && (
+                    <SettingsInput
+                      label="Class Name"
+                      type="text"
+                      value={className}
+                      onChange={setClassName}
+                      placeholder="Enter a class name..."
+                      className="w-full"
+                    />
+                  )}
+                </div>
+                <div className="flex justify-center w-full">
+                  <BrandButton
+                    testId="tool-generate-button"
+                    variant="primary"
+                    type="button"
+                    className="mt-4 max-w-md w-full text-lg font-bold"
+                    isDisabled={
+                      !linkedRepo ||
+                      !selectedBranchName ||
+                      !selectedRepoTitle ||
+                      (title === "Generate Class Diagram" && !className.trim())
+                    }
+                    onClick={() => {
+                      createConversation({
+                        selectedRepository:
+                          dataSourceToGitRepository(linkedRepo),
+                        selected_branch: selectedBranchName ?? "",
+                        q: `Generate a complete UML class diagram for the class named "${className}".
+                            The diagram should include:
+                            - All properties with their access modifiers and data types
+                            - All methods with their parameters, return types, and access modifiers
+                            - Relationships with other classes (such as inheritance, composition, aggregation, associations)
+                            - Any interfaces it implements
+                            - Abstract or static modifiers, if any
+                            The context is from the repository at branch "${selectedBranchName ?? "main"}".
+                            Ensure the diagram reflects the current implementation from that branch.`,
+                      });
+                    }}
+                  >
+                    Create / Generate
+                  </BrandButton>
+                </div>
+              </>
             )}
           </div>
         </div>

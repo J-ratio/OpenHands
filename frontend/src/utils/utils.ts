@@ -1,3 +1,5 @@
+import { DataSource } from "#/components/features/home/repo-connector";
+import { GitRepository } from "#/types/git";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -102,3 +104,13 @@ export const formatTimestamp = (timestamp: string) =>
     minute: "2-digit",
     second: "2-digit",
   });
+
+export const dataSourceToGitRepository = (ds: DataSource): GitRepository => {
+  // TODO: make it dynamic here
+  return {
+    id: ds.id.toString(),
+    full_name: ds.name || ds.url || "",
+    git_provider: "github",
+    is_public: true,
+  };
+};
