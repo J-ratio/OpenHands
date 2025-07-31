@@ -9,7 +9,7 @@ import { TrajectoryActions } from "../trajectory/trajectory-actions";
 import { createChatMessage } from "#/services/chat-service";
 import { InteractiveChatBox } from "./interactive-chat-box";
 import { RootState } from "#/store";
-import { AgentState, RUNTIME_INACTIVE_STATES } from "#/types/agent-state";
+import { AgentState } from "#/types/agent-state";
 import { generateAgentStateChangeEvent } from "#/services/agent-state-service";
 import { FeedbackModal } from "../feedback/feedback-modal";
 import { useScrollToBottom } from "#/hooks/use-scroll-to-bottom";
@@ -164,7 +164,6 @@ export function ChatInterface() {
     onChatBodyScroll,
   };
 
-  console.log(curAgentState);
   const displayLoaderUntilInitialPromptRun =
     initialPrompt &&
     (curAgentState === AgentState.INIT || curAgentState === AgentState.LOADING);

@@ -203,10 +203,10 @@ export const AIChat = createReactBlockSpec(
       return (
         <div className="ai-chat" data-chat-type="aiChat">
           {block.props.state === "generated" && block.props.generatedContent ? (
-            <div className="ai-chat-preview">
+            <div className="ai-chat-preview flex justify-between w-full">
               <div>
                 <div className="preview-content markdown-preview">
-                  <ReactMarkdown>{block.props.generatedContent}</ReactMarkdown>
+                  <ReactMarkdown>{block.props.prompt}</ReactMarkdown>
                 </div>
                 {block.props.sources && block.props.sources.length > 0 && (
                   <SourcesPanel
@@ -217,7 +217,17 @@ export const AIChat = createReactBlockSpec(
                 )}
               </div>
 
-              <Menu shadow="md" width={200}>
+              <Menu
+                shadow="md"
+                width={200}
+                styles={{
+                  dropdown: {
+                    backgroundColor: "#1A1B1E",
+                    borderRadius: "8px",
+                    padding: "4px",
+                  },
+                }}
+              >
                 <Menu.Target>
                   <ActionIcon>
                     <IconCheck size={16} color="black" />

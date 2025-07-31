@@ -204,6 +204,24 @@ export function getTabs(repoLength = 0) {
   }
 }
 
+export const normalizeAIChatBlocks = (blocks) => {
+  return blocks.map((block) => {
+    if (block.type === "aiChat") {
+      return {
+        ...block,
+        props: {
+          ...block.props,
+          state:
+            block.props?.state === "generating"
+              ? "prompting"
+              : block.props?.state,
+        },
+      };
+    }
+    return block;
+  });
+};
+
 export async function getTheMarkdownContentForEditor(blocksJSON, hiddenEditor) {
   hiddenEditor.replaceBlocks(hiddenEditor.document, blocksJSON);
 

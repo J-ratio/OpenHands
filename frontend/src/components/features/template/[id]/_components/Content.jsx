@@ -28,7 +28,7 @@ import { toast } from "sonner";
 import { MermaidInlineContent } from "./MermaidBlock";
 import ExportDocumentContent from "./Export";
 import {
-  convertMermaidToCodeBlock,
+  normalizeAIChatBlocks,
   getTheMarkdownContentForEditor,
   updateCustomBlocks,
 } from "../../../../../utils/utils";
@@ -146,13 +146,15 @@ const Content = ({ workspacId, templateId, docId, onEditorReady }) => {
       }
 
       // 1. Get the content from the mainEditor and set it to hiddenEditor
-      const blocksJSON = editor.document;
+      let blocksJSON = editor.document;
 
       if (!blocksJSON) {
         console.error("[SAVE_TO_BACKEND]: ", "No blocks found");
         toast.error("No blocks found");
         return false;
       }
+
+      blocksJSON = normalizeAIChatBlocks(blocksJSON);
 
       const documentMarkdown = await getTheMarkdownContentForEditor(
         blocksJSON,
