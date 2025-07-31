@@ -57,9 +57,11 @@ export const WorkspaceSelect = ({
       value={selectedWorkspace}
       onValueChange={(value) => {
         setSelectedWorkspace(value);
-        setSelectedWorkspaceName(
-          getWorkspaceNameFromId(workspaces || data, value),
-        );
+        if (setSelectedWorkspaceName) {
+          setSelectedWorkspaceName(
+            getWorkspaceNameFromId(workspaces || data, value),
+          );
+        }
       }}
       className="bg-neutral-900 text-neutral-100 rounded-md border border-neutral-700"
     >
@@ -79,7 +81,9 @@ export const WorkspaceSelect = ({
               key={workspace.id}
               onClick={() => {
                 setSelectedWorkspace(workspace.id);
-                setSelectedWorkspaceName(workspace.name);
+                if (setSelectedWorkspaceName) {
+                  setSelectedWorkspaceName(workspace.name);
+                }
               }}
               className="hover:bg-neutral-800 focus:bg-neutral-800 text-neutral-100 cursor-pointer transition-colors duration-100 rounded"
             >
