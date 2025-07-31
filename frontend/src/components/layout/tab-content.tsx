@@ -9,9 +9,15 @@ const JupyterTab = lazy(() => import("#/routes/jupyter-tab"));
 const ServedTab = lazy(() => import("#/routes/served-tab"));
 const TerminalTab = lazy(() => import("#/routes/terminal-tab"));
 const VSCodeTab = lazy(() => import("#/routes/vscode-tab"));
+const MermaidTab = lazy(() =>
+  import("#/routes/mermaid-tab").then((module) => ({
+    default: module.MermaidTab,
+  })),
+);
 
 interface TabContentProps {
   conversationPath: string;
+  mermaidCode?: string;
 }
 
 export function TabContent({ conversationPath }: TabContentProps) {
@@ -25,6 +31,9 @@ export function TabContent({ conversationPath }: TabContentProps) {
   const isServedActive = currentPath === `${conversationPath}/served`;
   const isTerminalActive = currentPath === `${conversationPath}/terminal`;
   const isVSCodeActive = currentPath === `${conversationPath}/vscode`;
+  const isMermaidActive = currentPath === `${conversationPath}/mermaid`;
+
+  const mermaidCodeFromState = location.state?.mermaidCode;
 
   return (
     <div className="h-full w-full relative">
@@ -66,6 +75,13 @@ export function TabContent({ conversationPath }: TabContentProps) {
         >
           <VSCodeTab />
         </div>
+        {isMermaidActive && (
+          <div
+            className={`absolute inset-0 ${isMermaidActive ? "block" : "hidden"}`}
+          >
+            <MermaidTab code={mermaidCodeFromState} />
+          </div>
+        )}
       </Suspense>
     </div>
   );

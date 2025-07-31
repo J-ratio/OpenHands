@@ -1,5 +1,7 @@
+import { useConversationId } from "#/hooks/use-conversation-id";
 import React, { useState } from "react";
 import { ExtraProps } from "react-markdown";
+import { useNavigate } from "react-router";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 
@@ -15,11 +17,26 @@ export function code({
   const match = /language-(\w+)/.exec(className || ""); // get the language
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied">("idle");
 
+  const navigate = useNavigate();
+  const { conversationId } = useConversationId();
+
   const handleCopyToClipboard = () => {
     navigator.clipboard.writeText(String(children));
     setCopyStatus("copied");
 
     setTimeout(() => setCopyStatus("idle"), 2000);
+  };
+
+  const handleMermaidVisualizeClick = () => {
+    const baseMermaidPath = `/conversations/${conversationId}/mermaid`;
+    const isAlreadyOnMermaid = location.pathname === baseMermaidPath;
+
+    navigate(baseMermaidPath, {
+      replace: isAlreadyOnMermaid,
+      state: {
+        mermaidCode: String(children),
+      },
+    });
   };
 
   const RenderCopyButton = () => {
@@ -84,7 +101,10 @@ export function code({
       <div className="absolute top-2 right-2 flex items-center gap-4">
         <RenderCopyButton />
         {isMermaidCodeBlock && (
-          <button className="text-sm text-gray-400 hover:text-gray-600 mr-2 cursor-pointer">
+          <button
+            className="text-sm text-gray-400 hover:text-gray-600 mr-2 cursor-pointer"
+            onClick={handleMermaidVisualizeClick}
+          >
             Visualize
           </button>
         )}
