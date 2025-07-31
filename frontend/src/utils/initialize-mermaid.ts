@@ -1,21 +1,21 @@
-import React from "react";
 import mermaid from "mermaid";
 
-mermaid.initialize({
-  startOnLoad: true,
-  theme: "default",
-  securityLevel: "loose",
-  flowchart: {
-    subGraphTitleMargin: {
-      top: 0,
-      bottom: 50,
+export const initializeMermaid = () => {
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: "default",
+    securityLevel: "loose",
+    flowchart: {
+      subGraphTitleMargin: {
+        top: 0,
+        bottom: 50,
+      },
+      nodeSpacing: 70,
+      rankSpacing: 100,
+      padding: 20,
+      diagramPadding: 40,
     },
-    nodeSpacing: 70,
-    rankSpacing: 100,
-    padding: 20,
-    diagramPadding: 40,
-  },
-  themeCSS: `
+    themeCSS: `
     g.classGroup rect {
       fill: #282a36;
       stroke: #6272a4;
@@ -60,32 +60,6 @@ mermaid.initialize({
       stroke: #f8f8f2;
       stroke-width: 1;
     }`,
-  fontFamily: "Fira Code",
-});
-
-export default class Mermaid extends React.Component {
-  componentDidMount() {
-    mermaid.contentLoaded();
-  }
-
-  componentDidUpdate() {
-    mermaid.contentLoaded();
-  }
-
-  render() {
-    try {
-      return (
-        <div className="mermaid" id="mermaid">
-          {this.props.chart}
-        </div>
-      );
-    } catch (error) {
-      if (error.name === "UnknownDiagramError") {
-        return (
-          <div className="error">Unknown Diagram Error: {error.message}</div>
-        );
-      }
-      return <div className="error">Syntax Error: {error.message}</div>;
-    }
-  }
-}
+    fontFamily: "Fira Code",
+  });
+};

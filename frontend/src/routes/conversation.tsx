@@ -2,7 +2,7 @@ import { useDisclosure } from "@heroui/react";
 import React from "react";
 import { useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import { FaServer, FaExternalLinkAlt } from "react-icons/fa";
+import { FaServer, FaExternalLinkAlt, FaProjectDiagram } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import { DiGit } from "react-icons/di";
 import { VscCode } from "react-icons/vsc";
@@ -165,6 +165,11 @@ function AppContent() {
                 label: t(I18nKey.WORKSPACE$TERMINAL_TAB_LABEL),
                 to: "terminal",
                 icon: <TerminalIcon />,
+              },
+              {
+                label: "Mermaid Visualizer",
+                to: "mermaid",
+                icon: <FaProjectDiagram />,
               },
               // { label: "Jupyter", to: "jupyter", icon: <JupyterIcon /> },
               // {

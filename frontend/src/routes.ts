@@ -26,6 +26,7 @@ export default [
       route("served", "routes/served-tab.tsx"),
       route("terminal", "routes/terminal-tab.tsx"),
       route("vscode", "routes/vscode-tab.tsx"),
+      route("mermaid", "routes/mermaid-tab.tsx"),
     ]),
     route("documents/", "routes/documents-page.tsx"),
     route("document/:documentId", "routes/document-detail-page.tsx"),
