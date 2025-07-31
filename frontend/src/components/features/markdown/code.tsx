@@ -25,7 +25,7 @@ export function code({
   const RenderCopyButton = () => {
     return (
       <button
-        className="absolute top-2 right-2 text-sm text-gray-400 hover:text-gray-600 mr-2 cursor-pointer"
+        className="text-sm text-gray-400 hover:text-gray-600 mr-2 cursor-pointer"
         onClick={handleCopyToClipboard}
       >
         {copyStatus === "copied" ? "Copied!" : "Copy"}
@@ -69,6 +69,8 @@ export function code({
     );
   }
 
+  const isMermaidCodeBlock =
+    match.includes("language-mermaid") || match.includes("mermaid");
   return (
     <div className="relative">
       <SyntaxHighlighter
@@ -79,7 +81,14 @@ export function code({
       >
         {String(children).replace(/\n$/, "")}
       </SyntaxHighlighter>
-      <RenderCopyButton />
+      <div className="absolute top-2 right-2 flex items-center gap-4">
+        <RenderCopyButton />
+        {isMermaidCodeBlock && (
+          <button className="text-sm text-gray-400 hover:text-gray-600 mr-2 cursor-pointer">
+            Visualize
+          </button>
+        )}
+      </div>
     </div>
   );
 }
