@@ -35,8 +35,7 @@ export const routes = {
 
   createDataSources: `${API_URL}/data-sources/`,
   getADataSource: (id) => `${API_URL}/data-sources/${id}`,
-  getAllDataSources: (workspaceId) =>
-    `${API_URL}/data-sources?workspaceId=${workspaceId}/`,
+  getAllDataSources: `${API_URL}/data-sources/`,
   updateADataSource: (id) => `${API_URL}/data-sources/${id}`,
   deleteADataSource: (id) => `${API_URL}/data-sources/${id}`,
   refetchTheLatestGitCommit: (id) => `${API_URL}/data-sources/${id}/fetch`,

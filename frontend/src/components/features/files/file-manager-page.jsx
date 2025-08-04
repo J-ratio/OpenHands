@@ -30,13 +30,13 @@ function FileManagerPage() {
 
   const { selectedWorkspaceId, workspaces } = useWorkspace();
 
-  const [selectedWorkspaceIdUi, setSelectedWorkspaceIdUi] =
-    useState(selectedWorkspaceId);
-  const [workspacesUi, setWorkspacesUi] = useState(workspaces);
+  // const [selectedWorkspaceIdUi, setSelectedWorkspaceIdUi] =
+  //   useState(selectedWorkspaceId);
+  // const [workspacesUi, setWorkspacesUi] = useState(workspaces);
 
   async function fetchData() {
     setLoading(true);
-    const res = await getAllDataSourcesByWorkspaceId(selectedWorkspaceIdUi);
+    const res = await getAllDataSourcesByWorkspaceId(selectedWorkspaceId);
     if (res.success) {
       setData(res.data);
       setError(null);
@@ -48,7 +48,7 @@ function FileManagerPage() {
 
   useEffect(() => {
     fetchData();
-  }, [selectedWorkspaceIdUi]);
+  }, [selectedWorkspaceId]);
 
   const handleDelete = async (id) => {
     const { success, errorMessage } = await deleteADataSource(id);
@@ -99,22 +99,21 @@ function FileManagerPage() {
                 onChange={(e) => setSearch(e.target.value)}
                 className="max-w-sm bg-neutral-900 text-neutral-100 border border-neutral-700 placeholder:text-neutral-500 focus:ring-2 focus:ring-primary focus:border-primary outline-none rounded-md transition-colors duration-150"
               />
-              <WorkspaceSelect
+              {/* <WorkspaceSelect
                 selectedWorkspace={
                   selectedWorkspaceIdUi && Number(selectedWorkspaceIdUi)
                 }
                 setSelectedWorkspace={setSelectedWorkspaceIdUi}
                 workspaces={workspacesUi}
-              />
-              {selectedWorkspaceIdUi && (
-                <Button
-                  size="default"
-                  variant="outline"
-                  onClick={() => setShowAddSource(true)}
-                >
-                  + Add File
-                </Button>
-              )}
+              /> */}
+
+              <Button
+                size="default"
+                variant="outline"
+                onClick={() => setShowAddSource(true)}
+              >
+                + Add File
+              </Button>
             </div>
           </div>
           <Dialog open={showAddSource} onOpenChange={setShowAddSource}>
@@ -122,7 +121,7 @@ function FileManagerPage() {
               <DialogHeader></DialogHeader>
               <DialogTitle>Add New Data Source</DialogTitle>
               <AddNewDataSource
-                workspace={{ id: selectedWorkspaceIdUi }}
+                workspace={{ id: selectedWorkspaceId }}
                 repoCount={0} // TODO: pass actual repo count
                 fileCount={0} // TODO: pass actual file count
               />
