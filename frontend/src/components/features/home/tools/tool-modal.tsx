@@ -158,22 +158,7 @@ export function ToolModal({
                         selectedRepository:
                           dataSourceToGitRepository(linkedRepo),
                         selected_branch: selectedBranchName ?? "",
-                        q: `Generate mermaid class diagram code for the class named "${className}".
-                            The diagram should include:
-                            - All properties with their access modifiers and data types
-                            - All methods with their parameters, return types, and access modifiers
-                            - Relationships with other classes (such as inheritance, composition, aggregation, associations)
-                            - Any interfaces it implements
-                            - Abstract or static modifiers, if any
-                          Leave out any standard library classes from relationships.
-                          Set the following config value for mermaid code.
-                          ---
-                              config:
-                                  class:
-                                      hideEmptyMembersBox: true
-                          ---
-                          The context is from the repository at branch "${selectedBranchName ?? "main"}".
-                          `,
+                        q: `/class_diagram CLASS_NAME="${className}" BRANCH_NAME="${selectedBranchName ?? "main"}"`,
                       });
                     }}
                   >

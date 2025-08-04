@@ -4,7 +4,7 @@ version: 1.0.0
 author: openhands
 agent: CodeActAgent
 triggers:
-- /fix_test
+  - /fix_test
 inputs:
   - name: BRANCH_NAME
     description: "Branch for the agent to work on"
