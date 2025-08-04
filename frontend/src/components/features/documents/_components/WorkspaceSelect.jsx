@@ -33,7 +33,7 @@ export const WorkspaceSelect = ({
       if (workspaces) workspaces = response.data;
       if (setWorkspaces) setWorkspaces(response.data);
       if (!selectedWorkspace && workspaces) {
-        setSelectedWorkspace(workspaces[0].id);
+        setSelectedWorkspace(workspaces[0].id.toString());
         setSelectedWorkspaceName(workspaces[0].name);
       }
     } else {
@@ -56,7 +56,7 @@ export const WorkspaceSelect = ({
       defaultValue={selectedWorkspace}
       value={selectedWorkspace}
       onValueChange={(value) => {
-        setSelectedWorkspace(value);
+        setSelectedWorkspace(value.toString());
         if (setSelectedWorkspaceName) {
           setSelectedWorkspaceName(
             getWorkspaceNameFromId(workspaces || data, value),
@@ -80,7 +80,7 @@ export const WorkspaceSelect = ({
               value={workspace.id}
               key={workspace.id}
               onClick={() => {
-                setSelectedWorkspace(workspace.id);
+                setSelectedWorkspace(workspace.id.toString());
                 if (setSelectedWorkspaceName) {
                   setSelectedWorkspaceName(workspace.name);
                 }

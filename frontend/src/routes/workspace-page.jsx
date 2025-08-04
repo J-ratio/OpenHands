@@ -37,7 +37,7 @@ const WorkspacePage = () => {
       !data.some((ws) => ws.id.toString() === selectedWorkspaceId)
     ) {
       if (data.length > 0) {
-        setSelectedWorkspaceId(data[0].id);
+        setSelectedWorkspaceId(data[0].id.toString());
       } else {
         setSelectedWorkspaceId(undefined);
       }
