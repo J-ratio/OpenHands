@@ -166,11 +166,16 @@ function AppContent() {
                 to: "terminal",
                 icon: <TerminalIcon />,
               },
-              {
-                label: "Mermaid Visualizer",
-                to: "mermaid",
-                icon: <FaProjectDiagram />,
-              },
+              ...(window.location.pathname.endsWith("/mermaid")
+                ? [
+                    {
+                      label: "Mermaid Visualizer",
+                      to: "mermaid",
+                      icon: <FaProjectDiagram />,
+                    },
+                  ]
+                : []),
+
               // { label: "Jupyter", to: "jupyter", icon: <JupyterIcon /> },
               // {
               //   label: <ServedAppLabel />,
