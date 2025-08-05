@@ -214,7 +214,9 @@ export const normalizeAIChatBlocks = (blocks) => {
           state:
             block.props?.state === "generating"
               ? "prompting"
-              : block.props?.state,
+              : block.props?.state === "generated"
+                ? "initial"
+                : block.props?.state,
         },
       };
     }
