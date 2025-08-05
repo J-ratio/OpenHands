@@ -90,16 +90,27 @@ export default class Mermaid extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    this.addZoomAndPan();
-
-    if (prevState.mermaidCode !== this.state.mermaidCode) {
-      const element = document.getElementById("mermaid");
-      element?.removeAttribute("data-processed");
-      mermaid.contentLoaded();
-    }
-
     if (prevProps.chart !== this.props.chart) {
       this.setState({ mermaidCode: this.props.chart || "" });
+    }
+
+    if (prevState.mermaidCode !== this.state.mermaidCode) {
+      clearTimeout(this.renderTimeout);
+
+      this.renderTimeout = setTimeout(() => {
+        const element = document.getElementById("mermaid");
+        if (!element) return;
+
+        element.removeAttribute("data-processed");
+        element.innerHTML = this.state.mermaidCode;
+
+        try {
+          mermaid.contentLoaded();
+          this.addZoomAndPan();
+        } catch (err) {
+          console.error(err);
+        }
+      }, 500);
     }
   }
 
@@ -182,6 +193,7 @@ export default class Mermaid extends React.Component {
       lastY = e.clientY;
       this.currentTranslateX += dx;
       this.currentTranslateY += dy;
+      this.renderTimeout = null;
       scheduleTransform();
     });
 
@@ -226,9 +238,7 @@ export default class Mermaid extends React.Component {
               border: "1px solid #ccc",
               position: "relative",
             }}
-          >
-            {this.state.mermaidCode}
-          </div>
+          />
 
           {/* Editor Container */}
           <div
@@ -275,7 +285,6 @@ export default class Mermaid extends React.Component {
                   theme="dark"
                   onChange={(val) => {
                     this.setState({ mermaidCode: val });
-                    mermaid.contentLoaded();
                   }}
                   basicSetup={{
                     lineNumbers: true,
