@@ -5,15 +5,16 @@ mermaid.initialize({
   startOnLoad: true,
   theme: "default",
   securityLevel: "loose",
+  maxTextSize: 90000,
   flowchart: {
     subGraphTitleMargin: {
       top: 0,
-      bottom: 50,
+      bottom: 20,
     },
-    nodeSpacing: 70,
-    rankSpacing: 100,
-    padding: 20,
-    diagramPadding: 40,
+    nodeSpacing: 50,
+    rankSpacing: 50,
+    padding: 10,
+    diagramPadding: 10,
   },
   themeCSS: `
     g.classGroup rect {
@@ -64,19 +65,206 @@ mermaid.initialize({
 });
 
 export default class Mermaid extends React.Component {
-  componentDidMount() {
-    mermaid.contentLoaded();
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      mermaidCode: props.chart || "",
+    };
+
+    // Initialize zoom and pan state as instance properties
+    this.isPanning = false;
+    this.startX = 0;
+    this.startY = 0;
+    this.currentScale = 1;
+    this.currentTranslateX = 0;
+    this.currentTranslateY = 0;
   }
 
-  componentDidUpdate() {
+  componentDidMount() {
     mermaid.contentLoaded();
+    this.addZoomAndPan();
   }
+
+  componentDidUpdate(prevProps, prevState) {
+    this.addZoomAndPan();
+
+    if (prevState.mermaidCode !== this.state.mermaidCode) {
+      const element = document.getElementById("mermaid");
+      element?.removeAttribute("data-processed");
+      mermaid.contentLoaded();
+    }
+
+    if (prevProps.chart !== this.props.chart) {
+      this.setState({ mermaidCode: this.props.chart || "" });
+    }
+  }
+
+  addZoomAndPan = () => {
+    setTimeout(() => {
+      const svg = document.querySelector("#mermaid svg");
+      if (svg && !svg.dataset.zoomEnabled) {
+        this.enableZoomAndPan(svg);
+        svg.dataset.zoomEnabled = "true";
+
+        // Additional SVG fixes
+        svg.setAttribute("preserveAspectRatio", "xMinYMin meet");
+        svg.setAttribute("width", "100%");
+        svg.setAttribute("height", "100%");
+        svg.style.maxWidth = "75vw";
+      }
+    }, 100);
+  };
+
+  enableZoomAndPan = (svg) => {
+    // Set up the SVG for zoom and pan
+    svg.style.cursor = "grab";
+
+    // Mouse wheel zoom
+    svg.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      const rect = svg.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const scaleFactor = e.deltaY > 0 ? 0.9 : 1.1;
+      const newScale = Math.max(
+        0.1,
+        Math.min(5, this.currentScale * scaleFactor),
+      );
+
+      // Calculate new translate to zoom toward mouse position
+      const dx = x - this.currentTranslateX;
+      const dy = y - this.currentTranslateY;
+
+      this.currentTranslateX = x - dx * (newScale / this.currentScale);
+      this.currentTranslateY = y - dy * (newScale / this.currentScale);
+      this.currentScale = newScale;
+
+      this.updateTransform(svg);
+    });
+
+    // Mouse drag pan
+    svg.addEventListener("mousedown", (e) => {
+      this.isPanning = true;
+      this.startX = e.clientX - this.currentTranslateX;
+      this.startY = e.clientY - this.currentTranslateY;
+      svg.style.cursor = "grabbing";
+    });
+
+    svg.addEventListener("mousemove", (e) => {
+      if (!this.isPanning) return;
+
+      this.currentTranslateX = e.clientX - this.startX;
+      this.currentTranslateY = e.clientY - this.startY;
+      this.updateTransform(svg);
+    });
+
+    svg.addEventListener("mouseup", () => {
+      this.isPanning = false;
+      svg.style.cursor = "grab";
+    });
+
+    svg.addEventListener("mouseleave", () => {
+      this.isPanning = false;
+      svg.style.cursor = "grab";
+    });
+
+    // Double-click to reset
+    svg.addEventListener("dblclick", () => {
+      this.currentScale = 1;
+      this.currentTranslateX = 0;
+      this.currentTranslateY = 0;
+      this.updateTransform(svg);
+    });
+  };
+
+  updateTransform = (svg) => {
+    const g = svg.querySelector("g");
+    if (g) {
+      g.style.transform = `translate(${this.currentTranslateX}px, ${this.currentTranslateY}px) scale(${this.currentScale})`;
+      g.style.transformOrigin = "0 0";
+    }
+  };
 
   render() {
     try {
       return (
-        <div className="mermaid" id="mermaid">
-          {this.props.chart}
+        <div style={{ display: "flex", height: "80vh", width: "100%" }}>
+          {/* Diagram Container */}
+          <div
+            className="mermaid"
+            id="mermaid"
+            style={{
+              flex: 1,
+              height: "100%",
+              border: "1px solid #ccc",
+              position: "relative",
+            }}
+          >
+            {this.state.mermaidCode}
+          </div>
+
+          {/* Editor Container */}
+          <div
+            className="bg-gray-900 border-l border-gray-700 flex flex-col"
+            style={{
+              width: "25vw",
+              height: "100%",
+              overflow: "hidden",
+            }}
+          >
+            {/* Editor Header */}
+            <div className="bg-gray-800 p-4 border-b border-gray-700">
+              <div className="flex items-center justify-between">
+                <h2 className="text-white font-semibold flex items-center gap-2">
+                  <svg
+                    className="w-5 h-5 text-blue-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+                    />
+                  </svg>
+                  Mermaid Editor
+                </h2>
+                <div className="flex gap-1">
+                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Editor Content */}
+            <div className="flex-1 flex flex-col">
+              <textarea
+                value={this.state.mermaidCode}
+                onChange={(e) => {
+                  mermaid.contentLoaded();
+                  this.setState({ mermaidCode: e.target.value });
+                }}
+                className="flex-1 bg-gray-900 text-gray-100 p-4 font-mono text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
+                placeholder="Enter your Mermaid diagram code here..."
+                style={{ fontFamily: "Fira Code, Monaco, Consolas, monospace" }}
+              />
+
+              {/* Editor Footer */}
+              <div className="bg-gray-800 px-4 py-2 border-t border-gray-700">
+                <div className="flex items-center justify-between text-xs text-gray-400">
+                  <span>
+                    Lines: {this.state.mermaidCode.split("\n").length}
+                  </span>
+                  <span>Mermaid Syntax</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       );
     } catch (error) {
