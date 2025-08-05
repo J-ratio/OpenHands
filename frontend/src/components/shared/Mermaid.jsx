@@ -117,10 +117,29 @@ export default class Mermaid extends React.Component {
   };
 
   enableZoomAndPan = (svg) => {
-    // Set up the SVG for zoom and pan
     svg.style.cursor = "grab";
 
-    // Mouse wheel zoom
+    let isPanning = false;
+    let lastX = 0;
+    let lastY = 0;
+    let rafId = null;
+
+    const g = svg.querySelector("g");
+
+    const applyTransform = () => {
+      if (!g) return;
+      g.style.transform = `translate(${this.currentTranslateX}px, ${this.currentTranslateY}px) scale(${this.currentScale})`;
+      g.style.transformOrigin = "0 0";
+      rafId = null;
+    };
+
+    const scheduleTransform = () => {
+      if (rafId === null) {
+        rafId = requestAnimationFrame(applyTransform);
+      }
+    };
+
+    // Wheel Zoom
     svg.addEventListener("wheel", (e) => {
       e.preventDefault();
       const rect = svg.getBoundingClientRect();
@@ -133,7 +152,6 @@ export default class Mermaid extends React.Component {
         Math.min(5, this.currentScale * scaleFactor),
       );
 
-      // Calculate new translate to zoom toward mouse position
       const dx = x - this.currentTranslateX;
       const dy = y - this.currentTranslateY;
 
@@ -141,41 +159,45 @@ export default class Mermaid extends React.Component {
       this.currentTranslateY = y - dy * (newScale / this.currentScale);
       this.currentScale = newScale;
 
-      this.updateTransform(svg);
+      scheduleTransform();
     });
 
-    // Mouse drag pan
-    svg.addEventListener("mousedown", (e) => {
-      this.isPanning = true;
-      this.startX = e.clientX - this.currentTranslateX;
-      this.startY = e.clientY - this.currentTranslateY;
+    // Pan
+    svg.addEventListener("pointerdown", (e) => {
+      isPanning = true;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      svg.setPointerCapture(e.pointerId);
       svg.style.cursor = "grabbing";
     });
 
-    svg.addEventListener("mousemove", (e) => {
-      if (!this.isPanning) return;
-
-      this.currentTranslateX = e.clientX - this.startX;
-      this.currentTranslateY = e.clientY - this.startY;
-      this.updateTransform(svg);
+    svg.addEventListener("pointermove", (e) => {
+      if (!isPanning) return;
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      this.currentTranslateX += dx;
+      this.currentTranslateY += dy;
+      scheduleTransform();
     });
 
-    svg.addEventListener("mouseup", () => {
-      this.isPanning = false;
+    svg.addEventListener("pointerup", () => {
+      isPanning = false;
       svg.style.cursor = "grab";
     });
 
-    svg.addEventListener("mouseleave", () => {
-      this.isPanning = false;
+    svg.addEventListener("pointerleave", () => {
+      isPanning = false;
       svg.style.cursor = "grab";
     });
 
-    // Double-click to reset
+    // Reset on double-click
     svg.addEventListener("dblclick", () => {
       this.currentScale = 1;
       this.currentTranslateX = 0;
       this.currentTranslateY = 0;
-      this.updateTransform(svg);
+      scheduleTransform();
     });
   };
 
