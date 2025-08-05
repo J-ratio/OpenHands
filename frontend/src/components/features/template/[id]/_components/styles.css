@@ -10,9 +10,53 @@
 .ai-chat-input {
 	width: 100%;
 	margin-bottom: 10px;
+	border: 1px solid #374151;
+	border-radius: 8px;
+	background-color: #1f2937;
+}
+
+.ai-chat-input:focus-within {
+	border-color: #4b5563;
+	box-shadow: 0 0 0 1px #4b5563;
 }
 
 .bn-editor {
 	height: 60vh;
 	background-color: #23272e;
-  }
+}
+
+/* Dark theme styles for Mantine Menu */
+.mantine-Menu-dropdown {
+	background-color: #1f2937 !important;
+	border: 1px solid #4b5563 !important;
+}
+
+.mantine-Menu-item {
+	color: #e5e7eb !important;
+}
+
+.mantine-Menu-item:hover {
+	background-color: #374151 !important;
+	color: #f9fafb !important;
+}
+
+.mantine-Menu-item[data-selected="true"] {
+	background-color: #374151 !important;
+}
+
+/* Specific colors for different menu items */
+.mantine-Menu-item.reject {
+	color: #f87171 !important;
+}
+
+.mantine-Menu-item.reject:hover {
+	color: #fca5a5 !important;
+}
+
+.mantine-Menu-item.regenerate {
+	color: #a78bfa !important;
+}
+
+.mantine-Menu-item.regenerate:hover {
+	color: #c4b5fd !important;
+}
