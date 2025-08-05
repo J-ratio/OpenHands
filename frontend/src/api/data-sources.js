@@ -74,7 +74,7 @@ export const getAllDataSourcesByWorkspaceId = async (workspaceId) => {
       };
     }
 
-    const res = await axios.get(routes.getAllDataSources(workspaceId), {
+    const res = await axios.get(routes.getAllDataSources, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",

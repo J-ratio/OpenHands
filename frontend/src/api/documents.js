@@ -48,7 +48,7 @@ export const createDocument = async ({
   }
 };
 
-export const getAllDocuments = async () => {
+export const getAllDocuments = async (workspaceId) => {
   try {
     const { isAuthenticated, token, message } = getAuthStatus();
 
@@ -67,10 +67,16 @@ export const getAllDocuments = async () => {
       };
     }
 
+    const params = {};
+    if (workspaceId) {
+      params.workspace_id = workspaceId;
+    }
+
     const { data: documents } = await axios.get(routes.getAllDocuments, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
+      params,
     });
 
     const workspaceMap = new Map(

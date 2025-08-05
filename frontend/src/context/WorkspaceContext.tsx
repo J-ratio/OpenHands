@@ -67,7 +67,9 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     const activeWorkspaceId = settings?.ACTIVE_WORKSPACE_ID;
     if (activeWorkspaceId) {
       setSelectedWorkspaceId(activeWorkspaceId);
-      fetchLinkedRepo(activeWorkspaceId);
+      if (location.pathname === "/") {
+        fetchLinkedRepo(activeWorkspaceId);
+      }
 
       setSelectedWorkspaceName(
         getWorkspaceNameFromId(workspaces, Number(activeWorkspaceId)),
