@@ -114,6 +114,10 @@ export default class Mermaid extends React.Component {
     }
   }
 
+  componentWillUnmount() {
+    clearTimeout(this.renderTimeout);
+  }
+
   addZoomAndPan = () => {
     setTimeout(() => {
       const svg = document.querySelector("#mermaid svg");
