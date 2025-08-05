@@ -1,9 +1,12 @@
 import React from "react";
 import mermaid from "mermaid";
 
+import CodeMirror from "@uiw/react-codemirror";
+import { markdown } from "@codemirror/lang-markdown";
+
 mermaid.initialize({
   startOnLoad: true,
-  theme: "default",
+  theme: "dark",
   securityLevel: "loose",
   maxTextSize: 90000,
   flowchart: {
@@ -264,17 +267,28 @@ export default class Mermaid extends React.Component {
             </div>
 
             {/* Editor Content */}
-            <div className="flex-1 flex flex-col">
-              <textarea
-                value={this.state.mermaidCode}
-                onChange={(e) => {
-                  mermaid.contentLoaded();
-                  this.setState({ mermaidCode: e.target.value });
-                }}
-                className="flex-1 bg-gray-900 text-gray-100 p-4 font-mono text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
-                placeholder="Enter your Mermaid diagram code here..."
-                style={{ fontFamily: "Fira Code, Monaco, Consolas, monospace" }}
-              />
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="flex-1 overflow-auto">
+                <CodeMirror
+                  value={this.state.mermaidCode}
+                  extensions={[markdown()]}
+                  theme="dark"
+                  onChange={(val) => {
+                    this.setState({ mermaidCode: val });
+                    mermaid.contentLoaded();
+                  }}
+                  basicSetup={{
+                    lineNumbers: true,
+                    highlightActiveLine: true,
+                    autocompletion: true,
+                  }}
+                  style={{
+                    height: "100%",
+                    fontFamily: "Fira Code, Monaco, Consolas, monospace",
+                    backgroundColor: "#1a1a1a",
+                  }}
+                />
+              </div>
 
               {/* Editor Footer */}
               <div className="bg-gray-800 px-4 py-2 border-t border-gray-700">
