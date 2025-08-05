@@ -3,7 +3,13 @@ import { defaultProps } from "@blocknote/core";
 import { useState, useEffect, useRef } from "react";
 import { createReactBlockSpec } from "@blocknote/react";
 import { TextInput, ActionIcon, Menu } from "@mantine/core";
-import { IconCheck, IconSend, IconX, IconRefresh } from "@tabler/icons-react";
+import {
+  IconCheck,
+  IconSend,
+  IconX,
+  IconRefresh,
+  IconDots,
+} from "@tabler/icons-react";
 import "./styles.css";
 import { updateBlock } from "../../../../../api/blocks";
 import { toast } from "sonner";
@@ -15,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "../../../../ui/dropdown-menu";
 import { Button } from "../../../../ui/button";
+import { HorizontalDotsLoader } from "../../../../shared/horizontal-dots-loader";
 
 export const AIChat = createReactBlockSpec(
   {
@@ -278,17 +285,39 @@ export const AIChat = createReactBlockSpec(
                 onChange={(event) => setInputValue(event.currentTarget.value)}
                 onKeyDown={handleKeyDown}
                 className="ai-chat-input"
+                styles={{
+                  root: {
+                    border: "1px solid #4b5563",
+                    borderRadius: "8px",
+                    backgroundColor: "#1f2937",
+                  },
+                  input: {
+                    backgroundColor: "#1f2937",
+                    color: "#e5e7eb",
+                    border: "none",
+                    "&::placeholder": {
+                      color: "#9ca3af",
+                    },
+                  },
+                  wrapper: {
+                    backgroundColor: "#1f2937",
+                  },
+                }}
                 rightSection={
-                  <ActionIcon
-                    onClick={handleGenerate}
-                    disabled={
-                      !inputValue.trim() ||
-                      block.props.state === "generating" ||
-                      isLoading
-                    }
-                  >
-                    <IconSend size={16} />
-                  </ActionIcon>
+                  isLoading ? (
+                    <HorizontalDotsLoader />
+                  ) : (
+                    <ActionIcon
+                      onClick={handleGenerate}
+                      disabled={
+                        !inputValue.trim() ||
+                        block.props.state === "generating" ||
+                        isLoading
+                      }
+                    >
+                      <IconSend size={16} />
+                    </ActionIcon>
+                  )
                 }
                 disabled={isLoading}
               />
@@ -303,18 +332,28 @@ export const AIChat = createReactBlockSpec(
 const SourcesPanel = ({ data = [] }) => {
   return (
     <div className="ai-chat-sources mt-2 flex items-center gap-2">
-      <strong>Sources: </strong>
+      <strong className="text-neutral-200">Sources: </strong>
       <div className="flex items-center gap-2">
         {data.length > 0 && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-neutral-600 text-neutral-200 hover:bg-neutral-700 hover:text-neutral-100"
+              >
                 {data.length} {data.length > 1 ? "Sources" : "Source"}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="min-w-72 max-w-full">
+            <DropdownMenuContent
+              className="min-w-72 max-w-full bg-neutral-800 border-neutral-600 max-h-80 overflow-y-auto"
+              sideOffset={5}
+            >
               {data.map((item, idx) => (
-                <DropdownMenuItem key={`${item}-${idx}`}>
+                <DropdownMenuItem
+                  key={`${item}-${idx}`}
+                  className="text-neutral-200 hover:bg-neutral-700 hover:text-neutral-100 focus:bg-neutral-700 focus:text-neutral-100"
+                >
                   {item}
                 </DropdownMenuItem>
               ))}

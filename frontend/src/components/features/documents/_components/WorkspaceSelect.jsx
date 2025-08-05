@@ -33,8 +33,10 @@ export const WorkspaceSelect = ({
       if (workspaces) workspaces = response.data;
       if (setWorkspaces) setWorkspaces(response.data);
       if (!selectedWorkspace && workspaces) {
-        setSelectedWorkspace(workspaces[0].id);
-        setSelectedWorkspaceName(workspaces[0].name);
+        setSelectedWorkspace(workspaces[0].id.toString());
+        if (setSelectedWorkspace) {
+          setSelectedWorkspaceName(workspaces[0].name);
+        }
       }
     } else {
       setError(response.errorMessage);
