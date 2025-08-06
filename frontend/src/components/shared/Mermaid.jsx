@@ -84,9 +84,23 @@ export default class Mermaid extends React.Component {
     this.currentTranslateY = 0;
   }
 
+  renderMermaidDiagram = () => {
+    const element = document.getElementById("mermaid");
+    if (!element) return;
+
+    element.removeAttribute("data-processed");
+    element.innerHTML = this.state.mermaidCode;
+
+    try {
+      mermaid.contentLoaded();
+      this.addZoomAndPan();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   componentDidMount() {
-    mermaid.contentLoaded();
-    this.addZoomAndPan();
+    this.renderMermaidDiagram();
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -98,18 +112,7 @@ export default class Mermaid extends React.Component {
       clearTimeout(this.renderTimeout);
 
       this.renderTimeout = setTimeout(() => {
-        const element = document.getElementById("mermaid");
-        if (!element) return;
-
-        element.removeAttribute("data-processed");
-        element.innerHTML = this.state.mermaidCode;
-
-        try {
-          mermaid.contentLoaded();
-          this.addZoomAndPan();
-        } catch (err) {
-          console.error(err);
-        }
+        this.renderMermaidDiagram();
       }, 500);
     }
   }

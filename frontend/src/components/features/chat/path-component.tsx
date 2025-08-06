@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import EventLogger from "#/utils/event-logger";
+import React from "react";
 
 /**
  * Decodes HTML entities in a string
@@ -72,8 +73,12 @@ function PathComponent(props: { children?: ReactNode }) {
   };
 
   if (Array.isArray(children)) {
-    const processedChildren = children.map((child) =>
-      typeof child === "string" ? processPath(child) : child,
+    const processedChildren = children.map((child, index) =>
+      typeof child === "string" ? (
+        <React.Fragment key={index}>{processPath(child)}</React.Fragment>
+      ) : (
+        <React.Fragment key={index}>{child}</React.Fragment>
+      ),
     );
 
     return <strong className="font-mono">{processedChildren}</strong>;
