@@ -237,7 +237,7 @@ export const AIChat = createReactBlockSpec(
               >
                 <Menu.Target>
                   <ActionIcon>
-                    <IconCheck size={16} color="black" />
+                    <IconCheck size={16} color="blue" />
                   </ActionIcon>
                 </Menu.Target>
                 <Menu.Dropdown>
