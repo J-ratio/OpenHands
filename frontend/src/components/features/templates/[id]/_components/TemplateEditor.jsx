@@ -15,7 +15,7 @@ import {
 } from "@blocknote/react";
 import { RiChatSmile2Fill } from "react-icons/ri";
 import { AIChat } from "../../../template/[id]/_components/AIChat";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import { updateATemplate } from "../../../../../api/templates";
 import CreateDocumentButton from "./create-document-button";
@@ -45,6 +45,9 @@ const TemplateEditor = ({ data, templateId }) => {
   const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState(data.title || "Untitled Template");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
+
+  const hasUserEditedRef = useRef(false);
+  const isEditorInitializingRef = useRef(true);
 
   const insertAIChat = (editor) => ({
     title: "AI Chat",
@@ -132,6 +135,7 @@ const TemplateEditor = ({ data, templateId }) => {
 
     const interval = setInterval(async () => {
       if (
+        hasUserEditedRef.current &&
         localStorage.getItem(
           `lastUpdatedAtLocalstorage-template-${templateId}`,
         ) > localStorage.getItem(`lastUpdatedAtBE-template-${templateId}`)
@@ -144,6 +148,15 @@ const TemplateEditor = ({ data, templateId }) => {
   }, [title, localStorage, loading]);
 
   const handleEditorChange = (editor) => {
+    if (isEditorInitializingRef.current) {
+      return;
+    }
+
+    if (!hasUserEditedRef.current) {
+      hasUserEditedRef.current = true;
+      return;
+    }
+
     const blocksJSON = editor.topLevelBlocks;
     setBlocks(blocksJSON);
     saveBlocks();
@@ -170,6 +183,9 @@ const TemplateEditor = ({ data, templateId }) => {
         if (parsedContent.length !== 0) {
           setTimeout(() => {
             editor.replaceBlocks(editor.document, parsedContent);
+            queueMicrotask(() => {
+              isEditorInitializingRef.current = false;
+            });
           }, 10);
         }
         setBlocks(parsedContent);
