@@ -17,6 +17,7 @@ import { SettingsInput } from "../../settings/settings-input";
 import { BrandButton } from "../../settings/brand-button";
 import { createWorkspace } from "../../../../api/workspaces";
 import { VisuallyHidden } from "@heroui/react";
+import { useWorkspace } from "../../../../context/WorkspaceContext";
 
 const CreateNewDocument = () => {
   const [userPrompt, setUserPrompt] = useState("");
@@ -27,11 +28,11 @@ const CreateNewDocument = () => {
   const [workspaces, setWorkspaces] = useState([]);
 
   const {
-    selectedWorkspaceId,
-    selectedTemplateId,
     handleWorkspaceSelect: setSelectedWorkspaceId,
     handleTemplateSelect: setSelectedTemplateId,
   } = useSelection();
+
+  const { selectedWorkspaceId } = useWorkspace();
 
   const handleCreateBlankDocument = async () => {
     const { success, data, errorMessage } = await createDocument({
@@ -77,12 +78,12 @@ const CreateNewDocument = () => {
         </DialogHeader>
         <div className="flex flex-col items-center justify-center gap-5 w-full px-10 pb-10">
           <div className="flex items-center justify-center gap-5 w-full">
-            <WorkspaceSelect
+            {/* <WorkspaceSelect
               selectedWorkspace={selectedWorkspaceId}
               setSelectedWorkspace={setSelectedWorkspaceId}
               workspaces={workspaces}
               setWorkspaces={setWorkspaces}
-            />
+            /> */}
             <Button
               variant="outline"
               onClick={handleCreateBlankDocument}
