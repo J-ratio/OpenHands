@@ -3,17 +3,18 @@ import mermaid from "mermaid";
 export const initializeMermaid = () => {
   mermaid.initialize({
     startOnLoad: true,
-    theme: "default",
+    theme: "dark",
     securityLevel: "loose",
+    maxTextSize: 90000,
     flowchart: {
       subGraphTitleMargin: {
         top: 0,
-        bottom: 50,
+        bottom: 20,
       },
-      nodeSpacing: 70,
-      rankSpacing: 100,
-      padding: 20,
-      diagramPadding: 40,
+      nodeSpacing: 50,
+      rankSpacing: 50,
+      padding: 10,
+      diagramPadding: 10,
     },
     themeCSS: `
     g.classGroup rect {
