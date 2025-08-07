@@ -276,10 +276,13 @@ const Content = ({ workspacId, templateId, docId, onEditorReady }) => {
 
           if (parsedContent.length !== 0) {
             editor.replaceBlocks(editor.document, parsedContent);
-            queueMicrotask(() => {
-              isEditorInitializingRef.current = false;
-            });
+          } else {
+            // for newly created document, allow save on first key input too
+            hasUserEditedRef.current = true;
           }
+          queueMicrotask(() => {
+            isEditorInitializingRef.current = false;
+          });
         }, 10);
       } catch (error) {
         toast.error("Error loading document");
