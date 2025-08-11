@@ -3,18 +3,16 @@ import json
 import multiprocessing
 import time
 import uuid
-
-import browsergym.core  # noqa F401 (we register the openended task as a gym environment)
-import gymnasium as gym
+import asyncio
 import html2text
 import tenacity
-from browsergym.utils.obs import flatten_dom_to_str, overlay_som
 
 from openhands.core.exceptions import BrowserInitException
 from openhands.core.logger import openhands_logger as logger
 from openhands.runtime.browser.base64 import image_to_png_base64_url
 from openhands.utils.shutdown_listener import should_continue, should_exit
 from openhands.utils.tenacity_stop import stop_if_should_exit
+from browsergym.utils.obs import flatten_dom_to_str, overlay_som
 
 BROWSER_EVAL_GET_GOAL_ACTION = 'GET_EVAL_GOAL'
 BROWSER_EVAL_GET_REWARDS_ACTION = 'GET_EVAL_REWARDS'
@@ -23,30 +21,24 @@ BROWSER_EVAL_GET_REWARDS_ACTION = 'GET_EVAL_REWARDS'
 class BrowserEnv:
     def __init__(self, browsergym_eval_env: str | None = None):
         self.html_text_converter = self.get_html_text_converter()
-        self.eval_mode = False
-        self.eval_dir = ''
-
-        # EVAL only: browsergym_eval_env must be provided for evaluation
-        self.browsergym_eval_env = browsergym_eval_env
         self.eval_mode = bool(browsergym_eval_env)
+        self.eval_dir = ''
+        self.browsergym_eval_env = browsergym_eval_env
 
-        # Initialize browser environment process
-        multiprocessing.set_start_method('spawn', force=True)
-        self.browser_side, self.agent_side = multiprocessing.Pipe()
-
-        self.init_browser()
-        atexit.register(self.close)
+        self.browser_side = None
+        self.agent_side = None
+        self.process = None
 
     def get_html_text_converter(self) -> html2text.HTML2Text:
         html_text_converter = html2text.HTML2Text()
-        # ignore links and images
         html_text_converter.ignore_links = False
         html_text_converter.ignore_images = True
-        # use alt text for images
         html_text_converter.images_to_alt = True
-        # disable auto text wrapping
         html_text_converter.body_width = 0
         return html_text_converter
+
+    def _setup_pipes(self):
+        self.browser_side, self.agent_side = multiprocessing.Pipe()
 
     @tenacity.retry(
         wait=tenacity.wait_fixed(1),
@@ -56,35 +48,48 @@ class BrowserEnv:
     def init_browser(self) -> None:
         logger.debug('Starting browser env...')
         try:
-            self.process = multiprocessing.Process(target=self.browser_process)
-            self.process.start()
-        except Exception as e:
-            logger.error(f'Failed to start browser process: {e}')
-            raise
+            multiprocessing.set_start_method('spawn', force=True)
+        except RuntimeError:
+            pass
 
-        if not self.check_alive(timeout=200):
+        self._setup_pipes()
+
+        self.process = multiprocessing.Process(target=self.browser_process)
+        self.process.start()
+
+        if not self.check_alive(timeout=5):
             self.close()
             raise BrowserInitException('Failed to start browser environment.')
 
+        atexit.register(self.close)
+
+    async def init_browser_async(self) -> None:
+        """Run init_browser in a background thread so it doesn't block asyncio loop."""
+        await asyncio.to_thread(self.init_browser)
+
     def browser_process(self) -> None:
+        logger.info('Started Browser process...')
+
+        # Lazy import heavy modules in child process
+        import gymnasium as gym
+
         if self.eval_mode:
             assert self.browsergym_eval_env is not None
             logger.info('Initializing browser env for web browsing evaluation.')
             if not self.browsergym_eval_env.startswith('browsergym/'):
                 self.browsergym_eval_env = 'browsergym/' + self.browsergym_eval_env
-            if 'visualwebarena' in self.browsergym_eval_env:
-                import browsergym.visualwebarena  # noqa F401 register visualwebarena tasks as gym environments
-                import nltk
 
-                nltk.download('punkt_tab')
+            if 'visualwebarena' in self.browsergym_eval_env:
+                import browsergym.visualwebarena
+                import nltk
+                nltk.download('punkt_tab', quiet=True)
             elif 'webarena' in self.browsergym_eval_env:
-                import browsergym.webarena  # noqa F401 register webarena tasks as gym environments
+                import browsergym.webarena
             elif 'miniwob' in self.browsergym_eval_env:
-                import browsergym.miniwob  # noqa F401 register miniwob tasks as gym environments
+                import browsergym.miniwob
             else:
-                raise ValueError(
-                    f'Unsupported browsergym eval env: {self.browsergym_eval_env}'
-                )
+                raise ValueError(f'Unsupported browsergym eval env: {self.browsergym_eval_env}')
+
             env = gym.make(self.browsergym_eval_env, tags_to_mark='all', timeout=100000)
         else:
             env = gym.make(
@@ -95,18 +100,17 @@ class BrowserEnv:
                 disable_env_checker=True,
                 tags_to_mark='all',
             )
-        obs, info = env.reset()
 
+        obs, info = env.reset()
         logger.info('Successfully called env.reset')
-        # EVAL ONLY: save the goal into file for evaluation
+
         self.eval_goal = None
         self.goal_image_urls = []
         self.eval_rewards: list[float] = []
         if self.eval_mode:
-            self.eval_goal = obs['goal']
-            if 'goal_object' in obs:
-                if len(obs['goal_object']) > 0:
-                    self.eval_goal = obs['goal_object'][0]['text']
+            self.eval_goal = obs.get('goal')
+            if 'goal_object' in obs and obs['goal_object']:
+                self.eval_goal = obs['goal_object'][0].get('text', self.eval_goal)
                 for message in obs['goal_object']:
                     if message['type'] == 'image_url':
                         image_src = message['image_url']
@@ -114,6 +118,7 @@ class BrowserEnv:
                             image_src = image_src['url']
                         self.goal_image_urls.append(image_src)
             logger.debug(f'Browsing goal: {self.eval_goal}')
+
         logger.info('Browser env started.')
 
         while should_continue():
@@ -121,7 +126,6 @@ class BrowserEnv:
                 if self.browser_side.poll(timeout=0.01):
                     unique_request_id, action_data = self.browser_side.recv()
 
-                    # shutdown the browser environment
                     if unique_request_id == 'SHUTDOWN':
                         logger.debug('SHUTDOWN recv, shutting down browser env...')
                         env.close()
@@ -130,7 +134,6 @@ class BrowserEnv:
                         self.browser_side.send(('ALIVE', None))
                         continue
 
-                    # EVAL ONLY: Get evaluation info
                     if action_data['action'] == BROWSER_EVAL_GET_GOAL_ACTION:
                         self.browser_side.send(
                             (
@@ -154,14 +157,11 @@ class BrowserEnv:
                     action = action_data['action']
                     obs, reward, terminated, truncated, info = env.step(action)
 
-                    # EVAL ONLY: Save the rewards into file for evaluation
                     if self.eval_mode:
                         self.eval_rewards.append(reward)
 
-                    # add text content of the page
                     html_str = flatten_dom_to_str(obs['dom_object'])
                     obs['text_content'] = self.html_text_converter.handle(html_str)
-                    # make observation serializable
                     obs['set_of_marks'] = image_to_png_base64_url(
                         overlay_som(
                             obs['screenshot'], obs.get('extra_element_properties', {})
@@ -183,7 +183,6 @@ class BrowserEnv:
                 return
 
     def step(self, action_str: str, timeout: float = 100) -> dict:
-        """Execute an action in the browser environment and return the observation."""
         unique_request_id = str(uuid.uuid4())
         self.agent_side.send((unique_request_id, {'action': action_str}))
         start_time = time.time()
@@ -205,20 +204,18 @@ class BrowserEnv:
         return False
 
     def close(self) -> None:
-        if not self.process.is_alive():
+        if not self.process or not self.process.is_alive():
             return
         try:
             self.agent_side.send(('SHUTDOWN', None))
-            self.process.join(5)  # Wait for the process to terminate
+            self.process.join(5)
             if self.process.is_alive():
-                logger.error(
-                    'Browser process did not terminate, forcefully terminating...'
-                )
+                logger.error('Browser process did not terminate, forcefully terminating...')
                 self.process.terminate()
-                self.process.join(5)  # Wait for the process to terminate
+                self.process.join(5)
                 if self.process.is_alive():
                     self.process.kill()
-                    self.process.join(5)  # Wait for the process to terminate
+                    self.process.join(5)
             self.agent_side.close()
             self.browser_side.close()
         except Exception as e:

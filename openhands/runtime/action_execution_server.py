@@ -222,6 +222,7 @@ class ActionExecutor:
         logger.debug('Initializing browser asynchronously')
         try:
             self.browser = BrowserEnv(self.browsergym_eval_env)
+            await self.browser.init_browser_async()
             logger.debug('Browser initialized asynchronously')
         except Exception as e:
             logger.error(f'Failed to initialize browser: {e}')
@@ -272,20 +273,26 @@ class ActionExecutor:
             return bash_session
 
     async def ainit(self):
+        logger.info("AInit...")
+
         # bash needs to be initialized first
         logger.debug('Initializing bash session')
         self.bash_session = self._create_bash_session()
         logger.debug('Bash session initialized')
+        logger.info("Bash session initialized...")
+
 
         # Start browser initialization in the background
         self.browser_init_task = asyncio.create_task(self._init_browser_async())
         logger.debug('Browser initialization started in background')
+        logger.info("Browser initialization started in background")
 
         await wait_all(
             (self._init_plugin(plugin) for plugin in self.plugins_to_load),
             timeout=int(os.environ.get('INIT_PLUGIN_TIMEOUT', '120')),
         )
         logger.debug('All plugins initialized')
+        logger.info("All plugins initialized...")
 
         # This is a temporary workaround
         # TODO: refactor AgentSkills to be part of JupyterPlugin
@@ -298,11 +305,14 @@ class ActionExecutor:
                 )
             )
             logger.debug(f'AgentSkills initialized: {obs}')
+            logger.info("AgentSkills initialized...")
+
 
         logger.debug('Initializing bash commands')
         await self._init_bash_commands()
 
         logger.debug('Runtime client initialized.')
+        logger.info("Runtime client initialized...")
         self._initialized = True
 
     @property
@@ -315,14 +325,15 @@ class ActionExecutor:
         self.plugins[plugin.name] = plugin
         logger.debug(f'Initializing plugin: {plugin.name}')
 
-        if isinstance(plugin, JupyterPlugin):
-            # Escape backslashes in Windows path
-            cwd = self.bash_session.cwd.replace('\\', '/')
-            await self.run_ipython(
-                IPythonRunCellAction(code=f'import os; os.chdir(r"{cwd}")')
-            )
+        # if isinstance(plugin, JupyterPlugin):
+        #     # Escape backslashes in Windows path
+        #     cwd = self.bash_session.cwd.replace('\\', '/')
+        #     await self.run_ipython(
+        #         IPythonRunCellAction(code=f'import os; os.chdir(r"{cwd}")')
+        #     )
 
     async def _init_bash_commands(self):
+        logger.info("Init bash commands...")
         INIT_COMMANDS = []
         is_local_runtime = os.environ.get('LOCAL_RUNTIME_MODE') == '1'
         is_windows = sys.platform == 'win32'
