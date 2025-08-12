@@ -10,7 +10,9 @@ import * as useSettingsModule from "#/hooks/query/use-settings";
 
 // Mock the useSettings hook
 vi.mock("#/hooks/query/use-settings", async () => {
-  const actual = await vi.importActual<typeof import("#/hooks/query/use-settings")>("#/hooks/query/use-settings");
+  const actual = await vi.importActual<
+    typeof import("#/hooks/query/use-settings")
+  >("#/hooks/query/use-settings");
   return {
     ...actual,
     useSettings: vi.fn().mockReturnValue({
@@ -24,19 +26,20 @@ vi.mock("#/hooks/query/use-settings", async () => {
 
 // Mock the i18next hook
 vi.mock("react-i18next", async () => {
-  const actual = await vi.importActual<typeof import("react-i18next")>("react-i18next");
+  const actual =
+    await vi.importActual<typeof import("react-i18next")>("react-i18next");
   return {
     ...actual,
     useTranslation: () => ({
       t: (key: string) => {
         const translations: Record<string, string> = {
-          "SETTINGS$NAV_INTEGRATIONS": "Integrations",
-          "SETTINGS$NAV_APPLICATION": "Application",
-          "SETTINGS$NAV_CREDITS": "Credits",
-          "SETTINGS$NAV_API_KEYS": "API Keys",
-          "SETTINGS$NAV_LLM": "LLM",
-          "SETTINGS$NAV_USER": "User",
-          "SETTINGS$TITLE": "Settings"
+          SETTINGS$NAV_GIT_PROVIDERS: "Git Providers",
+          SETTINGS$NAV_APPLICATION: "Application",
+          SETTINGS$NAV_CREDITS: "Credits",
+          SETTINGS$NAV_API_KEYS: "API Keys",
+          SETTINGS$NAV_LLM: "LLM",
+          SETTINGS$NAV_USER: "User",
+          SETTINGS$TITLE: "Settings",
         };
         return translations[key] || key;
       },

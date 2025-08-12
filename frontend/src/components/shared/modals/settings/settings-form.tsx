@@ -61,7 +61,6 @@ export function SettingsForm({ settings, models, onClose }: SettingsFormProps) {
       ...extractSettings(formData),
       ACTIVE_WORKSPACE_ID: selectedWorkspaceId?.toString(),
     };
-    console.log(newSettings);
     await saveUserSettings(newSettings, {
       onSuccess: () => {
         onClose();

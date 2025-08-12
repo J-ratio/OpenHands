@@ -1311,6 +1311,22 @@
     "de": "Integrationen",
     "uk": "Інтеграції"
   },
+  "SETTINGS$NAV_GIT_PROVIDERS": {
+    "en": "Git Providers",
+    "ja": "Git プロバイダー",
+    "zh-CN": "Git 提供商",
+    "zh-TW": "Git 提供者",
+    "ko-KR": "Git 공급자",
+    "no": "Git-leverandører",
+    "it": "Provider Git",
+    "pt": "Provedores Git",
+    "es": "Proveedores de Git",
+    "ar": "مزودو Git",
+    "fr": "Fournisseurs Git",
+    "tr": "Git Sağlayıcıları",
+    "de": "Git-Anbieter",
+    "uk": "Постачальники Git"
+  },
   "SETTINGS$NAV_APPLICATION": {
     "en": "Application",
     "ja": "アプリケーション",
