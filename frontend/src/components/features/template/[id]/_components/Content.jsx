@@ -18,9 +18,8 @@ import {
 import { RiChatSmile2Fill } from "react-icons/ri";
 import { AIChat } from "./AIChat";
 import { MermaidBlock } from "./MermaidBlock";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import {
-  createDocument,
   getASingleDocument,
   updateDocument,
 } from "../../../../../api/documents";
@@ -78,6 +77,9 @@ const Content = ({ workspacId, templateId, docId, onEditorReady }) => {
   const [title, setTitle] = useState("Untitled Document");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const hasUserEditedRef = useRef(false);
+  const isEditorInitializingRef = useRef(true);
 
   const insertAIChat = useMemo(
     () => ({
@@ -209,8 +211,9 @@ const Content = ({ workspacId, templateId, docId, onEditorReady }) => {
 
     const interval = setInterval(async () => {
       if (
+        hasUserEditedRef.current &&
         localStorage.getItem(`${LAST_UPDATED_AT_LOCALSTORAGE_PREFIX}${docId}`) >
-        localStorage.getItem(`${LAST_UPDATED_AT_BE_PREFIX}${docId}`)
+          localStorage.getItem(`${LAST_UPDATED_AT_BE_PREFIX}${docId}`)
       ) {
         await saveBlocksToBackend();
       }
@@ -220,6 +223,15 @@ const Content = ({ workspacId, templateId, docId, onEditorReady }) => {
   }, [title, localStorage, loading]);
 
   const handleEditorChange = (editor) => {
+    if (isEditorInitializingRef.current) {
+      return;
+    }
+
+    if (!hasUserEditedRef.current) {
+      hasUserEditedRef.current = true;
+      return;
+    }
+
     const blocksJSON = editor.topLevelBlocks;
     saveBlocks(blocksJSON);
   };
@@ -264,7 +276,13 @@ const Content = ({ workspacId, templateId, docId, onEditorReady }) => {
 
           if (parsedContent.length !== 0) {
             editor.replaceBlocks(editor.document, parsedContent);
+          } else {
+            // for newly created document, allow save on first key input too
+            hasUserEditedRef.current = true;
           }
+          queueMicrotask(() => {
+            isEditorInitializingRef.current = false;
+          });
         }, 10);
       } catch (error) {
         toast.error("Error loading document");
