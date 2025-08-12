@@ -5,8 +5,10 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { BrandButton } from "../../settings/brand-button";
 import { SettingsDropdownInput } from "../../settings/settings-dropdown-input";
+import { useNavigate } from "react-router";
 
 export default function GenerateInterfaceDocForm() {
+  const navigate = useNavigate();
   const { workspaces } = useWorkspace();
 
   const workspaceItems = workspaces.map((workspace) => ({
@@ -30,6 +32,7 @@ export default function GenerateInterfaceDocForm() {
       await generateRepoDocumentationForAWorkspace(selectedWorkspaceKey);
     if (success) {
       toast.success(data.message || "Documentation generation started");
+      setTimeout(() => navigate("/documents"), 100);
     } else {
       toast.error(errorMessage ?? "Documentation generation failed");
     }
