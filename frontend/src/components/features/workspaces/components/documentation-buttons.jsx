@@ -46,7 +46,7 @@ const DocumentationButtons = ({
 
       {showVisitStaticSiteButton && (
         <Link
-          href={`${process.env.NEXT_PUBLIC_STATIC_SITE_BASE_URL || ""}${
+          href={`${import.meta.env.VITE_PUBLIC_STATIC_SITE_BASE_URL || ""}${
             workspace.url
           }`}
           className="mx-auto w-[50%]"
