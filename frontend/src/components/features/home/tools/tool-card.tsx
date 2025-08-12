@@ -6,9 +6,15 @@ export type ToolCardProps = {
   title: string;
   image: string;
   description: string;
+  linkedRepoRequired?: boolean;
 };
 
-export function ToolCard({ title, image, description }: ToolCardProps) {
+export function ToolCard({
+  title,
+  image,
+  description,
+  linkedRepoRequired,
+}: ToolCardProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -31,6 +37,7 @@ export function ToolCard({ title, image, description }: ToolCardProps) {
         title={title}
         image={image}
         description={description}
+        linkedRepoRequired={linkedRepoRequired}
       />
     </>
   );

@@ -4,6 +4,7 @@ export type Tool = {
   title: string;
   image: string;
   description: string;
+  linkedRepoRequired?: boolean;
 };
 
 export type ToolCategory = {
@@ -28,6 +29,7 @@ export const TOOL_CATEGORIES: ToolCategory[] = [
         description: i18n.t(
           "Visualize class relationships and hierarchies in your project.",
         ),
+        linkedRepoRequired: true,
       },
       {
         title: i18n.t("Generate Code Flow Diagram"),
