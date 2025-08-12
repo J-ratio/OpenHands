@@ -26,7 +26,7 @@ export function MermaidTab({ code }: MermaidTabProps) {
     <div className="w-full h-full p-6 bg-base-secondary text-white overflow-auto">
       {hasCode ? (
         <div className="w-full h-full flex items-center justify-center">
-          <Mermaid chart={code!} />
+          <Mermaid chart={code!} showEditor={true} />
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center h-full text-center text-neutral-400">
