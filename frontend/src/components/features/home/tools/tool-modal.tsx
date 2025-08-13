@@ -61,7 +61,7 @@ export function ToolModal({
         if (linkedRepo) {
           createConversation({
             selectedRepository: dataSourceToGitRepository(linkedRepo),
-            selected_branch: selectedBranchName ?? "",
+            selected_branch: selectedBranchName ?? "main",
             q: `/class_diagram CLASS_NAME="${className}" BRANCH_NAME="${selectedBranchName ?? "main"}"`,
           });
         }
@@ -71,7 +71,7 @@ export function ToolModal({
         if (linkedRepo) {
           createConversation({
             selectedRepository: dataSourceToGitRepository(linkedRepo),
-            selected_branch: selectedBranchName ?? "",
+            selected_branch: selectedBranchName ?? "main",
             q: `/architecture_diagram BRANCH_NAME="${selectedBranchName ?? "main"}"`,
           });
         }
