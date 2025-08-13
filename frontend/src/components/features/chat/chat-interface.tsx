@@ -31,6 +31,8 @@ import { ErrorMessageBanner } from "./error-message-banner";
 import { shouldRenderEvent } from "./event-content-helpers/should-render-event";
 import { useUploadFiles } from "#/hooks/mutation/use-upload-files";
 import { useConfig } from "#/hooks/query/use-config";
+import { useActiveConversation } from "#/hooks/query/use-active-conversation";
+import { getIndicatorColor, getStatusCode } from "#/utils/status";
 
 function getEntryPoint(
   hasRepository: boolean | null,
@@ -76,6 +78,18 @@ export function ChatInterface() {
   const errorMessage = getErrorMessage();
 
   const events = parsedEvents.filter(shouldRenderEvent);
+
+  const { curStatusMessage } = useSelector((state: RootState) => state.status);
+  const { webSocketStatus } = useWsClient();
+  const { data: conversation } = useActiveConversation();
+
+  const statusCode = getStatusCode(
+    curStatusMessage,
+    webSocketStatus,
+    conversation?.status || null,
+    conversation?.runtime_status || null,
+    curAgentState,
+  );
 
   const handleSendMessage = async (
     content: string,
@@ -166,14 +180,17 @@ export function ChatInterface() {
 
   const displayLoaderUntilInitialPromptRun =
     initialPrompt &&
-    (curAgentState === AgentState.INIT || curAgentState === AgentState.LOADING);
+    (statusCode === I18nKey.CHAT_INTERFACE$CONNECTING ||
+      statusCode === I18nKey.STATUS$STARTING_RUNTIME ||
+      curAgentState === AgentState.INIT ||
+      curAgentState === AgentState.LOADING);
   if (displayLoaderUntilInitialPromptRun) {
     return (
       <div className="flex flex-col items-center justify-center h-[85vh] gap-8">
         <LoadingSpinner size="large" />
 
         <div className="text-center justify-center text-2xl text-tertiary-light">
-          {t("DIFF_VIEWER$WAITING_FOR_RUNTIME")}
+          {t(statusCode)}
         </div>
       </div>
     );
