@@ -143,7 +143,7 @@ export function ToolModal({
               </div>
             )} */}
 
-            {id === "GENERATE_INTERFACE_DIAGRAM" && (
+            {id === "GENERATE_INTERFACE_DOCUMENTATION" && (
               <GenerateInterfaceDocForm />
             )}
 
