@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ToolModal } from "./tool-modal";
 
 export type ToolCardProps = {
+  id: string;
   title: string;
   image: string;
   description: string;
@@ -10,6 +11,7 @@ export type ToolCardProps = {
 };
 
 export function ToolCard({
+  id,
   title,
   image,
   description,
@@ -34,6 +36,7 @@ export function ToolCard({
       <ToolModal
         open={open}
         onOpenChange={setOpen}
+        id={id}
         title={title}
         image={image}
         description={description}

@@ -1,6 +1,7 @@
 import i18n from "../../../../i18n";
 
 export type Tool = {
+  id: string;
   title: string;
   image: string;
   description: string;
@@ -17,6 +18,7 @@ export const TOOL_CATEGORIES: ToolCategory[] = [
     category: i18n.t("Documentation"),
     tools: [
       {
+        id: "GENERATE_INTERFACE_DOCUMENTATION",
         title: i18n.t("Generate Interface Documentation"),
         image: "/img/interface-doc.svg",
         description: i18n.t(
@@ -24,6 +26,7 @@ export const TOOL_CATEGORIES: ToolCategory[] = [
         ),
       },
       {
+        id: "GENERATE_CLASS_DIAGRAM",
         title: i18n.t("Generate Class Diagram"),
         image: "/img/class-diagram.svg",
         description: i18n.t(
@@ -32,13 +35,14 @@ export const TOOL_CATEGORIES: ToolCategory[] = [
         linkedRepoRequired: true,
       },
       {
-        title: i18n.t("Generate Code Flow Diagram"),
+        id: "GENERATE_ARCHITECTURE_DIAGRAM",
+        title: i18n.t("Generate Architecture Diagram"),
         image: "/img/code-flow.svg",
-        description: i18n.t(
-          "Understand the flow of your code with easy-to-read diagrams.",
-        ),
+        description: i18n.t("Quickly visualize your system's architecture."),
+        linkedRepoRequired: true,
       },
       {
+        id: "GENERATE_SEQUENCE_DIAGRAM",
         title: i18n.t("Generate Sequence Diagram"),
         image: "/img/sequence-diagram.svg",
         description: i18n.t(
@@ -51,6 +55,7 @@ export const TOOL_CATEGORIES: ToolCategory[] = [
     category: i18n.t("Ask/Explain"),
     tools: [
       {
+        id: "ASK_AI_ABOUT_CODE",
         title: i18n.t("Ask AI about your code"),
         image: "/img/ask-ai.svg",
         description: i18n.t(
@@ -58,6 +63,7 @@ export const TOOL_CATEGORIES: ToolCategory[] = [
         ),
       },
       {
+        id: "EXPLAIN_CODE_LINE_BY_LINE",
         title: i18n.t("Explain Code Line-by-Line"),
         image: "/img/explain-code.svg",
         description: i18n.t(
@@ -65,6 +71,7 @@ export const TOOL_CATEGORIES: ToolCategory[] = [
         ),
       },
       {
+        id: "FIND_BUGS_ANOMALIES",
         title: i18n.t("Find Bugs / Anomalies"),
         image: "/img/find-bugs.svg",
         description: i18n.t(
@@ -77,6 +84,7 @@ export const TOOL_CATEGORIES: ToolCategory[] = [
     category: i18n.t("Refactor"),
     tools: [
       {
+        id: "ASK_AI_TO_REFACTOR",
         title: i18n.t("Ask AI to refactor your code"),
         image: "/img/refactor.svg",
         description: i18n.t(
@@ -84,6 +92,7 @@ export const TOOL_CATEGORIES: ToolCategory[] = [
         ),
       },
       {
+        id: "OPTIMIZE_CODE_PERFORMANCE",
         title: i18n.t("Optimize Code for Performance"),
         image: "/img/optimize.svg",
         description: i18n.t(
@@ -96,6 +105,7 @@ export const TOOL_CATEGORIES: ToolCategory[] = [
     category: i18n.t("Testing"),
     tools: [
       {
+        id: "GENERATE_UNIT_TESTS",
         title: i18n.t("Generate Unit Tests"),
         image: "/img/unit-test.svg",
         description: i18n.t(
@@ -103,6 +113,7 @@ export const TOOL_CATEGORIES: ToolCategory[] = [
         ),
       },
       {
+        id: "GENERATE_INTEGRATION_TESTS",
         title: i18n.t("Generate Integration Tests"),
         image: "/img/integration-test.svg",
         description: i18n.t(
@@ -110,6 +121,7 @@ export const TOOL_CATEGORIES: ToolCategory[] = [
         ),
       },
       {
+        id: "GENERATE_MOCK_DATA",
         title: i18n.t("Generate Mock Data"),
         image: "/img/mock-data.svg",
         description: i18n.t(

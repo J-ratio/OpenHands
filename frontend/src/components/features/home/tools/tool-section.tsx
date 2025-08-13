@@ -13,6 +13,7 @@ export function ToolsSection() {
             {cat.tools.map((tool) => (
               <ToolCard
                 key={tool.title}
+                id={tool.id}
                 title={tool.title}
                 image={tool.image}
                 description={tool.description}

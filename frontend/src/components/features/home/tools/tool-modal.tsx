@@ -21,6 +21,7 @@ const DialogContent = RawDialogContent as React.FC<
 export type ToolModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  id: string;
   title: string;
   image: string;
   description: string;
@@ -30,6 +31,7 @@ export type ToolModalProps = {
 export function ToolModal({
   open,
   onOpenChange,
+  id,
   title,
   image,
   description,
@@ -52,6 +54,33 @@ export function ToolModal({
   const isCreatingConversation = isPending || isSuccess;
 
   const DialogTitle = RawDialogTitle as React.FC<{ children: React.ReactNode }>;
+
+  function handleCreateOrGenerate(id: string) {
+    switch (id) {
+      case "GENERATE_CLASS_DIAGRAM":
+        if (linkedRepo) {
+          createConversation({
+            selectedRepository: dataSourceToGitRepository(linkedRepo),
+            selected_branch: selectedBranchName ?? "",
+            q: `/class_diagram CLASS_NAME="${className}" BRANCH_NAME="${selectedBranchName ?? "main"}"`,
+          });
+        }
+        break;
+
+      case "GENERATE_ARCHITECTURE_DIAGRAM":
+        if (linkedRepo) {
+          createConversation({
+            selectedRepository: dataSourceToGitRepository(linkedRepo),
+            selected_branch: selectedBranchName ?? "",
+            q: `/architecture_diagram BRANCH_NAME="${selectedBranchName ?? "main"}"`,
+          });
+        }
+        break;
+
+      default:
+        break;
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -114,7 +143,7 @@ export function ToolModal({
               </div>
             )} */}
 
-            {title === "Generate Interface Documentation" && (
+            {id === "GENERATE_INTERFACE_DIAGRAM" && (
               <GenerateInterfaceDocForm />
             )}
 
@@ -134,7 +163,7 @@ export function ToolModal({
                     }
                     onLinkedRepoChanged={() => {}}
                   />
-                  {linkedRepo && title === "Generate Class Diagram" && (
+                  {linkedRepo && id === "GENERATE_CLASS_DIAGRAM" && (
                     <SettingsInput
                       label="Class Name"
                       type="text"
@@ -156,16 +185,9 @@ export function ToolModal({
                       !selectedBranchName ||
                       !selectedRepoTitle ||
                       isCreatingConversation ||
-                      (title === "Generate Class Diagram" && !className.trim())
+                      (id === "GENERATE_CLASS_DIAGRAM" && !className.trim())
                     }
-                    onClick={() => {
-                      createConversation({
-                        selectedRepository:
-                          dataSourceToGitRepository(linkedRepo),
-                        selected_branch: selectedBranchName ?? "",
-                        q: `/class_diagram CLASS_NAME="${className}" BRANCH_NAME="${selectedBranchName ?? "main"}"`,
-                      });
-                    }}
+                    onClick={() => handleCreateOrGenerate(id)}
                   >
                     {isCreatingConversation
                       ? "Creating.."
