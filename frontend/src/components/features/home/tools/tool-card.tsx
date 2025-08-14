@@ -3,12 +3,20 @@ import { useState } from "react";
 import { ToolModal } from "./tool-modal";
 
 export type ToolCardProps = {
+  id: string;
   title: string;
   image: string;
   description: string;
+  linkedRepoRequired?: boolean;
 };
 
-export function ToolCard({ title, image, description }: ToolCardProps) {
+export function ToolCard({
+  id,
+  title,
+  image,
+  description,
+  linkedRepoRequired,
+}: ToolCardProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -28,9 +36,11 @@ export function ToolCard({ title, image, description }: ToolCardProps) {
       <ToolModal
         open={open}
         onOpenChange={setOpen}
+        id={id}
         title={title}
         image={image}
         description={description}
+        linkedRepoRequired={linkedRepoRequired}
       />
     </>
   );

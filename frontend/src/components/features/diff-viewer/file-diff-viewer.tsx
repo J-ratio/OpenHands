@@ -8,6 +8,8 @@ import { getLanguageFromPath } from "#/utils/get-language-from-path";
 import { cn } from "#/utils/utils";
 import ChevronUp from "#/icons/chveron-up.svg?react";
 import { useGitDiff } from "#/hooks/query/use-get-diff";
+import { useNavigate } from "react-router";
+import { useConversationId } from "#/hooks/use-conversation-id";
 
 interface LoadingSpinnerProps {
   className?: string;
@@ -134,23 +136,51 @@ export function FileDiffViewer({ path, type }: FileDiffViewerProps) {
 
   const isFetchingData = isLoading || isRefetching;
 
+  const isMermaidFile = filePath.endsWith(".mmd");
+  const navigate = useNavigate();
+  const { conversationId } = useConversationId();
+
+  const handleMermaidVisualizeClick = () => {
+    const baseMermaidPath = `/conversations/${conversationId}/mermaid`;
+    const isAlreadyOnMermaid = location.pathname === baseMermaidPath;
+
+    navigate(baseMermaidPath, {
+      replace: isAlreadyOnMermaid,
+      state: {
+        mermaidCode: String(diff?.modified),
+      },
+    });
+  };
+
   return (
     <div data-testid="file-diff-viewer-outer" className="w-full flex flex-col">
       <div
         className={cn(
-          "flex justify-between items-center px-2.5 py-3.5 border border-neutral-600 rounded-xl hover:cursor-pointer",
+          "flex justify-between items-center px-2.5 py-3.5 border border-neutral-600 rounded-xl",
           !isCollapsed && !isLoading && "border-b-0 rounded-b-none",
         )}
-        onClick={() => setIsCollapsed((prev) => !prev)}
       >
         <span className="text-sm w-full text-content flex items-center gap-2">
           {isFetchingData && <LoadingSpinner className="w-5 h-5" />}
           {!isFetchingData && statusIcon}
           <strong className="w-full truncate">{filePath}</strong>
-          <button data-testid="collapse" type="button">
+          {isMermaidFile && (
+            <button
+              className="mr-8 hover:cursor-pointer"
+              onClick={() => handleMermaidVisualizeClick()}
+            >
+              Visualize
+            </button>
+          )}
+          <button
+            data-testid="collapse"
+            type="button"
+            className="hover:cursor-pointer"
+            onClick={() => setIsCollapsed((prev) => !prev)}
+          >
             <ChevronUp
               className={cn(
-                "w-4 h-4 transition-transform",
+                "w-4 h-4 transition-transform mr-2",
                 isCollapsed && "transform rotate-180",
               )}
             />

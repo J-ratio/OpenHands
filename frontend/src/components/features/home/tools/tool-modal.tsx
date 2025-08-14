@@ -8,12 +8,11 @@ import styles from "./ToolCard.module.css";
 import { BrandButton } from "../../settings/brand-button";
 import { VisuallyHidden } from "@heroui/react";
 import { SettingsInput } from "../../settings/settings-input";
-import { useUserProviders } from "#/hooks/use-user-providers";
 import { useCreateConversation } from "#/hooks/mutation/use-create-conversation";
-import { useTranslation } from "react-i18next";
 import { useWorkspace } from "#/context/WorkspaceContext";
 import { RepositorySelectionForm } from "../repo-selection-form";
 import { dataSourceToGitRepository } from "#/utils/utils.ts";
+import GenerateInterfaceDocForm from "./generate-interface-documentation-form";
 
 const DialogContent = RawDialogContent as React.FC<
   React.PropsWithChildren<any>
@@ -22,17 +21,21 @@ const DialogContent = RawDialogContent as React.FC<
 export type ToolModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  id: string;
   title: string;
   image: string;
   description: string;
+  linkedRepoRequired?: boolean;
 };
 
 export function ToolModal({
   open,
   onOpenChange,
+  id,
   title,
   image,
   description,
+  linkedRepoRequired,
 }: ToolModalProps) {
   const { linkedRepo } = useWorkspace();
   const [selectedRepoTitle, setSelectedRepoTitle] = React.useState<
@@ -51,6 +54,33 @@ export function ToolModal({
   const isCreatingConversation = isPending || isSuccess;
 
   const DialogTitle = RawDialogTitle as React.FC<{ children: React.ReactNode }>;
+
+  function handleCreateOrGenerate(id: string) {
+    switch (id) {
+      case "GENERATE_CLASS_DIAGRAM":
+        if (linkedRepo) {
+          createConversation({
+            selectedRepository: dataSourceToGitRepository(linkedRepo),
+            selected_branch: selectedBranchName ?? "main",
+            q: `/class_diagram CLASS_NAME="${className}" BRANCH_NAME="${selectedBranchName ?? "main"}"`,
+          });
+        }
+        break;
+
+      case "GENERATE_ARCHITECTURE_DIAGRAM":
+        if (linkedRepo) {
+          createConversation({
+            selectedRepository: dataSourceToGitRepository(linkedRepo),
+            selected_branch: selectedBranchName ?? "main",
+            q: `/architecture_diagram BRANCH_NAME="${selectedBranchName ?? "main"}"`,
+          });
+        }
+        break;
+
+      default:
+        break;
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -81,7 +111,7 @@ export function ToolModal({
           </div>
           <div className="w-full flex flex-col items-center gap-4 mt-2">
             {/* Repo/Branch selection */}
-            {!linkedRepo && (
+            {linkedRepoRequired && !linkedRepo && (
               <p className="font-semibold">
                 Please, Link a repository to a workspace to continue using this
                 tool.
@@ -113,7 +143,11 @@ export function ToolModal({
               </div>
             )} */}
 
-            {linkedRepo && (
+            {id === "GENERATE_INTERFACE_DOCUMENTATION" && (
+              <GenerateInterfaceDocForm />
+            )}
+
+            {linkedRepoRequired && linkedRepo && (
               <>
                 <div className="flex flex-col items-center w-full max-w-md mx-auto mt-4 gap-8">
                   <RepositorySelectionForm
@@ -129,7 +163,7 @@ export function ToolModal({
                     }
                     onLinkedRepoChanged={() => {}}
                   />
-                  {linkedRepo && title === "Generate Class Diagram" && (
+                  {linkedRepo && id === "GENERATE_CLASS_DIAGRAM" && (
                     <SettingsInput
                       label="Class Name"
                       type="text"
@@ -151,16 +185,9 @@ export function ToolModal({
                       !selectedBranchName ||
                       !selectedRepoTitle ||
                       isCreatingConversation ||
-                      (title === "Generate Class Diagram" && !className.trim())
+                      (id === "GENERATE_CLASS_DIAGRAM" && !className.trim())
                     }
-                    onClick={() => {
-                      createConversation({
-                        selectedRepository:
-                          dataSourceToGitRepository(linkedRepo),
-                        selected_branch: selectedBranchName ?? "",
-                        q: `/class_diagram CLASS_NAME="${className}" BRANCH_NAME="${selectedBranchName ?? "main"}"`,
-                      });
-                    }}
+                    onClick={() => handleCreateOrGenerate(id)}
                   >
                     {isCreatingConversation
                       ? "Creating.."

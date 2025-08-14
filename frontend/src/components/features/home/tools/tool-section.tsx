@@ -1,4 +1,3 @@
-import React from "react";
 import { TOOL_CATEGORIES } from "./tools-data";
 import { ToolCard } from "./tool-card";
 import styles from "./ToolsSection.module.css";
@@ -14,9 +13,11 @@ export function ToolsSection() {
             {cat.tools.map((tool) => (
               <ToolCard
                 key={tool.title}
+                id={tool.id}
                 title={tool.title}
                 image={tool.image}
                 description={tool.description}
+                linkedRepoRequired={tool.linkedRepoRequired ?? false}
               />
             ))}
           </div>

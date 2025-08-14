@@ -247,69 +247,69 @@ export default class Mermaid extends React.Component {
             }}
           />
 
-          {/* Editor Container */}
-          <div
-            className="bg-gray-900 border-l border-gray-700 flex flex-col"
-            style={{
-              width: "25vw",
-              height: "100%",
-              overflow: "hidden",
-            }}
-          >
-            {/* Editor Header */}
-            <div className="bg-gray-800 p-4 border-b border-gray-700">
-              <h2 className="text-white font-semibold flex items-center gap-2">
-                <svg
-                  className="w-5 h-5 text-blue-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
-                  />
-                </svg>
-                Mermaid Editor
-              </h2>
-            </div>
-
-            {/* Editor Content */}
-            <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="flex-1 overflow-auto">
-                <CodeMirror
-                  value={this.state.mermaidCode}
-                  extensions={[markdown()]}
-                  theme="dark"
-                  onChange={(val) => {
-                    this.setState({ mermaidCode: val });
-                  }}
-                  basicSetup={{
-                    lineNumbers: true,
-                    highlightActiveLine: true,
-                    autocompletion: true,
-                  }}
-                  style={{
-                    height: "100%",
-                    fontFamily: "Fira Code, Monaco, Consolas, monospace",
-                    backgroundColor: "#1a1a1a",
-                  }}
-                />
+          {this.props.showEditor && (
+            <div
+              className="bg-gray-900 border-l border-gray-700 flex flex-col"
+              style={{
+                width: "25vw",
+                height: "100%",
+                overflow: "hidden",
+              }}
+            >
+              {/* Editor Header */}
+              <div className="bg-gray-800 p-4 border-b border-gray-700">
+                <h2 className="text-white font-semibold flex items-center gap-2">
+                  <svg
+                    className="w-5 h-5 text-blue-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+                    />
+                  </svg>
+                  Mermaid Editor
+                </h2>
               </div>
 
-              {/* Editor Footer */}
-              <div className="bg-gray-800 px-4 py-2 border-t border-gray-700">
-                <div className="flex items-center justify-between text-xs text-gray-400">
-                  <span>
-                    Lines: {this.state.mermaidCode.split("\n").length}
-                  </span>
-                  <span>Mermaid Syntax</span>
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="flex-1 overflow-auto">
+                  <CodeMirror
+                    value={this.state.mermaidCode}
+                    extensions={[markdown()]}
+                    theme="dark"
+                    onChange={(val) => {
+                      this.setState({ mermaidCode: val });
+                    }}
+                    basicSetup={{
+                      lineNumbers: true,
+                      highlightActiveLine: true,
+                      autocompletion: true,
+                    }}
+                    style={{
+                      height: "100%",
+                      fontFamily: "Fira Code, Monaco, Consolas, monospace",
+                      backgroundColor: "#1a1a1a",
+                    }}
+                  />
+                </div>
+
+                {/* Editor Footer */}
+                <div className="bg-gray-800 px-4 py-2 border-t border-gray-700">
+                  <div className="flex items-center justify-between text-xs text-gray-400">
+                    <span>
+                      Lines: {this.state.mermaidCode.split("\n").length}
+                    </span>
+                    <span>Mermaid Syntax</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       );
     } catch (error) {

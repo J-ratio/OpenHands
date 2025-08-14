@@ -1,7 +1,7 @@
 ---
 name: class_diagram
 version: 1.0.0
-author: openhands
+author: h2loop
 agent: CodeActAgent
 triggers:
   - /class_diagram
@@ -22,13 +22,5 @@ The diagram should include:
 - Abstract or static modifiers, if any
   Leave out any standard library classes from relationships.
   Set the following config value for mermaid code.
-
----
-
-    config:
-        class:
-            hideEmptyMembersBox: true
-
----
 
 The context is from the repository at branch "{{ BRANCH_NAME }}".
