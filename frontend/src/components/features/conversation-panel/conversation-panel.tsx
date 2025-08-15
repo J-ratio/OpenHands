@@ -14,6 +14,7 @@ import { BrandButton } from "../settings/brand-button";
 import { useCreateConversation } from "#/hooks/mutation/use-create-conversation";
 import OpenHands from "#/api/open-hands";
 import { displayErrorToast } from "#/utils/custom-toast-handlers";
+import { useSimulationMode } from "#/fake_scripts/simulation_context";
 
 interface ConversationPanelProps {
   onClose: () => void;
@@ -45,6 +46,8 @@ export function ConversationPanel({ onClose }: ConversationPanelProps) {
     useUserConversations();
 
   const { mutate: deleteConversation } = useDeleteConversation();
+
+  const { isSimulationMode, disableSimulation } = useSimulationMode();
 
   React.useEffect(() => {
     if (data?.results) {
@@ -134,7 +137,12 @@ export function ConversationPanel({ onClose }: ConversationPanelProps) {
         <NavLink
           key={project.conversation_id}
           to={`/conversations/${project.conversation_id}`}
-          onClick={onClose}
+          onClick={() => {
+            onClose();
+            if (isSimulationMode) {
+              disableSimulation();
+            }
+          }}
         >
           {({ isActive }) => (
             <ConversationCard

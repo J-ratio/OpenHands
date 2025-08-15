@@ -7,11 +7,13 @@ import { setInitialPrompt } from "#/state/initial-query-slice";
 import { RootState } from "#/store";
 import { GitRepository } from "#/types/git";
 import { SuggestedTask } from "#/components/features/home/tasks/task.types";
+import { useSimulationMode } from "#/fake_scripts/simulation_context";
 
 export const useCreateConversation = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
+  const { enableSimulation, disableSimulation } = useSimulationMode();
 
   const { selectedRepository, files, replayJson } = useSelector(
     (state: RootState) => state.initialQuery,
@@ -24,7 +26,14 @@ export const useCreateConversation = () => {
       selectedRepository?: GitRepository | null;
       selected_branch?: string;
       suggested_task?: SuggestedTask;
+      simulationMode?: boolean;
     }) => {
+      if (variables.simulationMode) {
+        enableSimulation();
+      } else {
+        disableSimulation();
+      }
+
       if (variables.q) dispatch(setInitialPrompt(variables.q));
 
       return OpenHands.createConversation(
