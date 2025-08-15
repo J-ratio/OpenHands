@@ -77,6 +77,12 @@ export function ToolModal({
         }
         break;
 
+      case "FIND_BUGS_ANOMALIES":
+        createConversation({
+          simulationMode: true,
+        });
+        break;
+
       default:
         break;
     }
@@ -145,6 +151,19 @@ export function ToolModal({
 
             {id === "GENERATE_INTERFACE_DOCUMENTATION" && (
               <GenerateInterfaceDocForm />
+            )}
+
+            {id === "FIND_BUGS_ANOMALIES" && (
+              <BrandButton
+                testId="tool-find-bugs-button"
+                variant="primary"
+                type="button"
+                className="mt-4 max-w-md w-full text-lg font-bold"
+                onClick={() => handleCreateOrGenerate("FIND_BUGS_ANOMALIES")}
+                isDisabled={isCreatingConversation}
+              >
+                Find Bugs
+              </BrandButton>
             )}
 
             {linkedRepoRequired && linkedRepo && (

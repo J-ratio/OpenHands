@@ -33,6 +33,9 @@ import { useUploadFiles } from "#/hooks/mutation/use-upload-files";
 import { useConfig } from "#/hooks/query/use-config";
 import { useActiveConversation } from "#/hooks/query/use-active-conversation";
 import { getIndicatorColor, getStatusCode } from "#/utils/status";
+import { ChatSimulator } from "./chat-simulator";
+import { GENERATE_CLASS_DIAGRAM_MESSAGES } from "#/fake_scripts/generate_class_diagram_data";
+import { useSimulationMode } from "#/fake_scripts/simulation_context";
 
 function getEntryPoint(
   hasRepository: boolean | null,
@@ -82,6 +85,8 @@ export function ChatInterface() {
   const { curStatusMessage } = useSelector((state: RootState) => state.status);
   const { webSocketStatus } = useWsClient();
   const { data: conversation } = useActiveConversation();
+
+  const { isSimulationMode } = useSimulationMode();
 
   const statusCode = getStatusCode(
     curStatusMessage,
@@ -184,7 +189,7 @@ export function ChatInterface() {
       statusCode === I18nKey.STATUS$STARTING_RUNTIME ||
       curAgentState === AgentState.INIT ||
       curAgentState === AgentState.LOADING);
-  if (displayLoaderUntilInitialPromptRun) {
+  if (!isSimulationMode && displayLoaderUntilInitialPromptRun) {
     return (
       <div className="flex flex-col items-center justify-center h-[85vh] gap-8">
         <LoadingSpinner size="large" />
@@ -199,7 +204,7 @@ export function ChatInterface() {
   return (
     <ScrollProvider value={scrollProviderValue}>
       <div className="h-full flex flex-col justify-between">
-        {events.length === 0 && !optimisticUserMessage && (
+        {!isSimulationMode && events.length === 0 && !optimisticUserMessage && (
           <ChatSuggestions onSuggestionsClick={setMessageToSend} />
         )}
 
@@ -208,13 +213,19 @@ export function ChatInterface() {
           onScroll={(e) => onChatBodyScroll(e.currentTarget)}
           className="scrollbar scrollbar-thin scrollbar-thumb-gray-400 scrollbar-thumb-rounded-full scrollbar-track-gray-800 hover:scrollbar-thumb-gray-300 flex flex-col grow overflow-y-auto overflow-x-hidden px-4 pt-4 gap-2 fast-smooth-scroll"
         >
-          {isLoadingMessages && (
+          {isSimulationMode && (
+            <ChatSimulator
+              messages={GENERATE_CLASS_DIAGRAM_MESSAGES}
+              onComplete={() => {}}
+            />
+          )}
+          {!isSimulationMode && isLoadingMessages && (
             <div className="flex justify-center">
               <LoadingSpinner size="small" />
             </div>
           )}
 
-          {!isLoadingMessages && (
+          {!isSimulationMode && !isLoadingMessages && (
             <Messages
               messages={events}
               isAwaitingUserConfirmation={
@@ -223,7 +234,8 @@ export function ChatInterface() {
             />
           )}
 
-          {isWaitingForUserInput &&
+          {!isSimulationMode &&
+            isWaitingForUserInput &&
             events.length > 0 &&
             !optimisticUserMessage && (
               <ActionSuggestions
