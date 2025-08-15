@@ -35,7 +35,7 @@ import { useActiveConversation } from "#/hooks/query/use-active-conversation";
 import { getIndicatorColor, getStatusCode } from "#/utils/status";
 import { ChatSimulator } from "./chat-simulator";
 import { GENERATE_CLASS_DIAGRAM_MESSAGES } from "#/fake_scripts/generate_class_diagram_data";
-import { useSimulationMode } from "#/fake_scripts/use_simulation_mode";
+import { useSimulationMode } from "#/fake_scripts/simulation_context";
 
 function getEntryPoint(
   hasRepository: boolean | null,
@@ -189,7 +189,7 @@ export function ChatInterface() {
       statusCode === I18nKey.STATUS$STARTING_RUNTIME ||
       curAgentState === AgentState.INIT ||
       curAgentState === AgentState.LOADING);
-  if (displayLoaderUntilInitialPromptRun) {
+  if (!isSimulationMode && displayLoaderUntilInitialPromptRun) {
     return (
       <div className="flex flex-col items-center justify-center h-[85vh] gap-8">
         <LoadingSpinner size="large" />

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { ChatMessage } from "./chat-message";
 import { FakeMessage } from "#/fake_scripts/fake_message";
+import { TypingIndicator } from "./typing-indicator";
 
 interface ChatSimulatorProps {
   messages: Array<FakeMessage>;

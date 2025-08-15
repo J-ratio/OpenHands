@@ -27,6 +27,7 @@ import { EmailVerificationGuard } from "#/components/features/guards/email-verif
 import { Toaster } from "../components/ui/sonner";
 import { useWorkspace, WorkspaceProvider } from "#/context/WorkspaceContext";
 import { WorkspaceSelect } from "#/components/features/documents/_components/WorkspaceSelect";
+import { SimulationProvider } from "#/fake_scripts/simulation_context";
 
 export function ErrorBoundary() {
   const error = useRouteError();
@@ -166,34 +167,36 @@ export default function MainApp() {
 
   return (
     <WorkspaceProvider>
-      <div
-        data-testid="root-layout"
-        className="bg-base p-3 h-screen md:min-w-[1024px] flex flex-col md:flex-row gap-3 overflow-y-hidden"
-      >
-        <Toaster />
-        <Sidebar />
+      <SimulationProvider>
         <div
-          id="root-outlet"
-          className="h-[calc(100%-50px)] md:h-full w-full relative"
+          data-testid="root-layout"
+          className="bg-base p-3 h-screen md:min-w-[1024px] flex flex-col md:flex-row gap-3 overflow-y-hidden"
         >
-          <WorkspaceSelector />
-          <EmailVerificationGuard>
-            <Outlet />
-          </EmailVerificationGuard>
+          <Toaster />
+          <Sidebar />
+          <div
+            id="root-outlet"
+            className="h-[calc(100%-50px)] md:h-full w-full relative"
+          >
+            <WorkspaceSelector />
+            <EmailVerificationGuard>
+              <Outlet />
+            </EmailVerificationGuard>
+          </div>
+
+          {renderAuthModal && (
+            <AuthModal
+              githubAuthUrl={effectiveGitHubAuthUrl}
+              appMode={config.data?.APP_MODE}
+            />
+          )}
+          {renderReAuthModal && <ReauthModal />}
+
+          {config.data?.FEATURE_FLAGS.ENABLE_BILLING &&
+            config.data?.APP_MODE === "saas" &&
+            settings?.IS_NEW_USER && <SetupPaymentModal />}
         </div>
-
-        {renderAuthModal && (
-          <AuthModal
-            githubAuthUrl={effectiveGitHubAuthUrl}
-            appMode={config.data?.APP_MODE}
-          />
-        )}
-        {renderReAuthModal && <ReauthModal />}
-
-        {config.data?.FEATURE_FLAGS.ENABLE_BILLING &&
-          config.data?.APP_MODE === "saas" &&
-          settings?.IS_NEW_USER && <SetupPaymentModal />}
-      </div>
+      </SimulationProvider>
     </WorkspaceProvider>
   );
 }
