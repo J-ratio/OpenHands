@@ -196,7 +196,9 @@ export function ChatInput({
 
       if (response.success && response.data) {
         const fileDataSources = response.data.filter(
-          (source: DataSource) => source.type === "FILE",
+          (source: DataSource) =>
+            source.type === "FILE" &&
+            source.versions?.some((v) => v.status !== "FAILED"),
         );
         setDataSources(fileDataSources);
         setFilteredDataSources(fileDataSources);
