@@ -158,9 +158,7 @@ export function ChatInput({
 
       if (searchStr.length === 0) {
         setSearchFileText("");
-        if (!showFileDropdown) {
-          fetchDataSources();
-        }
+        fetchDataSources();
       } else {
         setSearchFileText(searchStr);
         if (dataSources.length > 0) {
@@ -202,10 +200,6 @@ export function ChatInput({
         );
         setDataSources(fileDataSources);
         setFilteredDataSources(fileDataSources);
-
-        if (searchFileText) {
-          filterDataSourcesBySearchText(searchFileText);
-        }
       } else {
         setDataSources([]);
         setFilteredDataSources([]);
@@ -361,24 +355,19 @@ export function ChatInput({
               <div className="text-neutral-200 px-4 py-2">Loading files...</div>
             ) : filteredDataSources.length > 0 ? (
               <div>
-                {filteredDataSources
-                  .filter(
-                    (item) =>
-                      !selectedFiles.some((f) => f.source.id === item.id),
-                  )
-                  .map((item, idx) => {
-                    const displayName = item.name || item.url || "Unnamed file";
-                    return (
-                      <div
-                        key={`${displayName}-${idx}`}
-                        className="text-neutral-200 hover:bg-neutral-700 hover:text-neutral-100 px-4 py-2 cursor-pointer flex items-center"
-                        onClick={() => handleFileSelect(item)}
-                      >
-                        <FolderIcon className="w-4 h-4 mr-2 text-neutral-400" />
-                        <span className="truncate">{displayName}</span>
-                      </div>
-                    );
-                  })}
+                {filteredDataSources.map((item, idx) => {
+                  const displayName = item.name || item.url || "Unnamed file";
+                  return (
+                    <div
+                      key={`${displayName}-${idx}`}
+                      className="text-neutral-200 hover:bg-neutral-700 hover:text-neutral-100 px-4 py-2 cursor-pointer flex items-center"
+                      onClick={() => handleFileSelect(item)}
+                    >
+                      <FolderIcon className="w-4 h-4 mr-2 text-neutral-400" />
+                      <span className="truncate">{displayName}</span>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <div className="text-neutral-200 px-4 py-2">
