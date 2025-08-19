@@ -210,6 +210,9 @@ class LLM(RetryMixin, DebugMixin):
         )
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             """Wrapper for the litellm completion function. Logs the input and output of the completion function."""
+
+            import httpx
+
             from openhands.io import json
 
             messages_kwarg: list[dict[str, Any]] | dict[str, Any] = []
@@ -234,6 +237,61 @@ class LLM(RetryMixin, DebugMixin):
             messages: list[dict[str, Any]] = (
                 messages_kwarg if isinstance(messages_kwarg, list) else [messages_kwarg]
             )
+
+            # Only check the most recent user message for file references
+            # Find the last user message in the list
+            user_messages = [
+                i for i, msg in enumerate(messages) if msg.get('role') == 'user'
+            ]
+            if user_messages:
+                last_user_msg_index = user_messages[-1]
+                message = messages[last_user_msg_index]
+                content = message.get('content', '')
+
+                # Check if content is a string (not a list of content items)
+                if isinstance(content, str):
+                    # Check if the message contains file references from selectedFiles
+                    # File references will be at the beginning of the message in the format "@filename"
+                    words = content.split()
+                    file_references = []
+
+                    # Only collect file references from the beginning of the message
+                    # TODO: HANDLE: there can be @any_random_text from the user -> which may not be attached files
+                    for word in words:
+                        if word.startswith('@'):
+                            file_references.append(word[1:])  # Remove the @ symbol
+                        else:
+                            break
+
+                    if file_references:
+                        logger.debug(
+                            f'Found file references at beginning of message: {file_references}'
+                        )
+
+                        try:
+                            response = httpx.get(
+                                'https://mocki.io/v1/dec6cdb4-d068-452c-b88b-0ac29d0c788e',
+                                timeout=10,
+                            )
+                            if response.status_code == 200:
+                                chunks_data = response.json()
+                                chunks = chunks_data.get('chunks', [])
+
+                                chunks_text = ''
+                                for chunk in chunks:
+                                    chunks_text += f'{chunk.get("text", "")} '
+
+                                if chunks_text:
+                                    messages[last_user_msg_index]['content'] = (
+                                        f'{content}\n\nFile Content:\n{chunks_text.strip()}'
+                                    )
+                                    logger.debug('Added file chunks to message')
+                            else:
+                                logger.error(
+                                    f'Failed to fetch chunks: {response.status_code}'
+                                )
+                        except Exception as e:
+                            logger.error(f'Error fetching chunks: {e}')
 
             # handle conversion of to non-function calling messages if needed
             original_fncall_messages = copy.deepcopy(messages)
@@ -302,6 +360,8 @@ class LLM(RetryMixin, DebugMixin):
                     message=r'.*content=.*upload.*',
                     category=DeprecationWarning,
                 )
+                # Update kwargs with modified messages
+                kwargs['messages'] = messages
                 resp: ModelResponse = self._completion_unwrapped(*args, **kwargs)
 
             # Calculate and record latency
