@@ -5,7 +5,6 @@ import { I18nKey } from "#/i18n/declaration";
 import { cn } from "#/utils/utils";
 import { SubmitButton } from "#/components/shared/buttons/submit-button";
 import { StopButton } from "#/components/shared/buttons/stop-button";
-// We'll create a custom dropdown instead of using the components with TypeScript errors
 import { getAllDataSourcesByWorkspaceId } from "#/api/data-sources";
 import { useWorkspace } from "#/context/WorkspaceContext";
 import FolderIcon from "#/icons/folder.svg?react";
@@ -22,6 +21,12 @@ interface DataSource {
   updated_at?: string;
   versions?: any[];
   [key: string]: any;
+}
+
+interface SelectedFile {
+  id: string;
+  name: string;
+  source: DataSource;
 }
 
 interface ChatInputProps {
@@ -69,17 +74,15 @@ export function ChatInput({
   >([]);
   const [searchFileText, setSearchFileText] = React.useState("");
   const [isLoadingDataSources, setIsLoadingDataSources] = React.useState(false);
+  const [selectedFiles, setSelectedFiles] = React.useState<SelectedFile[]>([]);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   const handlePaste = (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
-    // Only handle paste if we have an image paste handler and there are files
     if (onFilesPaste && event.clipboardData.files.length > 0) {
       const files = Array.from(event.clipboardData.files);
-      // Only prevent default if we found image files to handle
       event.preventDefault();
       onFilesPaste(files);
     }
-    // For text paste, let the default behavior handle it
   };
 
   const handleDragOver = (event: React.DragEvent<HTMLTextAreaElement>) => {
@@ -107,9 +110,20 @@ export function ChatInput({
 
   const handleSubmitMessage = () => {
     const message = value || textareaRef.current?.value || "";
-    if (message.trim()) {
-      onSubmit(message);
+    if (message.trim() || selectedFiles.length > 0) {
+      // Include file references in the message
+      let finalMessage = message;
+      if (selectedFiles.length > 0) {
+        const fileRefs = selectedFiles.map((f) => `@${f.name}`).join(" ");
+        finalMessage =
+          selectedFiles.length > 0 && !message.trim()
+            ? fileRefs
+            : `${fileRefs} ${message}`.trim();
+      }
+
+      onSubmit(finalMessage);
       onChange?.("");
+      setSelectedFiles([]);
       if (textareaRef.current) {
         textareaRef.current.value = "";
       }
@@ -133,42 +147,27 @@ export function ChatInput({
     onChange?.(value);
     setCursorPosition(selectionStart);
 
-    // Always check if there's an @ character before the cursor
     const textBeforeCursor = value.substring(0, selectionStart);
     const atSignIndex = textBeforeCursor.lastIndexOf("@");
 
-    // If there's an @ character and no space between @ and cursor
     if (
       atSignIndex !== -1 &&
       !textBeforeCursor.substring(atSignIndex).includes(" ")
     ) {
-      // We're in a search context (after @)
       const searchStr = textBeforeCursor.substring(atSignIndex + 1);
 
-      // If we just typed @, reset search
       if (searchStr.length === 0) {
-        console.log("@ detected, showing dropdown");
         setSearchFileText("");
-
-        // Only fetch data sources if dropdown is not already showing
-        if (!showFileDropdown) {
-          fetchDataSources();
-        }
+        fetchDataSources();
       } else {
-        // We're typing after @
-        console.log("Typing after @:", searchStr);
         setSearchFileText(searchStr);
-
-        // Filter data sources based on search text
         if (dataSources.length > 0) {
           filterDataSourcesBySearchText(searchStr);
         }
       }
 
-      // Ensure dropdown is shown
       setShowFileDropdown(true);
     } else {
-      // Close dropdown if we're not in a search context
       if (showFileDropdown) {
         setShowFileDropdown(false);
       }
@@ -192,25 +191,18 @@ export function ChatInput({
   const fetchDataSources = async () => {
     try {
       setIsLoadingDataSources(true);
-      console.log("Fetching data sources for workspace:", selectedWorkspaceId);
       const response =
         await getAllDataSourcesByWorkspaceId(selectedWorkspaceId);
-      console.log("Data sources response:", response);
 
       if (response.success && response.data) {
-        // Filter to only include FILE type data sources
         const fileDataSources = response.data.filter(
-          (source: DataSource) => source.type === "FILE",
+          (source: DataSource) =>
+            source.type === "FILE" &&
+            source.versions?.some((v) => v.status !== "FAILED"),
         );
-        console.log("Filtered FILE data sources:", fileDataSources);
         setDataSources(fileDataSources);
         setFilteredDataSources(fileDataSources);
-
-        if (searchFileText) {
-          filterDataSourcesBySearchText(searchFileText);
-        }
       } else {
-        console.error("Failed to fetch data sources:", response.errorMessage);
         setDataSources([]);
         setFilteredDataSources([]);
       }
@@ -224,74 +216,130 @@ export function ChatInput({
   };
 
   const handleFileSelect = (file: DataSource) => {
+    const fileName = file.name || file.url || "Unnamed file";
+    const fileId = file.id || `${fileName}-${Date.now()}`;
+
+    // Check if file is already selected
+    if (selectedFiles.some((f) => f.id === fileId)) {
+      return;
+    }
+
+    // Add to selected files
+    const newFile: SelectedFile = {
+      id: fileId,
+      name: fileName,
+      source: file,
+    };
+
+    setSelectedFiles((prev) => [...prev, newFile]);
+    setShowFileDropdown(false);
+
+    // Clear the @ search from textarea
     if (textareaRef.current && onChange) {
       const currentValue = textareaRef.current.value;
       const textBeforeCursor = currentValue.substring(0, cursorPosition);
       const afterCursor = currentValue.substring(cursorPosition);
-
-      // Find the position of the last @ character before cursor
       const atSignIndex = textBeforeCursor.lastIndexOf("@");
 
       if (atSignIndex !== -1) {
-        // Keep everything before the @ character
         const beforeAt = textBeforeCursor.substring(0, atSignIndex);
-
-        // Get the selected file name
-        const fileName = file.name || file.url || "Unnamed file";
-
-        // Create the new value with @fileName format (keeping the @ character)
-        const newValue = beforeAt + "@" + fileName + afterCursor;
-
+        const newValue = beforeAt + afterCursor;
         onChange(newValue);
-        setShowFileDropdown(false);
-
-        // Set focus back to textarea
-        textareaRef.current.focus();
       }
     }
+
+    // Focus back to textarea
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+      }
+    }, 0);
+  };
+
+  const removeFile = (fileId: string) => {
+    setSelectedFiles((prev) => prev.filter((f) => f.id !== fileId));
   };
 
   return (
     <div
       data-testid="chat-input"
-      className="flex items-end justify-end grow gap-1 min-h-6 w-full relative"
+      className="flex flex-col grow gap-2 min-h-6 w-full relative"
       ref={containerRef}
     >
-      <TextareaAutosize
-        ref={textareaRef}
-        name={name}
-        placeholder={t(I18nKey.SUGGESTIONS$WHAT_TO_BUILD)}
-        onKeyDown={handleKeyPress}
-        onChange={handleChange}
-        onFocus={onFocus}
-        onBlur={onBlur}
-        onPaste={handlePaste}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        value={value}
-        minRows={1}
-        maxRows={maxRows}
-        data-dragging-over={isDraggingOver}
-        className={cn(
-          "grow text-sm self-center placeholder:text-neutral-400 text-white resize-none outline-hidden ring-0",
-          "transition-all duration-200 ease-in-out",
-          isDraggingOver
-            ? "bg-neutral-600/50 rounded-lg px-2"
-            : "bg-transparent",
-          className,
-        )}
-      />
-      {showButton && (
-        <div className={buttonClassName}>
-          {button === "submit" && (
-            <SubmitButton isDisabled={disabled} onClick={handleSubmitMessage} />
-          )}
-          {button === "stop" && (
-            <StopButton isDisabled={disabled} onClick={onStop} />
-          )}
+      {/* Selected files pills */}
+      {selectedFiles.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {selectedFiles.map((file) => (
+            <div
+              key={file.id}
+              className="inline-flex items-center gap-1 px-2 py-1 bg-blue-600/20 border border-blue-500/30 rounded-full text-xs text-blue-200"
+            >
+              <FolderIcon className="w-3 h-3" />
+              <span className="truncate max-w-32">{file.name}</span>
+              <button
+                onClick={() => removeFile(file.id)}
+                className="ml-1 hover:bg-blue-500/30 rounded-full p-0.5 transition-colors"
+                type="button"
+              >
+                <svg
+                  className="w-3 h-3"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+            </div>
+          ))}
         </div>
       )}
+
+      {/* Input area */}
+      <div className="flex items-end justify-end grow gap-1 min-h-6 w-full">
+        <TextareaAutosize
+          ref={textareaRef}
+          name={name}
+          placeholder={t(I18nKey.SUGGESTIONS$WHAT_TO_BUILD)}
+          onKeyDown={handleKeyPress}
+          onChange={handleChange}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          onPaste={handlePaste}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          value={value}
+          minRows={1}
+          maxRows={maxRows}
+          data-dragging-over={isDraggingOver}
+          className={cn(
+            "grow text-sm self-center placeholder:text-neutral-400 text-white resize-none outline-hidden ring-0",
+            "transition-all duration-200 ease-in-out",
+            isDraggingOver
+              ? "bg-neutral-600/50 rounded-lg px-2"
+              : "bg-transparent",
+            className,
+          )}
+        />
+
+        {showButton && (
+          <div className={buttonClassName}>
+            {button === "submit" && (
+              <SubmitButton
+                isDisabled={disabled}
+                onClick={handleSubmitMessage}
+              />
+            )}
+            {button === "stop" && (
+              <StopButton isDisabled={disabled} onClick={onStop} />
+            )}
+          </div>
+        )}
+      </div>
 
       {/* File selection dropdown */}
       {showFileDropdown && (
