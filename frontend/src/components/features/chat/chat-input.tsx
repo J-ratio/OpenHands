@@ -114,7 +114,9 @@ export function ChatInput({
       // Include file references in the message
       let finalMessage = message;
       if (selectedFiles.length > 0) {
-        const fileRefs = selectedFiles.map((f) => `@${f.name}`).join(" ");
+        const fileRefs = selectedFiles
+          .map((f) => `@${f.name}:${f.id}`)
+          .join(" ");
         finalMessage =
           selectedFiles.length > 0 && !message.trim()
             ? fileRefs

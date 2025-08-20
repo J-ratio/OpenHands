@@ -251,26 +251,37 @@ class LLM(RetryMixin, DebugMixin):
                 # Check if content is a string (not a list of content items)
                 if isinstance(content, str):
                     # Check if the message contains file references from selectedFiles
-                    # File references will be at the beginning of the message in the format "@filename"
+                    # File references will be at the beginning of the message in the format "@filename:fileID"
                     words = content.split()
                     file_references = []
+                    file_ids = []
 
-                    # Only collect file references from the beginning of the message
-                    # TODO: HANDLE: there can be @any_random_text from the user -> which may not be attached files
+                    # Only collect valid file references from the beginning of the message
+                    # This handles the case where users might type @anything that isn't a file reference
                     for word in words:
-                        if word.startswith('@'):
-                            file_references.append(word[1:])  # Remove the @ symbol
+                        if word.startswith('@') and ':' in word:
+                            # Extract filename and fileID
+                            parts = word[1:].split(':', 1)  # Remove @ and split by first :
+                            if len(parts) == 2:
+                                filename, file_id = parts
+                                file_references.append(filename)
+                                file_ids.append(file_id)
                         else:
+                            # Once we hit a non-file reference or invalid format, stop collecting
                             break
 
-                    if file_references:
-                        logger.debug(
-                            f'Found file references at beginning of message: {file_references}'
+                    if file_references and file_ids:
+                        logger.info(
+                            f'Found valid file references at beginning of message: {file_references} with IDs: {file_ids}'
                         )
 
                         try:
+                            # Fetch chunks from the API with file IDs as parameters
+                            params = {'file_ids': ','.join(file_ids)}
+                            print(params)
                             response = httpx.get(
                                 'https://mocki.io/v1/dec6cdb4-d068-452c-b88b-0ac29d0c788e',
+                                params=params,
                                 timeout=10,
                             )
                             if response.status_code == 200:
