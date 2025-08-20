@@ -23,7 +23,7 @@ interface DataSource {
   [key: string]: any;
 }
 
-interface SelectedFile {
+export interface AttachedFile {
   id: string;
   name: string;
   source: DataSource;
@@ -36,7 +36,7 @@ interface ChatInputProps {
   showButton?: boolean;
   value?: string;
   maxRows?: number;
-  onSubmit: (message: string) => void;
+  onSubmit: (message: string, attachedFiles: AttachedFile[]) => void;
   onStop?: () => void;
   onChange?: (message: string) => void;
   onFocus?: () => void;
@@ -74,7 +74,7 @@ export function ChatInput({
   >([]);
   const [searchFileText, setSearchFileText] = React.useState("");
   const [isLoadingDataSources, setIsLoadingDataSources] = React.useState(false);
-  const [selectedFiles, setSelectedFiles] = React.useState<SelectedFile[]>([]);
+  const [selectedFiles, setSelectedFiles] = React.useState<AttachedFile[]>([]);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   const handlePaste = (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
@@ -123,7 +123,7 @@ export function ChatInput({
             : `${fileRefs} ${message}`.trim();
       }
 
-      onSubmit(finalMessage);
+      onSubmit(finalMessage, selectedFiles);
       onChange?.("");
       setSelectedFiles([]);
       if (textareaRef.current) {
@@ -227,7 +227,7 @@ export function ChatInput({
     }
 
     // Add to selected files
-    const newFile: SelectedFile = {
+    const newFile: AttachedFile = {
       id: fileId,
       name: fileName,
       source: file,

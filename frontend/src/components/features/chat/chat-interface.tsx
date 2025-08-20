@@ -36,6 +36,7 @@ import { getIndicatorColor, getStatusCode } from "#/utils/status";
 import { ChatSimulator } from "./chat-simulator";
 import { GENERATE_CLASS_DIAGRAM_MESSAGES } from "#/fake_scripts/generate_class_diagram_data";
 import { useSimulationMode } from "#/fake_scripts/simulation_context";
+import { AttachedFile } from "./chat-input";
 
 function getEntryPoint(
   hasRepository: boolean | null,
@@ -100,6 +101,7 @@ export function ChatInterface() {
     content: string,
     images: File[],
     files: File[],
+    attachedFiles: AttachedFile[],
   ) => {
     if (events.length === 0) {
       posthog.capture("initial_query_submitted", {
@@ -132,7 +134,15 @@ export function ChatInterface() {
     const prompt =
       uploadedFiles.length > 0 ? `${content}\n\n${filePrompt}` : content;
 
-    send(createChatMessage(prompt, imageUrls, uploadedFiles, timestamp));
+    send(
+      createChatMessage(
+        prompt,
+        imageUrls,
+        uploadedFiles,
+        attachedFiles,
+        timestamp,
+      ),
+    );
     setOptimisticUserMessage(content);
     setMessageToSend(null);
   };
@@ -239,7 +249,9 @@ export function ChatInterface() {
             events.length > 0 &&
             !optimisticUserMessage && (
               <ActionSuggestions
-                onSuggestionsClick={(value) => handleSendMessage(value, [], [])}
+                onSuggestionsClick={(value) =>
+                  handleSendMessage(value, [], [], [])
+                }
               />
             )}
         </div>

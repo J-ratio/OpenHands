@@ -25,6 +25,7 @@ import { LikertScale } from "../feedback/likert-scale";
 
 import { useConfig } from "#/hooks/query/use-config";
 import { useFeedbackExists } from "#/hooks/query/use-feedback-exists";
+import { CiAt } from "react-icons/ci";
 
 const hasThoughtProperty = (
   obj: Record<string, unknown>,
@@ -103,6 +104,16 @@ export function EventMessage({
         {event.args.file_urls && event.args.file_urls.length > 0 && (
           <FileList files={event.args.file_urls} />
         )}
+        {event.args.attached_files &&
+          event.args.attached_files.length > 0 &&
+          event.args.attached_files.map((file) => (
+            <div key={file.id} className="flex items-center gap-1">
+              <CiAt className="h-4 w-4" />{" "}
+              <span className="bg-blue-600/20 border border-blue-500/30 text-blue-200 rounded-full px-2 py-1">
+                {file.name}
+              </span>
+            </div>
+          ))}
         {shouldShowConfirmationButtons && <ConfirmationButtons />}
       </ChatMessage>
     );
