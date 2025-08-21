@@ -235,8 +235,6 @@ class LLM(RetryMixin, DebugMixin):
                 messages_kwarg if isinstance(messages_kwarg, list) else [messages_kwarg]
             )
 
-            logger.info(f"MESSAGE TO LLM: {messages}")
-
             # handle conversion of to non-function calling messages if needed
             original_fncall_messages = copy.deepcopy(messages)
             mock_fncall_tools = None

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { useTranslation } from "react-i18next";
 import { I18nKey } from "#/i18n/declaration";
@@ -110,25 +110,12 @@ export function ChatInput({
 
   const handleSubmitMessage = () => {
     const message = value || textareaRef.current?.value || "";
-    if (message.trim() || selectedFiles.length > 0) {
-      // Include file references in the message
-      let finalMessage = message;
-      if (selectedFiles.length > 0) {
-        const fileRefs = selectedFiles
-          .map((f) => `@${f.name}:${f.id}`)
-          .join(" ");
-        finalMessage =
-          selectedFiles.length > 0 && !message.trim()
-            ? fileRefs
-            : `${fileRefs} ${message}`.trim();
-      }
 
-      onSubmit(finalMessage, selectedFiles);
-      onChange?.("");
-      setSelectedFiles([]);
-      if (textareaRef.current) {
-        textareaRef.current.value = "";
-      }
+    onSubmit(message, selectedFiles);
+    onChange?.("");
+    setSelectedFiles([]);
+    if (textareaRef.current) {
+      textareaRef.current.value = "";
     }
   };
 
