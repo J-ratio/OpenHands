@@ -1,0 +1,58 @@
+{
+  "name": "h2loop-chat-integration",
+  "displayName": "OpenVscode Chat Integration",
+  "description": "Add selected code to H2Loop chat",
+  "version": "1.0.0",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:h2loop.addToChat"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "h2loop.addToChat",
+        "title": "Add to Chat",
+        "category": "h2Loop"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "h2loop.addToChat",
+          "when": "editorIsOpen"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "h2loop.addToChat",
+          "when": "editorHasSelection",
+          "group": "9_cutcopypaste@3"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "h2loop.addToChat",
+        "key": "ctrl+shift+c",
+        "mac": "cmd+shift+c",
+        "when": "editorTextFocus && editorHasSelection"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "16.x",
+    "typescript": "^4.9.4"
+  }
+}
