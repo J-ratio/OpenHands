@@ -210,9 +210,6 @@ class LLM(RetryMixin, DebugMixin):
         )
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             """Wrapper for the litellm completion function. Logs the input and output of the completion function."""
-
-            import httpx
-
             from openhands.io import json
 
             messages_kwarg: list[dict[str, Any]] | dict[str, Any] = []
@@ -238,71 +235,7 @@ class LLM(RetryMixin, DebugMixin):
                 messages_kwarg if isinstance(messages_kwarg, list) else [messages_kwarg]
             )
 
-            # Only check the most recent user message for file references
-            # Find the last user message in the list
-            user_messages = [
-                i for i, msg in enumerate(messages) if msg.get('role') == 'user'
-            ]
-            if user_messages:
-                last_user_msg_index = user_messages[-1]
-                message = messages[last_user_msg_index]
-                content = message.get('content', '')
-
-                # Check if content is a string (not a list of content items)
-                if isinstance(content, str):
-                    # Check if the message contains file references from selectedFiles
-                    # File references will be at the beginning of the message in the format "@filename:fileID"
-                    words = content.split()
-                    file_references = []
-                    file_ids = []
-
-                    # Only collect valid file references from the beginning of the message
-                    # This handles the case where users might type @anything that isn't a file reference
-                    for word in words:
-                        if word.startswith('@') and ':' in word:
-                            # Extract filename and fileID
-                            parts = word[1:].split(':', 1)  # Remove @ and split by first :
-                            if len(parts) == 2:
-                                filename, file_id = parts
-                                file_references.append(filename)
-                                file_ids.append(file_id)
-                        else:
-                            # Once we hit a non-file reference or invalid format, stop collecting
-                            break
-
-                    if file_references and file_ids:
-                        logger.info(
-                            f'Found valid file references at beginning of message: {file_references} with IDs: {file_ids}'
-                        )
-
-                        try:
-                            # Fetch chunks from the API with file IDs as parameters
-                            params = {'file_ids': ','.join(file_ids)}
-                            print(params)
-                            response = httpx.get(
-                                'https://mocki.io/v1/dec6cdb4-d068-452c-b88b-0ac29d0c788e',
-                                params=params,
-                                timeout=10,
-                            )
-                            if response.status_code == 200:
-                                chunks_data = response.json()
-                                chunks = chunks_data.get('chunks', [])
-
-                                chunks_text = ''
-                                for chunk in chunks:
-                                    chunks_text += f'{chunk.get("text", "")} '
-
-                                if chunks_text:
-                                    messages[last_user_msg_index]['content'] = (
-                                        f'{content}\n\nFile Content:\n{chunks_text.strip()}'
-                                    )
-                                    logger.debug('Added file chunks to message')
-                            else:
-                                logger.error(
-                                    f'Failed to fetch chunks: {response.status_code}'
-                                )
-                        except Exception as e:
-                            logger.error(f'Error fetching chunks: {e}')
+            logger.info(f"MESSAGE TO LLM: {messages}")
 
             # handle conversion of to non-function calling messages if needed
             original_fncall_messages = copy.deepcopy(messages)
