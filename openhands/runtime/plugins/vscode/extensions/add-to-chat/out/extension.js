@@ -36,20 +36,58 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
+let bridgePanel;
 function activate(context) {
-    let disposable = vscode.commands.registerCommand("h2loop.addToChat", async () => {
+    // Command: add selected text to chat
+    const addToChat = vscode.commands.registerCommand("h2loop.addToChat", () => {
         const editor = vscode.window.activeTextEditor;
-        if (!editor) {
+        if (!editor)
             return;
-        }
-        const selection = editor.selection;
-        const selectedText = editor.document.getText(selection);
-        if (selectedText) {
-            // For now, let's just show a notification
-            vscode.window.showInformationMessage(`Added to chat: ${selectedText}`);
-            // TODO: send `selectedText` to your chat API or process it further
-        }
+        const selectedText = editor.document.getText(editor.selection);
+        if (!selectedText)
+            return;
+        // Get or create the hidden bridge panel
+        const panel = getOrCreateBridgePanel(context);
+        // Send the selected text to the bridge
+        panel.webview.postMessage({ type: "ADD_TO_CHAT", text: selectedText });
     });
-    context.subscriptions.push(disposable);
+    context.subscriptions.push(addToChat);
+}
+// Create or return the hidden bridge panel
+function getOrCreateBridgePanel(context) {
+    if (bridgePanel) {
+        return bridgePanel;
+    }
+    // Create a webview panel but never reveal it
+    bridgePanel = vscode.window.createWebviewPanel("h2loopBridge", "H2Loop Bridge", { viewColumn: vscode.ViewColumn.Beside, preserveFocus: true }, // do not reveal
+    {
+        enableScripts: true,
+        retainContextWhenHidden: true, // keep alive
+        localResourceRoots: [],
+    });
+    // Do NOT call bridgePanel.reveal(), so it stays hidden
+    bridgePanel.onDidDispose(() => (bridgePanel = undefined));
+    // Minimal HTML for the hidden bridge
+    bridgePanel.webview.html = `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8" /></head>
+<body>
+<script>
+  // Forward messages from extension to parent React page
+  window.addEventListener("message", (event) => {
+    const msg = event.data;
+    if (msg && msg.type === "ADD_TO_CHAT") {
+      try {
+        window.top.postMessage(
+          { type: "h2loop:addToChat", text: msg.text },
+          "*"
+        );
+      } catch (e) {}
+    }
+  });
+</script>
+</body>
+</html>`;
+    return bridgePanel;
 }
 function deactivate() { }

@@ -1,27 +1,65 @@
 import * as vscode from "vscode";
 
+let bridgePanel: vscode.WebviewPanel | undefined;
+
 export function activate(context: vscode.ExtensionContext) {
-  let disposable = vscode.commands.registerCommand(
-    "h2loop.addToChat",
-    async () => {
-      const editor = vscode.window.activeTextEditor;
-      if (!editor) {
-        return;
-      }
+  const addToChat = vscode.commands.registerCommand("h2loop.addToChat", () => {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) return;
 
-      const selection = editor.selection;
-      const selectedText = editor.document.getText(selection);
+    const selectedText = editor.document.getText(editor.selection);
+    if (!selectedText) return;
 
-      if (selectedText) {
-        // For now, let's just show a notification
-        vscode.window.showInformationMessage(`Added to chat: ${selectedText}`);
+    const panel = getOrCreateBridgePanel(context);
 
-        // TODO: send `selectedText` to your chat API or process it further
-      }
+    panel.webview.postMessage({ type: "ADD_TO_CHAT", text: selectedText });
+  });
+
+  context.subscriptions.push(addToChat);
+}
+
+function getOrCreateBridgePanel(
+  context: vscode.ExtensionContext
+): vscode.WebviewPanel {
+  if (bridgePanel) {
+    return bridgePanel;
+  }
+
+  bridgePanel = vscode.window.createWebviewPanel(
+    "h2loopBridge",
+    "H2Loop Bridge",
+    { viewColumn: vscode.ViewColumn.Beside, preserveFocus: true },
+    {
+      enableScripts: true,
+      retainContextWhenHidden: true, // keep alive
+      localResourceRoots: [],
     }
   );
 
-  context.subscriptions.push(disposable);
+  bridgePanel.onDidDispose(() => (bridgePanel = undefined));
+
+  bridgePanel.webview.html = `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8" /></head>
+<body>
+<script>
+  // Forward messages from extension to parent React page
+  window.addEventListener("message", (event) => {
+    const msg = event.data;
+    if (msg && msg.type === "ADD_TO_CHAT") {
+      try {
+        window.top.postMessage(
+          { type: "h2loop:addToChat", text: msg.text },
+          "*"
+        );
+      } catch (e) {}
+    }
+  });
+</script>
+</body>
+</html>`;
+
+  return bridgePanel;
 }
 
 export function deactivate() {}

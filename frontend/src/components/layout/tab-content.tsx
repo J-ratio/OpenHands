@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from "react";
+import React, { lazy, Suspense, useEffect } from "react";
 import { useLocation } from "react-router";
 import { LoadingSpinner } from "../shared/loading-spinner";
 
@@ -34,6 +34,18 @@ export function TabContent({ conversationPath }: TabContentProps) {
   const isMermaidActive = currentPath === `${conversationPath}/mermaid`;
 
   const mermaidCodeFromState = location.state?.mermaidCode;
+
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      if (event.data.type === "addToChat") {
+        // setInputValue(event.data.text); // plug directly into your input box
+        console.log(event.data.text);
+      }
+    };
+
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, []);
 
   return (
     <div className="h-full w-full relative">

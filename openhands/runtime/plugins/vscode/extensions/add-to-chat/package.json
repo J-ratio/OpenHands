@@ -32,7 +32,7 @@
         {
           "command": "h2loop.addToChat",
           "when": "editorHasSelection",
-          "group": "9_cutcopypaste@3"
+          "group": "h2loop_addtochat"
         }
       ]
     },
