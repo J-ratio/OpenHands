@@ -27,14 +27,20 @@ function getOrCreateBridgePanel(
 
   bridgePanel = vscode.window.createWebviewPanel(
     "h2loopBridge",
-    "H2Loop Bridge",
-    { viewColumn: vscode.ViewColumn.Beside, preserveFocus: true },
+    "",
+    { viewColumn: vscode.ViewColumn.Two, preserveFocus: true },
     {
       enableScripts: true,
-      retainContextWhenHidden: true, // keep alive
+      retainContextWhenHidden: true,
       localResourceRoots: [],
     }
   );
+
+  setTimeout(() => {
+    try {
+      vscode.commands.executeCommand("workbench.action.minimizeOtherEditors");
+    } catch (e) {}
+  }, 10);
 
   bridgePanel.onDidDispose(() => (bridgePanel = undefined));
 
@@ -62,4 +68,6 @@ function getOrCreateBridgePanel(
   return bridgePanel;
 }
 
-export function deactivate() {}
+export function deactivate() {
+  bridgePanel?.dispose();
+}
