@@ -3,16 +3,23 @@ import { I18nKey } from "#/i18n/declaration";
 import PlusIcon from "#/icons/plus.svg?react";
 import { TooltipButton } from "./tooltip-button";
 import { useCreateConversation } from "#/hooks/mutation/use-create-conversation";
+import { GrCompare } from "react-icons/gr";
 
 interface NewProjectButtonProps {
   disabled?: boolean;
+  comparision?: boolean;
 }
 
-export function NewProjectButton({ disabled = false }: NewProjectButtonProps) {
+export function NewProjectButton({
+  disabled = false,
+  comparision = false,
+}: NewProjectButtonProps) {
   const { t } = useTranslation();
-  const startNewProject = t(I18nKey.CONVERSATION$START_NEW);
+  const startNewProject = !comparision
+    ? t(I18nKey.CONVERSATION$START_NEW)
+    : "Start new conversation (comparision)";
 
-  const { mutate: createConversation } = useCreateConversation();
+  const { mutate: createConversation } = useCreateConversation(comparision);
 
   return (
     <TooltipButton
@@ -23,7 +30,11 @@ export function NewProjectButton({ disabled = false }: NewProjectButtonProps) {
       onClick={() => createConversation({})}
       disabled={disabled}
     >
-      <PlusIcon width={28} height={28} />
+      {!comparision ? (
+        <PlusIcon width={28} height={28} />
+      ) : (
+        <GrCompare width={28} height={28} />
+      )}
     </TooltipButton>
   );
 }

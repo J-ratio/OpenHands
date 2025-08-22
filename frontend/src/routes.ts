@@ -28,6 +28,10 @@ export default [
       route("vscode", "routes/vscode-tab.tsx"),
       route("mermaid", "routes/mermaid-tab.tsx"),
     ]),
+    route(
+      "conversations/:conversationId/compare",
+      "routes/compare-chat-interface-page.tsx",
+    ),
     route("documents/", "routes/documents-page.tsx"),
     route("document/:documentId", "routes/document-detail-page.tsx"),
 

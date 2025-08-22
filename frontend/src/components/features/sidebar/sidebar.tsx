@@ -89,6 +89,12 @@ export function Sidebar() {
                 settings?.EMAIL_VERIFIED === false || isCreatingConversation
               }
             />
+            <NewProjectButton
+              disabled={
+                settings?.EMAIL_VERIFIED === false || isCreatingConversation
+              }
+              comparision={true}
+            />
             <ConversationPanelButton
               isOpen={conversationPanelIsOpen}
               onClick={() =>
