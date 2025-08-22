@@ -44,9 +44,7 @@ function getOrCreateBridgePanel(context) {
     if (bridgePanel) {
         return bridgePanel;
     }
-    bridgePanel = vscode.window.createWebviewPanel("h2loopBridge", "", // Empty title to minimize visual impact
-    // Create in the background with minimal visibility
-    { viewColumn: vscode.ViewColumn.Eight, preserveFocus: true }, {
+    bridgePanel = vscode.window.createWebviewPanel("h2loopBridge", "", { viewColumn: vscode.ViewColumn.Two, preserveFocus: true }, {
         enableScripts: true,
         retainContextWhenHidden: true,
         localResourceRoots: [],

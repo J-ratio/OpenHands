@@ -17,16 +17,6 @@ function VSCodeTab() {
   const [iframeError, setIframeError] = useState<string | null>(null);
 
   useEffect(() => {
-    window.addEventListener("message", (event) => {
-      console.log(event);
-      if (event.data?.type === "h2loop:addToChat") {
-        const selectedText: string = event.data.text;
-        console.log(selectedText);
-      }
-    });
-  }, []);
-
-  useEffect(() => {
     if (data?.url) {
       try {
         const iframeProtocol = new URL(data.url).protocol;

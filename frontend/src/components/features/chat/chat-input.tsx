@@ -77,6 +77,54 @@ export function ChatInput({
   const [selectedFiles, setSelectedFiles] = React.useState<SelectedFile[]>([]);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      if (event.data.type === "h2loop:addToChat") {
+        const selectedText = event.data.text;
+
+        if (textareaRef.current) {
+          const textarea = textareaRef.current;
+          const start = textarea.selectionStart;
+          const end = textarea.selectionEnd;
+          const currentValue = textarea.value;
+
+          const beforeCursor = currentValue.substring(0, start);
+          const afterCursor = currentValue.substring(end);
+
+          const needsNewlineBefore =
+            beforeCursor.length > 0 && !beforeCursor.endsWith("\n");
+          const needsNewlineAfter =
+            afterCursor.length > 0 && !afterCursor.startsWith("\n");
+
+          const newlineBefore = needsNewlineBefore ? "\n" : "";
+          const newlineAfter = needsNewlineAfter ? "\n" : "";
+
+          const newValue =
+            beforeCursor +
+            newlineBefore +
+            selectedText +
+            newlineAfter +
+            afterCursor;
+
+          textarea.value = newValue;
+          onChange?.(newValue);
+
+          // Move cursor to the end of inserted text
+          const newCursorPos =
+            start +
+            newlineBefore.length +
+            selectedText.length +
+            newlineAfter.length;
+          textarea.focus();
+          textarea.setSelectionRange(newCursorPos, newCursorPos);
+        }
+      }
+    };
+
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, [onChange]);
+
   const handlePaste = (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
     if (onFilesPaste && event.clipboardData.files.length > 0) {
       const files = Array.from(event.clipboardData.files);
