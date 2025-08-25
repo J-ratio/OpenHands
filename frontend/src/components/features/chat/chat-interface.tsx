@@ -173,6 +173,7 @@ export function ChatInterface() {
         imageUrls,
         uploadedFiles,
         attachedFiles,
+        attachedCodeBlocks,
         timestamp,
       ),
     );

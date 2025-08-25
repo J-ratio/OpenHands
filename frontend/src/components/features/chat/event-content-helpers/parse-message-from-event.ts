@@ -13,13 +13,22 @@ export const parseMessageFromEvent = (
     !event.args.file_urls || event.args.file_urls.length === 0;
   const attachedFilesNotPresent =
     !event.args.attached_files || event.args.attached_files.length === 0;
+  const attachedCodeblocksNotPresent =
+    !event.args.attached_codeblocks ||
+    event.args.attached_codeblocks.length === 0;
 
-  if (uploadedFilesNotPresent && attachedFilesNotPresent) {
+  if (
+    uploadedFilesNotPresent &&
+    attachedFilesNotPresent &&
+    attachedCodeblocksNotPresent
+  ) {
     return m;
   }
   const delimiter = !uploadedFilesNotPresent
     ? i18n.t("CHAT_INTERFACE$AUGMENTED_PROMPT_FILES_TITLE")
-    : "Here are the relevant chunks from the workspace files:";
+    : !attachedCodeblocksNotPresent
+      ? "Here are the attached codeblocks:"
+      : "Here are the relevant chunks from the workspace files:";
   const parts = m.split(delimiter);
 
   return parts[0];
