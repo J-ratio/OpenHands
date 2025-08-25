@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { useTranslation } from "react-i18next";
 import { I18nKey } from "#/i18n/declaration";
@@ -23,7 +23,7 @@ interface DataSource {
   [key: string]: any;
 }
 
-interface SelectedFile {
+export interface AttachedFile {
   id: string;
   name: string;
   source: DataSource;
@@ -36,7 +36,7 @@ interface ChatInputProps {
   showButton?: boolean;
   value?: string;
   maxRows?: number;
-  onSubmit: (message: string) => void;
+  onSubmit: (message: string, attachedFiles: AttachedFile[]) => void;
   onStop?: () => void;
   onChange?: (message: string) => void;
   onFocus?: () => void;
@@ -74,7 +74,7 @@ export function ChatInput({
   >([]);
   const [searchFileText, setSearchFileText] = React.useState("");
   const [isLoadingDataSources, setIsLoadingDataSources] = React.useState(false);
-  const [selectedFiles, setSelectedFiles] = React.useState<SelectedFile[]>([]);
+  const [selectedFiles, setSelectedFiles] = React.useState<AttachedFile[]>([]);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -158,23 +158,12 @@ export function ChatInput({
 
   const handleSubmitMessage = () => {
     const message = value || textareaRef.current?.value || "";
-    if (message.trim() || selectedFiles.length > 0) {
-      // Include file references in the message
-      let finalMessage = message;
-      if (selectedFiles.length > 0) {
-        const fileRefs = selectedFiles.map((f) => `@${f.name}`).join(" ");
-        finalMessage =
-          selectedFiles.length > 0 && !message.trim()
-            ? fileRefs
-            : `${fileRefs} ${message}`.trim();
-      }
 
-      onSubmit(finalMessage);
-      onChange?.("");
-      setSelectedFiles([]);
-      if (textareaRef.current) {
-        textareaRef.current.value = "";
-      }
+    onSubmit(message, selectedFiles);
+    onChange?.("");
+    setSelectedFiles([]);
+    if (textareaRef.current) {
+      textareaRef.current.value = "";
     }
   };
 
@@ -273,7 +262,7 @@ export function ChatInput({
     }
 
     // Add to selected files
-    const newFile: SelectedFile = {
+    const newFile: AttachedFile = {
       id: fileId,
       name: fileName,
       source: file,

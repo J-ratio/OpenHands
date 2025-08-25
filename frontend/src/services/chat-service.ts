@@ -1,14 +1,22 @@
+import { AttachedFile } from "#/components/features/chat/chat-input";
 import ActionType from "#/types/action-type";
 
 export function createChatMessage(
   message: string,
   image_urls: string[],
   file_urls: string[],
+  attached_files: AttachedFile[],
   timestamp: string,
 ) {
   const event = {
     action: ActionType.MESSAGE,
-    args: { content: message, image_urls, file_urls, timestamp },
+    args: {
+      content: message,
+      image_urls,
+      file_urls,
+      attached_files,
+      timestamp,
+    },
   };
   return event;
 }

@@ -11,6 +11,7 @@ class MessageAction(Action):
     content: str
     file_urls: list[str] | None = None
     image_urls: list[str] | None = None
+    attached_files: list[str] | None = None
     wait_for_response: bool = False
     action: str = ActionType.MESSAGE
     security_risk: ActionSecurityRisk | None = None
@@ -37,6 +38,9 @@ class MessageAction(Action):
         if self.file_urls:
             for url in self.file_urls:
                 ret += f'\nFILE_URL: {url}'
+        if self.attached_files:
+            for file in self.attached_files:
+                ret += f'\ATTACHED FILE NAME: {file}'
         return ret
 
 
