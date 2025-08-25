@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { useTranslation } from "react-i18next";
 import { I18nKey } from "#/i18n/declaration";
@@ -8,8 +8,9 @@ import { StopButton } from "#/components/shared/buttons/stop-button";
 import { getAllDataSourcesByWorkspaceId } from "#/api/data-sources";
 import { useWorkspace } from "#/context/WorkspaceContext";
 import FolderIcon from "#/icons/folder.svg?react";
-
-// Define types for data sources
+import ChipList from "#/components/shared/chip-list";
+import { Folder } from "lucide-react";
+import { PiCode } from "react-icons/pi";
 interface DataSource {
   name?: string;
   url?: string;
@@ -29,6 +30,14 @@ export interface AttachedFile {
   source: DataSource;
 }
 
+export interface AttachedCodeBlock {
+  id: string;
+  fileName: string;
+  selectedCode: string;
+  startLine: number;
+  endLine: number;
+}
+
 interface ChatInputProps {
   name?: string;
   button?: "submit" | "stop";
@@ -36,7 +45,11 @@ interface ChatInputProps {
   showButton?: boolean;
   value?: string;
   maxRows?: number;
-  onSubmit: (message: string, attachedFiles: AttachedFile[]) => void;
+  onSubmit: (
+    message: string,
+    attachedFiles: AttachedFile[],
+    attachedCodeblocks: AttachedCodeBlock[],
+  ) => void;
   onStop?: () => void;
   onChange?: (message: string) => void;
   onFocus?: () => void;
@@ -75,7 +88,47 @@ export function ChatInput({
   const [searchFileText, setSearchFileText] = React.useState("");
   const [isLoadingDataSources, setIsLoadingDataSources] = React.useState(false);
   const [selectedFiles, setSelectedFiles] = React.useState<AttachedFile[]>([]);
+  const [selectedCodeBlocks, setSelectedCodeBlocks] = React.useState<
+    AttachedCodeBlock[]
+  >([]);
   const containerRef = React.useRef<HTMLDivElement>(null);
+
+  const generateCodeBlockId = (
+    fileName: string,
+    startLine: number,
+    endLine: number,
+  ): string => {
+    return `${fileName}(${startLine}-${endLine})`;
+  };
+
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      if (event.data.type === "h2loop:addToChat") {
+        const { fileName, text: selectedText, startLine, endLine } = event.data;
+
+        setSelectedCodeBlocks((prev) => {
+          const codeBlockId = generateCodeBlockId(fileName, startLine, endLine);
+          const codeBlockAlreadyExists = prev.some(
+            (cb) => cb.id === codeBlockId,
+          );
+          if (codeBlockAlreadyExists) return prev;
+          return [
+            ...prev,
+            {
+              id: codeBlockId,
+              selectedCode: selectedText,
+              fileName,
+              startLine,
+              endLine,
+            },
+          ];
+        });
+      }
+    };
+
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, [onChange]);
 
   const handlePaste = (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
     if (onFilesPaste && event.clipboardData.files.length > 0) {
@@ -110,12 +163,24 @@ export function ChatInput({
 
   const handleSubmitMessage = () => {
     const message = value || textareaRef.current?.value || "";
+    if (message.trim() || selectedFiles.length > 0) {
+      // Include file references in the message
+      let finalMessage = message;
+      if (selectedFiles.length > 0) {
+        const fileRefs = selectedFiles.map((f) => `@${f.name}`).join(" ");
+        finalMessage =
+          selectedFiles.length > 0 && !message.trim()
+            ? fileRefs
+            : `${fileRefs} ${message}`.trim();
+      }
 
-    onSubmit(message, selectedFiles);
-    onChange?.("");
-    setSelectedFiles([]);
-    if (textareaRef.current) {
-      textareaRef.current.value = "";
+      onSubmit(finalMessage, selectedFiles, selectedCodeBlocks);
+      onChange?.("");
+      setSelectedFiles([]);
+      setSelectedCodeBlocks([]);
+      if (textareaRef.current) {
+        textareaRef.current.value = "";
+      }
     }
   };
 
@@ -249,42 +314,39 @@ export function ChatInput({
     setSelectedFiles((prev) => prev.filter((f) => f.id !== fileId));
   };
 
+  const removeCodeBlock = (codeBlockId: string) => {
+    setSelectedCodeBlocks((prev) => prev.filter((cb) => cb.id !== codeBlockId));
+  };
+
   return (
     <div
       data-testid="chat-input"
       className="flex flex-col grow gap-2 min-h-6 w-full relative"
       ref={containerRef}
     >
-      {/* Selected files pills */}
       {selectedFiles.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {selectedFiles.map((file) => (
-            <div
-              key={file.id}
-              className="inline-flex items-center gap-1 px-2 py-1 bg-blue-600/20 border border-blue-500/30 rounded-full text-xs text-blue-200"
-            >
-              <FolderIcon className="w-3 h-3" />
-              <span className="truncate max-w-32">{file.name}</span>
-              <button
-                onClick={() => removeFile(file.id)}
-                className="ml-1 hover:bg-blue-500/30 rounded-full p-0.5 transition-colors"
-                type="button"
-              >
-                <svg
-                  className="w-3 h-3"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-            </div>
-          ))}
-        </div>
+        <ChipList
+          items={selectedFiles}
+          getKey={(file) => file.id}
+          getLabel={(file) => `${file.name}`}
+          onRemove={(fileId) => removeFile(fileId)}
+          icon={<Folder className="w-3 h-3" />}
+        />
+      )}
+      {selectedCodeBlocks.length > 0 && (
+        <ChipList
+          items={selectedCodeBlocks}
+          getKey={(codeBlock) => codeBlock.id}
+          getLabel={(codeBlock) => {
+            const shortFileName =
+              codeBlock.fileName.length > 20
+                ? codeBlock.fileName.substring(0, 20) + "..."
+                : codeBlock.fileName;
+            return `${shortFileName}(${codeBlock.startLine}-${codeBlock.endLine})`;
+          }}
+          onRemove={(codeBlockId) => removeCodeBlock(codeBlockId)}
+          icon={<PiCode className="w-3 h-3" />}
+        />
       )}
 
       {/* Input area */}

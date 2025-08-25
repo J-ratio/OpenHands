@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from "react";
+import { lazy, Suspense } from "react";
 import { useLocation } from "react-router";
 import { LoadingSpinner } from "../shared/loading-spinner";
 

@@ -32,12 +32,11 @@ import { shouldRenderEvent } from "./event-content-helpers/should-render-event";
 import { useUploadFiles } from "#/hooks/mutation/use-upload-files";
 import { useConfig } from "#/hooks/query/use-config";
 import { useActiveConversation } from "#/hooks/query/use-active-conversation";
-import { getIndicatorColor, getStatusCode } from "#/utils/status";
+import { getStatusCode } from "#/utils/status";
 import { ChatSimulator } from "./chat-simulator";
 import { GENERATE_CLASS_DIAGRAM_MESSAGES } from "#/fake_scripts/generate_class_diagram_data";
 import { useSimulationMode } from "#/fake_scripts/simulation_context";
-import { AttachedFile } from "./chat-input";
-import { useGetAttachedFilesChunks } from "#/hooks/query/use-get-attached-files-chunks";
+import { AttachedCodeBlock, AttachedFile } from "./chat-input";
 import _ from "lodash";
 import { AttachedFileService } from "#/api/attached-file-service.api";
 
@@ -105,6 +104,7 @@ export function ChatInterface() {
     images: File[],
     files: File[],
     attachedFiles: AttachedFile[],
+    attachedCodeBlocks: AttachedCodeBlock[],
   ) => {
     if (events.length === 0) {
       posthog.capture("initial_query_submitted", {
@@ -152,6 +152,14 @@ export function ChatInterface() {
     const filePrompt = `${t("CHAT_INTERFACE$AUGMENTED_PROMPT_FILES_TITLE")}: ${uploadedFiles.join("\n\n")}`;
     let prompt =
       uploadedFiles.length > 0 ? `${content}\n\n${filePrompt}` : content;
+
+    if (attachedCodeBlocks.length > 0) {
+      prompt += `\n\nHere are the attached codeblocks:`;
+      attachedCodeBlocks.forEach((codeBlock) => {
+        prompt += `\n\nCodeblock from ${codeBlock.fileName}: ${codeBlock.selectedCode}`;
+      });
+    }
+
     if (groupedStrings.length > 0) {
       prompt += "\n\nHere are the relevant chunks from the workspace files: ";
       groupedStrings.forEach((group) => {
@@ -165,6 +173,7 @@ export function ChatInterface() {
         imageUrls,
         uploadedFiles,
         attachedFiles,
+        attachedCodeBlocks,
         timestamp,
       ),
     );
@@ -275,7 +284,7 @@ export function ChatInterface() {
             !optimisticUserMessage && (
               <ActionSuggestions
                 onSuggestionsClick={(value) =>
-                  handleSendMessage(value, [], [], [])
+                  handleSendMessage(value, [], [], [], [])
                 }
               />
             )}

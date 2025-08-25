@@ -1,6 +1,9 @@
 import { OpenHandsActionEvent } from "./base";
 import { ActionSecurityRisk } from "#/state/security-analyzer-slice";
-import { AttachedFile } from "#/components/features/chat/chat-input";
+import {
+  AttachedCodeBlock,
+  AttachedFile,
+} from "#/components/features/chat/chat-input";
 
 export interface UserMessageAction extends OpenHandsActionEvent<"message"> {
   source: "user";
@@ -9,6 +12,7 @@ export interface UserMessageAction extends OpenHandsActionEvent<"message"> {
     image_urls: string[];
     file_urls: string[];
     attached_files: AttachedFile[];
+    attached_codeblocks: AttachedCodeBlock[];
   };
 }
 
@@ -41,6 +45,7 @@ export interface AssistantMessageAction
     image_urls: string[] | null;
     file_urls: string[];
     attached_files: AttachedFile[];
+    attached_codeblocks: AttachedCodeBlock[];
     wait_for_response: boolean;
   };
 }

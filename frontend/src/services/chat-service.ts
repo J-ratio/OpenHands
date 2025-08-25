@@ -1,4 +1,7 @@
-import { AttachedFile } from "#/components/features/chat/chat-input";
+import {
+  AttachedCodeBlock,
+  AttachedFile,
+} from "#/components/features/chat/chat-input";
 import ActionType from "#/types/action-type";
 
 export function createChatMessage(
@@ -6,6 +9,7 @@ export function createChatMessage(
   image_urls: string[],
   file_urls: string[],
   attached_files: AttachedFile[],
+  attached_codeblocks: AttachedCodeBlock[],
   timestamp: string,
 ) {
   const event = {
@@ -15,6 +19,7 @@ export function createChatMessage(
       image_urls,
       file_urls,
       attached_files,
+      attached_codeblocks,
       timestamp,
     },
   };
