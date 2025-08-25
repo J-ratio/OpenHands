@@ -106,23 +106,23 @@ export function ChatInput({
       if (event.data.type === "h2loop:addToChat") {
         const { fileName, text: selectedText, startLine, endLine } = event.data;
 
-        const codeBlockId = generateCodeBlockId(fileName, startLine, endLine);
-        const codeBlockAlreadyExists = selectedCodeBlocks.some(
-          (cb) => cb.id === codeBlockId,
-        );
-
-        if (!codeBlockAlreadyExists) {
-          setSelectedCodeBlocks((prev) => [
+        setSelectedCodeBlocks((prev) => {
+          const codeBlockId = generateCodeBlockId(fileName, startLine, endLine);
+          const codeBlockAlreadyExists = prev.some(
+            (cb) => cb.id === codeBlockId,
+          );
+          if (codeBlockAlreadyExists) return prev;
+          return [
             ...prev,
             {
-              id: generateCodeBlockId(fileName, startLine, endLine),
+              id: codeBlockId,
               selectedCode: selectedText,
               fileName,
               startLine,
               endLine,
             },
-          ]);
-        }
+          ];
+        });
       }
     };
 
