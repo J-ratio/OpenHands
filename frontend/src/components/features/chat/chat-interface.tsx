@@ -36,6 +36,10 @@ import { getIndicatorColor, getStatusCode } from "#/utils/status";
 import { ChatSimulator } from "./chat-simulator";
 import { GENERATE_CLASS_DIAGRAM_MESSAGES } from "#/fake_scripts/generate_class_diagram_data";
 import { useSimulationMode } from "#/fake_scripts/simulation_context";
+import { AttachedFile } from "./chat-input";
+import { useGetAttachedFilesChunks } from "#/hooks/query/use-get-attached-files-chunks";
+import _ from "lodash";
+import { AttachedFileService } from "#/api/attached-file-service.api";
 
 function getEntryPoint(
   hasRepository: boolean | null,
@@ -100,6 +104,7 @@ export function ChatInterface() {
     content: string,
     images: File[],
     files: File[],
+    attachedFiles: AttachedFile[],
   ) => {
     if (events.length === 0) {
       posthog.capture("initial_query_submitted", {
@@ -128,11 +133,41 @@ export function ChatInterface() {
 
     skippedFiles.forEach((f) => displayErrorToast(f.reason));
 
-    const filePrompt = `${t("CHAT_INTERFACE$AUGMENTED_PROMPT_FILES_TITLE")}: ${uploadedFiles.join("\n\n")}`;
-    const prompt =
-      uploadedFiles.length > 0 ? `${content}\n\n${filePrompt}` : content;
+    let groupedStrings: { fileName: string; text: string }[] = [];
+    if (attachedFiles.length > 0) {
+      const chunkResponse = await AttachedFileService.getChunksFromFiles(
+        attachedFiles.map((file) => file.id),
+      );
 
-    send(createChatMessage(prompt, imageUrls, uploadedFiles, timestamp));
+      if (chunkResponse?.chunks?.length) {
+        const grouped = _.groupBy(chunkResponse?.chunks, "file_name");
+
+        groupedStrings = _.map(grouped, (chunks, fileName) => ({
+          fileName,
+          text: chunks.map((c) => c.text).join(" "),
+        }));
+      }
+    }
+
+    const filePrompt = `${t("CHAT_INTERFACE$AUGMENTED_PROMPT_FILES_TITLE")}: ${uploadedFiles.join("\n\n")}`;
+    let prompt =
+      uploadedFiles.length > 0 ? `${content}\n\n${filePrompt}` : content;
+    if (groupedStrings.length > 0) {
+      prompt += "\n\nHere are the relevant chunks from the workspace files: ";
+      groupedStrings.forEach((group) => {
+        prompt += `\n\nFile Name: ${group.fileName} and it's chunks: ${group.text}`;
+      });
+    }
+
+    send(
+      createChatMessage(
+        prompt,
+        imageUrls,
+        uploadedFiles,
+        attachedFiles,
+        timestamp,
+      ),
+    );
     setOptimisticUserMessage(content);
     setMessageToSend(null);
   };
@@ -239,7 +274,9 @@ export function ChatInterface() {
             events.length > 0 &&
             !optimisticUserMessage && (
               <ActionSuggestions
-                onSuggestionsClick={(value) => handleSendMessage(value, [], [])}
+                onSuggestionsClick={(value) =>
+                  handleSendMessage(value, [], [], [])
+                }
               />
             )}
         </div>
