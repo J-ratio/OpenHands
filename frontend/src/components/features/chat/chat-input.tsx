@@ -24,7 +24,7 @@ interface DataSource {
   [key: string]: any;
 }
 
-interface SelectedFile {
+export interface AttachedFile {
   id: string;
   name: string;
   source: DataSource;
@@ -82,8 +82,8 @@ export function ChatInput({
   >([]);
   const [searchFileText, setSearchFileText] = React.useState("");
   const [isLoadingDataSources, setIsLoadingDataSources] = React.useState(false);
-  const [selectedFiles, setSelectedFiles] = React.useState<SelectedFile[]>([]);
-  const [selectedCodeBlocks, setSelectedCodeBlock] = React.useState<
+  const [selectedFiles, setSelectedFiles] = React.useState<AttachedFile[]>([]);
+  const [selectedCodeBlocks, setSelectedCodeBlocks] = React.useState<
     SelectedCodeBlock[]
   >([]);
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -101,15 +101,22 @@ export function ChatInput({
       if (event.data.type === "h2loop:addToChat") {
         const { fileName, text: selectedText, startLine, endLine } = event.data;
 
-        setSelectedCodeBlock((prev) => [
-          ...prev,
-          {
-            id: generateCodeBlockId(fileName, startLine, endLine),
-            fileName,
-            startLine,
-            endLine,
-          },
-        ]);
+        const codeBlockId = generateCodeBlockId(fileName, startLine, endLine);
+        const codeBlockAlreadyExists = selectedCodeBlocks.some(
+          (cb) => cb.id === codeBlockId,
+        );
+
+        if (!codeBlockAlreadyExists) {
+          setSelectedCodeBlocks((prev) => [
+            ...prev,
+            {
+              id: generateCodeBlockId(fileName, startLine, endLine),
+              fileName,
+              startLine,
+              endLine,
+            },
+          ]);
+        }
       }
     };
 
@@ -264,7 +271,7 @@ export function ChatInput({
     }
 
     // Add to selected files
-    const newFile: SelectedFile = {
+    const newFile: AttachedFile = {
       id: fileId,
       name: fileName,
       source: file,
@@ -300,7 +307,7 @@ export function ChatInput({
   };
 
   const removeCodeBlock = (codeBlockId: string) => {
-    setSelectedCodeBlock((prev) => prev.filter((cb) => cb.id !== codeBlockId));
+    setSelectedCodeBlocks((prev) => prev.filter((cb) => cb.id !== codeBlockId));
   };
 
   return (
