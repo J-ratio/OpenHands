@@ -1,5 +1,5 @@
 import React from "react";
-import { AttachedFile, ChatInput } from "./chat-input";
+import { AttachedCodeBlock, AttachedFile, ChatInput } from "./chat-input";
 import { cn } from "#/utils/utils";
 import { ImageCarousel } from "../images/image-carousel";
 import { UploadImageInput } from "../images/upload-image-input";
@@ -14,6 +14,7 @@ interface InteractiveChatBoxProps {
     images: File[],
     files: File[],
     attachedFiles: AttachedFile[],
+    attachedCodeblocks: AttachedCodeBlock[],
   ) => void;
   onStop: () => void;
   value?: string;
@@ -55,8 +56,12 @@ export function InteractiveChatBox({
     setImages(removeElementByIndex(images, index));
   };
 
-  const handleSubmit = (message: string, attachedFiles: AttachedFile[]) => {
-    onSubmit(message, images, files, attachedFiles);
+  const handleSubmit = (
+    message: string,
+    attachedFiles: AttachedFile[],
+    attachedCodeblocks: AttachedCodeBlock[],
+  ) => {
+    onSubmit(message, images, files, attachedFiles, attachedCodeblocks);
     setFiles([]);
     setImages([]);
     if (message) {

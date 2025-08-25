@@ -30,9 +30,10 @@ export interface AttachedFile {
   source: DataSource;
 }
 
-interface SelectedCodeBlock {
+export interface AttachedCodeBlock {
   id: string;
   fileName: string;
+  selectedCode: string;
   startLine: number;
   endLine: number;
 }
@@ -44,7 +45,11 @@ interface ChatInputProps {
   showButton?: boolean;
   value?: string;
   maxRows?: number;
-  onSubmit: (message: string) => void;
+  onSubmit: (
+    message: string,
+    attachedFiles: AttachedFile[],
+    attachedCodeblocks: AttachedCodeBlock[],
+  ) => void;
   onStop?: () => void;
   onChange?: (message: string) => void;
   onFocus?: () => void;
@@ -84,7 +89,7 @@ export function ChatInput({
   const [isLoadingDataSources, setIsLoadingDataSources] = React.useState(false);
   const [selectedFiles, setSelectedFiles] = React.useState<AttachedFile[]>([]);
   const [selectedCodeBlocks, setSelectedCodeBlocks] = React.useState<
-    SelectedCodeBlock[]
+    AttachedCodeBlock[]
   >([]);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
@@ -111,6 +116,7 @@ export function ChatInput({
             ...prev,
             {
               id: generateCodeBlockId(fileName, startLine, endLine),
+              selectedCode: selectedText,
               fileName,
               startLine,
               endLine,
@@ -168,9 +174,10 @@ export function ChatInput({
             : `${fileRefs} ${message}`.trim();
       }
 
-      onSubmit(finalMessage);
+      onSubmit(finalMessage, selectedFiles, selectedCodeBlocks);
       onChange?.("");
       setSelectedFiles([]);
+      setSelectedCodeBlocks([]);
       if (textareaRef.current) {
         textareaRef.current.value = "";
       }
