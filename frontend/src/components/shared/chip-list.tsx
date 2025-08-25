@@ -25,7 +25,7 @@ function ChipList<T>({
             className="inline-flex items-center gap-1 px-2 py-1 bg-blue-600/20 border border-blue-500/30 rounded-full text-xs text-blue-200"
           >
             {icon}
-            <span className="truncate max-w-32">{getLabel(item)}</span>
+            <span className="truncate max-w-48">{getLabel(item)}</span>
             <button
               onClick={() => onRemove(key)}
               className="ml-1 hover:bg-blue-500/30 rounded-full p-0.5 transition-colors"

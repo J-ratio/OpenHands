@@ -322,9 +322,13 @@ export function ChatInput({
         <ChipList
           items={selectedCodeBlocks}
           getKey={(codeBlock) => codeBlock.id}
-          getLabel={(codeBlock) =>
-            `${codeBlock.fileName}(${codeBlock.startLine}-${codeBlock.endLine})`
-          }
+          getLabel={(codeBlock) => {
+            const shortFileName =
+              codeBlock.fileName.length > 20
+                ? codeBlock.fileName.substring(0, 20) + "..."
+                : codeBlock.fileName;
+            return `${shortFileName}(${codeBlock.startLine}-${codeBlock.endLine})`;
+          }}
           onRemove={(codeBlockId) => removeCodeBlock(codeBlockId)}
           icon={<PiCode className="w-3 h-3" />}
         />
