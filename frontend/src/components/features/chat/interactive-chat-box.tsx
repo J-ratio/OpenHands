@@ -77,7 +77,6 @@ export function InteractiveChatBox({
           onRemove={handleRemoveFile}
         />
       )}
-
       <div
         className={cn(
           "flex items-end gap-1",

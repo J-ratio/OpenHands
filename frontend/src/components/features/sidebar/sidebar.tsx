@@ -89,12 +89,7 @@ export function Sidebar() {
                 settings?.EMAIL_VERIFIED === false || isCreatingConversation
               }
             />
-            <NewProjectButton
-              disabled={
-                settings?.EMAIL_VERIFIED === false || isCreatingConversation
-              }
-              comparision={true}
-            />
+
             <ConversationPanelButton
               isOpen={conversationPanelIsOpen}
               onClick={() =>
@@ -148,6 +143,12 @@ export function Sidebar() {
                 className={`text-[#9099AC] ${settings?.EMAIL_VERIFIED === false ? "opacity-50" : ""}`}
               />
             </TooltipButton>
+            <NewProjectButton
+              disabled={
+                settings?.EMAIL_VERIFIED === false || isCreatingConversation
+              }
+              comparision={true}
+            />
           </div>
 
           <div className="flex flex-row md:flex-col md:items-center gap-[26px] md:mb-4">

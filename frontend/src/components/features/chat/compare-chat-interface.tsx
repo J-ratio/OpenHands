@@ -45,6 +45,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "#/components/ui/select";
+import { PiInfinityLight } from "react-icons/pi";
 
 function getEntryPoint(
   hasRepository: boolean | null,
@@ -55,7 +56,7 @@ function getEntryPoint(
   return "direct";
 }
 
-const llmModels = ["h2loop", "gpt-4-o", "claude", "grok-4"];
+const llmModels = ["h2loop", "gpt-4o", "Claude", "Grok-4"];
 
 export function CompareChatInterface() {
   const { getErrorMessage } = useWSErrorMessage();
@@ -75,6 +76,9 @@ export function CompareChatInterface() {
   const { data: config } = useConfig();
 
   const { curAgentState } = useSelector((state: RootState) => state.agent);
+
+  const [modelOne, setModelOne] = React.useState<string>(llmModels[0]);
+  const [modelTwo, setModelTwo] = React.useState<string>(llmModels[1]);
 
   const [feedbackPolarity, setFeedbackPolarity] = React.useState<
     "positive" | "negative"
@@ -215,19 +219,24 @@ export function CompareChatInterface() {
   return (
     <ScrollProvider value={scrollProviderValue}>
       <div className="h-full flex flex-col justify-between w-full">
+        <p className="mb-2 font-light text-sm">Choose Models</p>
         <div className="flex gap-4 items-center">
-          <Select defaultValue={"h2loop"} onValueChange={() => {}}>
+          <Select
+            defaultValue={modelOne}
+            onValueChange={(val) => setModelOne(val)}
+          >
             <SelectTrigger className="w-[100px]">
               <SelectValue placeholder="Version" />
             </SelectTrigger>
 
-            <SelectContent>
+            <SelectContent className="bg-neutral-900 text-neutral-100 border border-neutral-700 rounded-md shadow-lg">
               <SelectGroup>
                 <SelectLabel>Models</SelectLabel>
                 {llmModels.map((model, _idx) => (
                   <SelectItem
                     value={model}
                     key={"version-" + model + "-" + _idx}
+                    className="hover:bg-neutral-800 focus:bg-neutral-800 text-neutral-100 cursor-pointer transition-colors duration-100 rounded"
                   >
                     {model}
                   </SelectItem>
@@ -236,18 +245,22 @@ export function CompareChatInterface() {
             </SelectContent>
           </Select>
           vs
-          <Select defaultValue={"gpt-4-o"} onValueChange={() => {}}>
+          <Select
+            defaultValue={modelTwo}
+            onValueChange={(val) => setModelTwo(val)}
+          >
             <SelectTrigger className="w-[100px]">
               <SelectValue placeholder="Version" />
             </SelectTrigger>
 
-            <SelectContent>
+            <SelectContent className="bg-neutral-900 text-neutral-100 border border-neutral-700 rounded-md shadow-lg">
               <SelectGroup>
                 <SelectLabel>Models</SelectLabel>
                 {llmModels.map((model, _idx) => (
                   <SelectItem
                     value={model}
                     key={"version-" + model + "-" + _idx}
+                    className="hover:bg-neutral-800 focus:bg-neutral-800 text-neutral-100 cursor-pointer transition-colors duration-100 rounded"
                   >
                     {model}
                   </SelectItem>
@@ -317,9 +330,16 @@ export function CompareChatInterface() {
 
             {!hitBottom && <ScrollToBottomButton onClick={scrollDomToBottom} />}
           </div>
-
           {errorMessage && <ErrorMessageBanner message={errorMessage} />}
-
+          {modelOne && modelTwo && (
+            <div className="flex items-center justify-center bg-logo p-1 rounded-md gap-2">
+              <PiInfinityLight />
+              <p>
+                Comparision Mode: <span className="font-bold">{modelOne}</span>{" "}
+                vs <span className="font-bold">{modelTwo}</span>
+              </p>
+            </div>
+          )}
           <InteractiveChatBox
             onSubmit={handleSendMessage}
             onStop={handleStop}
