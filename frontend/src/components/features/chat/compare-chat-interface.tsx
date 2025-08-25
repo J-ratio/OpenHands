@@ -46,6 +46,7 @@ import {
   SelectValue,
 } from "#/components/ui/select";
 import { PiInfinityLight } from "react-icons/pi";
+import { UserQuerySuggestions } from "./user-query-suggestions";
 
 function getEntryPoint(
   hasRepository: boolean | null,
@@ -312,7 +313,7 @@ export function CompareChatInterface() {
 
         <div className="flex flex-col gap-[6px] px-4 pb-4">
           <div className="flex justify-between relative">
-            {config?.APP_MODE !== "saas" && (
+            {/* {config?.APP_MODE !== "saas" && (
               <TrajectoryActions
                 onPositiveFeedback={() =>
                   onClickShareFeedbackActionButton("positive")
@@ -322,7 +323,7 @@ export function CompareChatInterface() {
                 }
                 onExportTrajectory={() => onClickExportTrajectoryButton()}
               />
-            )}
+            )} */}
 
             <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0">
               {curAgentState === AgentState.RUNNING && <TypingIndicator />}
@@ -332,12 +333,16 @@ export function CompareChatInterface() {
           </div>
           {errorMessage && <ErrorMessageBanner message={errorMessage} />}
           {modelOne && modelTwo && (
-            <div className="flex items-center justify-center bg-logo p-1 rounded-md gap-2">
-              <PiInfinityLight />
-              <p>
-                Comparision Mode: <span className="font-bold">{modelOne}</span>{" "}
-                vs <span className="font-bold">{modelTwo}</span>
-              </p>
+            <div className="flex items-center justify-between bg-logo p-1 rounded-md px-2">
+              <div className="flex items-center gap-2">
+                <PiInfinityLight />
+                <p>
+                  Comparision Mode:{" "}
+                  <span className="font-bold">{modelOne}</span> vs{" "}
+                  <span className="font-bold">{modelTwo}</span>
+                </p>
+              </div>
+              <UserQuerySuggestions onSelect={setMessageToSend} />
             </div>
           )}
           <InteractiveChatBox
@@ -353,13 +358,13 @@ export function CompareChatInterface() {
           />
         </div>
 
-        {config?.APP_MODE !== "saas" && (
+        {/* {config?.APP_MODE !== "saas" && (
           <FeedbackModal
             isOpen={feedbackModalIsOpen}
             onClose={() => setFeedbackModalIsOpen(false)}
             polarity={feedbackPolarity}
           />
-        )}
+        )} */}
       </div>
     </ScrollProvider>
   );
