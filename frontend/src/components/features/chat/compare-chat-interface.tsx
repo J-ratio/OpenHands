@@ -36,6 +36,15 @@ import { getIndicatorColor, getStatusCode } from "#/utils/status";
 import { ChatSimulator } from "./chat-simulator";
 import { GENERATE_CLASS_DIAGRAM_MESSAGES } from "#/fake_scripts/generate_class_diagram_data";
 import { useSimulationMode } from "#/fake_scripts/simulation_context";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "#/components/ui/select";
 
 function getEntryPoint(
   hasRepository: boolean | null,
@@ -45,6 +54,8 @@ function getEntryPoint(
   if (hasReplayJson) return "replay";
   return "direct";
 }
+
+const llmModels = ["h2loop", "gpt-4-o", "claude", "grok-4"];
 
 export function CompareChatInterface() {
   const { getErrorMessage } = useWSErrorMessage();
@@ -204,6 +215,48 @@ export function CompareChatInterface() {
   return (
     <ScrollProvider value={scrollProviderValue}>
       <div className="h-full flex flex-col justify-between w-full">
+        <div className="flex gap-4 items-center">
+          <Select defaultValue={"h2loop"} onValueChange={() => {}}>
+            <SelectTrigger className="w-[100px]">
+              <SelectValue placeholder="Version" />
+            </SelectTrigger>
+
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Models</SelectLabel>
+                {llmModels.map((model, _idx) => (
+                  <SelectItem
+                    value={model}
+                    key={"version-" + model + "-" + _idx}
+                  >
+                    {model}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          vs
+          <Select defaultValue={"gpt-4-o"} onValueChange={() => {}}>
+            <SelectTrigger className="w-[100px]">
+              <SelectValue placeholder="Version" />
+            </SelectTrigger>
+
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Models</SelectLabel>
+                {llmModels.map((model, _idx) => (
+                  <SelectItem
+                    value={model}
+                    key={"version-" + model + "-" + _idx}
+                  >
+                    {model}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+
         {!isSimulationMode && events.length === 0 && !optimisticUserMessage && (
           <ChatSuggestions onSuggestionsClick={setMessageToSend} />
         )}
