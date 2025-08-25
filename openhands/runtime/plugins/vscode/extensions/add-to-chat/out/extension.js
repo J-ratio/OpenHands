@@ -25,6 +25,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deactivate = exports.activate = void 0;
 const vscode = __importStar(require("vscode"));
+const path = __importStar(require("path"));
 let bridgePanel;
 function activate(context) {
     const addToChat = vscode.commands.registerCommand("h2loop.addToChat", () => {
@@ -34,8 +35,17 @@ function activate(context) {
         const selectedText = editor.document.getText(editor.selection);
         if (!selectedText)
             return;
+        const fileName = path.basename(editor.document.fileName);
+        const startLine = editor.selection.start.line + 1;
+        const endLine = editor.selection.end.line + 1;
         const panel = getOrCreateBridgePanel(context);
-        panel.webview.postMessage({ type: "ADD_TO_CHAT", text: selectedText });
+        panel.webview.postMessage({
+            type: "ADD_TO_CHAT",
+            text: selectedText,
+            fileName,
+            startLine,
+            endLine,
+        });
     });
     context.subscriptions.push(addToChat);
 }
@@ -67,7 +77,7 @@ function getOrCreateBridgePanel(context) {
     if (msg && msg.type === "ADD_TO_CHAT") {
       try {
         window.top.postMessage(
-          { type: "h2loop:addToChat", text: msg.text },
+          { type: "h2loop:addToChat", text: msg.text, fileName: msg.fileName, startLine: msg.startLine, endLine: msg.endLine },
           "*"
         );
       } catch (e) {}
