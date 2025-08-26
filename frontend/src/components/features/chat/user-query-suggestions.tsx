@@ -3,7 +3,7 @@ import { TbMessage2Question } from "react-icons/tb";
 import { cn } from "#/utils/utils";
 
 const suggestions = [
-  "Generate driver code from these hardware specs.",
+  "Fix MISRA coding guidelines violations in the following code.",
   "Explain this register map in simple terms.",
   "Suggest test cases for this communication protocol.",
   "Find integration issues in this system design document.",

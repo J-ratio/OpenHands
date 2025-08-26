@@ -47,6 +47,11 @@ import {
 } from "#/components/ui/select";
 import { PiInfinityLight } from "react-icons/pi";
 import { UserQuerySuggestions } from "./user-query-suggestions";
+import { ChatMessage } from "./chat-message";
+import { OpenHandsAction } from "#/types/core/actions";
+import { OpenHandsObservation } from "#/types/core/observations";
+import { CompareChatMessage } from "./compare-chat-message";
+import { CompareMessages } from "./compare-messages";
 
 function getEntryPoint(
   hasRepository: boolean | null,
@@ -58,6 +63,193 @@ function getEntryPoint(
 }
 
 const llmModels = ["h2loop", "gpt-4o", "Claude", "Grok-4"];
+
+const modelOneResponse: string = `# MISRA Coding Guidelines Violation Fixes
+
+## Overview
+MISRA coding standards ensure safe, reliable embedded software for safety-critical applications. The following analysis addresses common MISRA-C violations and provides corrected implementations.
+
+## Original Code Issues
+The provided code contained several MISRA-C violations that could lead to undefined behavior and maintenance difficulties.
+
+### Key Violations Identified
+1. **Rule 8.13**: Functions should use pointer to const when data is not modified
+2. **Rule 10.4**: Operands should have the same essential type
+3. **Rule 17.7**: Function return values should be used
+4. **Rule 21.6**: Standard Library I/O functions should not be used
+
+## Corrected Code
+
+\`\`\`c
+#include <stdint.h>
+#include <stdbool.h>
+
+static int32_t calculate_average(const int32_t* const data, uint16_t length);
+static bool validate_input_range(int32_t value, int32_t min_val, int32_t max_val);
+
+static int32_t calculate_average(const int32_t* const data, uint16_t length)
+{
+    int32_t result = 0;
+
+    if ((data == NULL) || (length == 0U))
+    {
+        result = -1; /* Error indicator */
+    }
+    else
+    {
+        int64_t sum = 0;
+        uint16_t i;
+
+        for (i = 0U; i < length; i++)
+        {
+            sum += (int64_t)data[i]; /* Explicit cast */
+        }
+
+        result = (int32_t)(sum / (int64_t)length);
+    }
+
+    return result;
+}
+
+static bool validate_input_range(int32_t value, int32_t min_val, int32_t max_val)
+{
+    bool is_valid = false;
+
+    if ((value >= min_val) && (value <= max_val))
+    {
+        is_valid = true;
+    }
+
+    return is_valid;
+}
+\`\`\`
+
+## Summary of MISRA Fixes Applied
+
+### Type Safety Improvements
+- Added explicit type casting to prevent implicit conversions
+- Used consistent integer types throughout functions
+- Implemented proper const-correctness for pointer parameters
+
+### Error Handling Enhancements
+- Eliminated standard library I/O functions (printf)
+- Added comprehensive return value checking
+- Implemented proper null pointer validation
+
+## Additional Recommendations
+- Integrate MISRA checking tools (PC-lint Plus, Polyspace)
+- Establish compliance in code review process
+- Document all MISRA deviations with justification
+- Regular compliance audits and team training
+
+This implementation addresses common MISRA violations while maintaining functionality and improving software quality for safety-critical applications.`;
+
+const modelTwoResponse: string = `# 🔧 MISRA Compliance Fix Report
+
+## 🚨 Detected Violations
+
+I've analyzed your code and found several MISRA-C violations that need immediate attention:
+
+**Critical Issues:**
+- ❌ **MISRA 8.13**: Missing const qualifiers on function parameters
+- ❌ **MISRA 10.4**: Implicit type conversions detected
+- ❌ **MISRA 17.7**: Unused function return values
+- ❌ **MISRA 21.6**: Prohibited standard library usage
+
+## ✅ Fixed Implementation
+
+Here's your code after applying MISRA compliance fixes:
+
+\`\`\`c
+#include <stdint.h>
+#include <stdbool.h>
+
+/* Fixed function signatures with proper const usage */
+static int32_t compute_mean(const int32_t* const values, const uint16_t count);
+static bool is_value_valid(const int32_t val, const int32_t low, const int32_t high);
+static void handle_sensor_input(const uint16_t reading);
+
+/*
+ * MISRA-compliant average calculation
+ * Fixes: Added const qualifiers, explicit casts, overflow protection
+ */
+static int32_t compute_mean(const int32_t* const values, const uint16_t count)
+{
+    if ((values == NULL) || (count == 0U)) {
+        return -1; /* Error case */
+    }
+
+    int64_t total = 0; /* Prevent overflow */
+
+    for (uint16_t idx = 0U; idx < count; idx++) {
+        total += (int64_t)values[idx]; /* Explicit cast - MISRA 10.4 */
+    }
+
+    return (int32_t)(total / (int64_t)count); /* Safe division */
+}
+
+static bool is_value_valid(const int32_t val, const int32_t low, const int32_t high)
+{
+    return ((val >= low) && (val <= high)); /* Direct boolean return */
+}
+
+static void handle_sensor_input(const uint16_t reading)
+{
+    const int32_t SENSOR_MIN = 0;
+    const int32_t SENSOR_MAX = 4095;
+
+    const int32_t signed_reading = (int32_t)reading;
+
+    if (is_value_valid(signed_reading, SENSOR_MIN, SENSOR_MAX)) {
+        const int32_t test_data[3] = {100, 250, signed_reading};
+        const int32_t mean = compute_mean(test_data, 3U);
+
+        if (mean >= 0) { /* MISRA 17.7 - Check return value */
+            /* Replace printf with safe logging */
+            system_log_value(mean);
+        } else {
+            system_log_error(ERR_CALCULATION);
+        }
+    } else {
+        system_log_error(ERR_INVALID_RANGE);
+    }
+}
+\`\`\`
+
+## 🛠️ Key Improvements Made
+
+### Memory Safety
+- **Const Correctness**: All read-only parameters properly marked as const
+- **Null Checks**: Added comprehensive null pointer validation
+- **Overflow Prevention**: Used wider integer types for calculations
+
+### Type System Compliance
+- **Explicit Casting**: Removed all implicit type conversions
+- **Consistent Types**: Maintained type consistency across operations
+- **Boolean Logic**: Used proper boolean types instead of integers
+
+### Error Handling
+- **Return Value Checking**: All function returns properly validated
+- **Safe I/O**: Replaced unsafe printf with system-specific logging
+- **Error Propagation**: Clear error signaling mechanism
+
+## 📋 MISRA Compliance Summary
+
+| Rule | Description | Status |
+|------|-------------|--------|
+| 8.13 | Const qualifier usage | ✅ Fixed |
+| 10.4 | Type conversion safety | ✅ Fixed |
+| 17.7 | Return value usage | ✅ Fixed |
+| 21.6 | Standard library restrictions | ✅ Fixed |
+
+## 🎯 Next Steps
+
+1. **Static Analysis**: Run tools like PC-lint or Polyspace
+2. **Code Review**: Have safety team verify changes
+3. **Testing**: Execute full regression test suite
+4. **Documentation**: Update safety documentation accordingly
+
+Your code is now MISRA-compliant and ready for safety-critical deployment! 🚀`;
 
 export function CompareChatInterface() {
   const { getErrorMessage } = useWSErrorMessage();
@@ -81,6 +273,10 @@ export function CompareChatInterface() {
   const [modelOne, setModelOne] = React.useState<string>(llmModels[0]);
   const [modelTwo, setModelTwo] = React.useState<string>(llmModels[1]);
 
+  const [events, setEvents] = React.useState<
+    Array<OpenHandsAction | OpenHandsObservation>
+  >([]);
+
   const [feedbackPolarity, setFeedbackPolarity] = React.useState<
     "positive" | "negative"
   >("positive");
@@ -96,7 +292,7 @@ export function CompareChatInterface() {
   const optimisticUserMessage = getOptimisticUserMessage();
   const errorMessage = getErrorMessage();
 
-  const events = parsedEvents.filter(shouldRenderEvent);
+  // const events = parsedEvents.filter(shouldRenderEvent);
 
   const { curStatusMessage } = useSelector((state: RootState) => state.status);
   const { webSocketStatus } = useWsClient();
@@ -148,9 +344,27 @@ export function CompareChatInterface() {
     const prompt =
       uploadedFiles.length > 0 ? `${content}\n\n${filePrompt}` : content;
 
-    send(createChatMessage(prompt, imageUrls, uploadedFiles, timestamp));
+    // send(createChatMessage(prompt, imageUrls, uploadedFiles, timestamp));
     setOptimisticUserMessage(content);
+    setEvents((prev) => [
+      ...prev,
+      {
+        id: 4,
+        timestamp: "2025-08-26T08:26:20.878137",
+        source: "user",
+        message: content,
+        action: "message",
+        args: {
+          content: content,
+          file_urls: [...files.map((file) => file.name)],
+          image_urls: [],
+          wait_for_response: false,
+        },
+        timeout: 120,
+      },
+    ]);
     setMessageToSend(null);
+    console.log(events);
   };
 
   const handleStop = () => {
@@ -293,12 +507,71 @@ export function CompareChatInterface() {
           )}
 
           {!isSimulationMode && !isLoadingMessages && (
-            <Messages
-              messages={events}
-              isAwaitingUserConfirmation={
-                curAgentState === AgentState.AWAITING_USER_CONFIRMATION
-              }
-            />
+            <div>
+              <CompareMessages
+                messages={events}
+                isAwaitingUserConfirmation={
+                  curAgentState === AgentState.AWAITING_USER_CONFIRMATION
+                }
+                sideBySideResponse={
+                  <div className="flex gap-16 px-16 py-8 max-w-8xl mx-auto">
+                    <div className="flex-1 bg-base-secondary rounded-xl p-6 border border-tertiary-light/20 shadow-lg hover:shadow-xl transition-shadow">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                          <span className="text-white text-sm font-medium">
+                            AI
+                          </span>
+                        </div>
+                        <h3 className="text-primary-text font-semibold">
+                          {modelOne} Response
+                        </h3>
+                      </div>
+                      <div className="prose prose-invert prose-sm max-w-none">
+                        <CompareChatMessage
+                          type="agent"
+                          message={modelOneResponse}
+                          enableTypewriter={true}
+                          isLatestMessage={true}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex-1 bg-base-secondary rounded-xl p-6 border border-tertiary-light/20 shadow-lg hover:shadow-xl transition-shadow">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
+                          <span className="text-white text-sm font-medium">
+                            AI
+                          </span>
+                        </div>
+                        <h3 className="text-primary-text font-semibold">
+                          {modelTwo} Response
+                        </h3>
+                      </div>
+                      <div className="prose prose-invert prose-sm max-w-none">
+                        <CompareChatMessage
+                          type="agent"
+                          message={modelTwoResponse}
+                          enableTypewriter={true}
+                          isLatestMessage={true}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                }
+              />
+            </div>
+          )}
+
+          {!isSimulationMode && !isLoadingMessages && (
+            // userMessages.map((message) => (
+            <div>
+              {/* <Messages
+                messages={events}
+                isAwaitingUserConfirmation={
+                  curAgentState === AgentState.AWAITING_USER_CONFIRMATION
+                }
+              /> */}
+            </div>
           )}
 
           {!isSimulationMode &&

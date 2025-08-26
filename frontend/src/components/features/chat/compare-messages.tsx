@@ -3,7 +3,6 @@ import { OpenHandsAction } from "#/types/core/actions";
 import { OpenHandsObservation } from "#/types/core/observations";
 import { isOpenHandsAction, isOpenHandsObservation } from "#/types/core/guards";
 import { EventMessage } from "./event-message";
-import { ChatMessage } from "./chat-message";
 import { useOptimisticUserMessage } from "#/hooks/use-optimistic-user-message";
 
 interface MessagesProps {
@@ -12,7 +11,7 @@ interface MessagesProps {
   sideBySideResponse?: React.ReactNode;
 }
 
-export const Messages: React.FC<MessagesProps> = React.memo(
+export const CompareMessages: React.FC<MessagesProps> = React.memo(
   ({ messages, isAwaitingUserConfirmation, sideBySideResponse }) => {
     const { getOptimisticUserMessage } = useOptimisticUserMessage();
 
@@ -35,20 +34,26 @@ export const Messages: React.FC<MessagesProps> = React.memo(
       <>
         {messages.map((message, index) => (
           <div>
-            <EventMessage
-              key={index}
-              event={message}
-              hasObservationPair={actionHasObservationPair(message)}
-              isAwaitingUserConfirmation={isAwaitingUserConfirmation}
-              isLastMessage={messages.length - 1 === index}
-            />
-            {sideBySideResponse}
+            <div className="flex justify-end">
+              <EventMessage
+                key={index}
+                event={message}
+                hasObservationPair={actionHasObservationPair(message)}
+                isAwaitingUserConfirmation={isAwaitingUserConfirmation}
+                isLastMessage={messages.length - 1 === index}
+              />
+            </div>
+            {
+              <DelayedSideBySideResponse
+                sideBySideResponse={sideBySideResponse}
+              />
+            }
           </div>
         ))}
 
-        {optimisticUserMessage && (
+        {/* {optimisticUserMessage && (
           <ChatMessage type="user" message={optimisticUserMessage} />
-        )}
+        )} */}
       </>
     );
   },
@@ -62,4 +67,33 @@ export const Messages: React.FC<MessagesProps> = React.memo(
   },
 );
 
-Messages.displayName = "Messages";
+CompareMessages.displayName = "Messages";
+
+const DelayedSideBySideResponse = ({
+  sideBySideResponse,
+  delay = 200,
+}: {
+  sideBySideResponse: React.ReactNode;
+  delay?: number;
+}) => {
+  const [showResponse, setShowResponse] = React.useState(false);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowResponse(true);
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [delay]);
+
+  return (
+    <div
+      style={{
+        opacity: showResponse ? 1 : 0,
+        transition: "opacity 0.3s ease-in-out",
+      }}
+    >
+      {sideBySideResponse}
+    </div>
+  );
+};
