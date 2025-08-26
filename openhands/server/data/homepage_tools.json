@@ -30,69 +30,6 @@
           "description": "Create sequence diagrams to illustrate object interactions over time."
         }
       ]
-    },
-    {
-      "category": "Ask/Explain",
-      "tools": [
-        {
-          "id": "ASK_AI_ABOUT_CODE",
-          "name": "Ask AI about your code",
-          "image": "/img/ask-ai.svg",
-          "description": "Get instant answers and insights about your codebase from AI."
-        },
-        {
-          "id": "EXPLAIN_CODE_LINE_BY_LINE",
-          "name": "Explain Code Line-by-Line",
-          "image": "/img/explain-code.svg",
-          "description": "Receive detailed, line-by-line explanations for any code snippet."
-        },
-        {
-          "id": "FIND_BUGS_ANOMALIES",
-          "name": "Find Bugs / Anomalies",
-          "image": "/img/find-bugs.svg",
-          "description": "Detect bugs, anomalies, and potential issues in your code automatically."
-        }
-      ]
-    },
-    {
-      "category": "Refactor",
-      "tools": [
-        {
-          "id": "ASK_AI_TO_REFACTOR",
-          "name": "Ask AI to refactor your code",
-          "image": "/img/refactor.svg",
-          "description": "Let AI suggest and apply code refactoring for better structure and readability."
-        },
-        {
-          "id": "OPTIMIZE_CODE_PERFORMANCE",
-          "name": "Optimize Code for Performance",
-          "image": "/img/optimize.svg",
-          "description": "Improve your code's performance with AI-driven optimizations."
-        }
-      ]
-    },
-    {
-      "category": "Testing",
-      "tools": [
-        {
-          "id": "GENERATE_UNIT_TESTS",
-          "name": "Generate Unit Tests",
-          "image": "/img/unit-test.svg",
-          "description": "Automatically generate unit tests to ensure code correctness."
-        },
-        {
-          "id": "GENERATE_INTEGRATION_TESTS",
-          "name": "Generate Integration Tests",
-          "image": "/img/integration-test.svg",
-          "description": "Create integration tests to verify your system's components work together."
-        },
-        {
-          "id": "GENERATE_MOCK_DATA",
-          "name": "Generate Mock Data",
-          "image": "/img/mock-data.svg",
-          "description": "Easily generate mock data for testing and development purposes."
-        }
-      ]
     }
   ]
 }
