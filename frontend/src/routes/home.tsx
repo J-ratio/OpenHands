@@ -8,6 +8,7 @@ import {
 import { TaskSuggestions } from "#/components/features/home/tasks/task-suggestions";
 import { useUserProviders } from "#/hooks/use-user-providers";
 import { ToolsSection } from "#/components/features/home/tools/tool-section";
+import { useWorkspace } from "#/context/WorkspaceContext";
 
 <PrefetchPageLinks page="/conversations/:conversationId" />;
 
@@ -16,6 +17,8 @@ function HomeScreen() {
   const [selectedRepoTitle, setSelectedRepoTitle] = React.useState<
     string | null
   >(null);
+
+  const { linkedRepo } = useWorkspace();
 
   const providersAreSet = providers.length > 0;
 
@@ -32,7 +35,11 @@ function HomeScreen() {
         <RepoConnector
           onRepoSelection={(title) => setSelectedRepoTitle(title)}
           onBranchSelection={(_) => {}}
-          heading={"Connect a Repository to a Workspace"}
+          heading={
+            linkedRepo
+              ? "Repository Linked"
+              : "Connect a Repository to a Workspace"
+          }
         />
         <hr className="md:hidden border-[#717888]" />
         {providersAreSet && <TaskSuggestions filterFor={selectedRepoTitle} />}
