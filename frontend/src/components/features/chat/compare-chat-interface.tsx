@@ -360,6 +360,8 @@ export function CompareChatInterface() {
           file_urls: [...files.map((file) => file.name)],
           image_urls: [],
           wait_for_response: false,
+          attached_files: [],
+          attached_codeblocks: [],
         },
         timeout: 120,
       },
