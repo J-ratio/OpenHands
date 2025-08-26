@@ -52,6 +52,7 @@ import { OpenHandsAction } from "#/types/core/actions";
 import { OpenHandsObservation } from "#/types/core/observations";
 import { CompareChatMessage } from "./compare-chat-message";
 import { CompareMessages } from "./compare-messages";
+import { CompareChatSuggestions } from "./compare-chat-suggestions";
 
 function getEntryPoint(
   hasRepository: boolean | null,
@@ -486,7 +487,7 @@ export function CompareChatInterface() {
         </div>
 
         {!isSimulationMode && events.length === 0 && !optimisticUserMessage && (
-          <ChatSuggestions onSuggestionsClick={setMessageToSend} />
+          <CompareChatSuggestions onSuggestionsClick={setMessageToSend} />
         )}
 
         <div
