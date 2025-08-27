@@ -59,15 +59,12 @@ function CompareChatInterfacePage() {
             <CompareChatInterface />
           </div>
 
-          <Controls
-            setSecurityOpen={onSecurityModalOpen}
-            showSecurityLock={!!settings?.SECURITY_ANALYZER}
-          />
+          <Controls showSecurityLock={!!settings?.SECURITY_ANALYZER} />
           {settings && (
             <Security
               isOpen={securityModalIsOpen}
               onOpenChange={onSecurityModalOpenChange}
-              securityAnalyzer={settings.SECURITY_ANALYZER}
+              securityAnalyzer={settings.SECURITY_ANALYZER ?? ""}
             />
           )}
         </div>

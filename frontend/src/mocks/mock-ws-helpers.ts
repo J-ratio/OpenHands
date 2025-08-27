@@ -32,6 +32,8 @@ export const generateAssistantMessageAction = (
     thought: message,
     image_urls: [],
     file_urls: [],
+    attached_codeblocks: [],
+    attached_files: [],
     wait_for_response: false,
   },
 });
@@ -48,6 +50,8 @@ export const generateUserMessageAction = (
     content: message,
     image_urls: [],
     file_urls: [],
+    attached_codeblocks: [],
+    attached_files: [],
   },
 });
 
