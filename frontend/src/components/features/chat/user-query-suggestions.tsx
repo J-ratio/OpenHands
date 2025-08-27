@@ -10,6 +10,37 @@ const suggestions = [
   "Translate this hardware spec into configuration code.",
 ];
 
+const initialCodeSnippet = `\`\`\`c
+#include <stdint.h>
+#include <stddef.h>
+
+static int32_t adc_read_channel(struct adc * const a, int32_t ch, uint16_t * const val)
+{
+    if (a == NULL)
+    {
+        return -1;
+    }
+
+    if (val == NULL)
+    {
+        return -1;
+    }
+
+    if (a->ops.start(ch) < 0)
+    {
+        return -1;
+    }
+
+    a->ops.delay_ms(1U);
+
+    if (a->ops.read(ch, val) < 0)
+    {
+        return -1;
+    }
+
+    return 0;
+}`;
+
 interface UserQuerySuggestionsProps {
   onSelect: (query: string) => void;
 }
@@ -61,7 +92,9 @@ export function UserQuerySuggestions({ onSelect }: UserQuerySuggestionsProps) {
               <li
                 key={idx}
                 onClick={() => {
-                  onSelect(suggestion);
+                  onSelect(
+                    `${suggestion}${idx === 0 ? `\n${initialCodeSnippet}` : ""}`,
+                  );
                   setOpen(false);
                 }}
                 className="px-3 py-2 cursor-pointer text-neutral-200 hover:bg-neutral-600 hover:text-white"
