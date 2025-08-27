@@ -74,7 +74,7 @@ export function RepositorySelectionForm({
   React.useEffect(() => {
     if (linkedRepo || linkedRepo !== null) {
       setSelectedRepository(linkedRepo);
-      onRepoSelection(linkedRepo);
+      // onRepoSelection(linkedRepo);
     } else {
       setSelectedRepository(null);
       onRepoSelection(null);
