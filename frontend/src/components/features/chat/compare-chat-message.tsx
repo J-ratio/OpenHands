@@ -22,7 +22,7 @@ export function CompareChatMessage({
   message,
   children,
   enableTypewriter = false,
-  typewriterSpeed = 0.2,
+  typewriterSpeed = 0.1,
   isLatestMessage = false,
 }: React.PropsWithChildren<ChatMessageProps>) {
   const [isHovering, setIsHovering] = React.useState(false);
