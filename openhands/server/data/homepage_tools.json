@@ -30,6 +30,17 @@
           "description": "Create sequence diagrams to illustrate object interactions over time."
         }
       ]
+    },
+    {
+      "category": "Debugging",
+      "tools": [
+        {
+          "id": "DEBUG_USING_CRASHLOGS",
+          "name": "Debug using CrashLogs",
+          "image": "/img/debug-crash-log.svg",
+          "description": "Analyze crash logs to identify and fix bugs in your application."
+        }
+      ]
     }
   ]
 }

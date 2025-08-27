@@ -13,6 +13,7 @@ import { useWorkspace } from "#/context/WorkspaceContext";
 import { RepositorySelectionForm } from "../repo-selection-form";
 import { dataSourceToGitRepository } from "#/utils/utils.ts";
 import GenerateInterfaceDocForm from "./generate-interface-documentation-form";
+import FileUpload from "../../templates/_components/FileUpload";
 
 const DialogContent = RawDialogContent as React.FC<
   React.PropsWithChildren<any>
@@ -50,6 +51,7 @@ export function ToolModal({
     isPending,
     isSuccess,
   } = useCreateConversation();
+  const [crashLogFile, setCrashLogFile] = React.useState();
 
   const isCreatingConversation = isPending || isSuccess;
 
@@ -78,6 +80,12 @@ export function ToolModal({
         break;
 
       case "FIND_BUGS_ANOMALIES":
+        createConversation({
+          simulationMode: true,
+        });
+        break;
+
+      case "DEBUG_USING_CRASHLOGS":
         createConversation({
           simulationMode: true,
         });
@@ -164,6 +172,29 @@ export function ToolModal({
               >
                 Find Bugs
               </BrandButton>
+            )}
+
+            {id === "DEBUG_USING_CRASHLOGS" && (
+              <div className="w-full text-center">
+                <p className="text-start text-sm mt-4">Upload Log File Here</p>
+                <FileUpload
+                  setFile={setCrashLogFile}
+                  fileInfo="Upload .txt or .log file"
+                  allowedExtensions={["log", "txt"]}
+                />
+                <BrandButton
+                  testId="tool-debug-crash-logs"
+                  variant="primary"
+                  type="button"
+                  className="mt-4 max-w-md w-full text-lg font-bold"
+                  onClick={() =>
+                    handleCreateOrGenerate("DEBUG_USING_CRASHLOGS")
+                  }
+                  isDisabled={!crashLogFile || isCreatingConversation}
+                >
+                  Debug Crash Logs
+                </BrandButton>
+              </div>
             )}
 
             {linkedRepoRequired && linkedRepo && (
