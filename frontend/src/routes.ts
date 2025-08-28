@@ -45,6 +45,7 @@ export default [
       // "components/features/templates/[id]/page.jsx",
       "components/features/templates/[id]/single-template-page.jsx",
     ),
+    route("status/", "routes/api-status-page.jsx"),
   ]),
 
   layout("routes/auth-layout.tsx", [
