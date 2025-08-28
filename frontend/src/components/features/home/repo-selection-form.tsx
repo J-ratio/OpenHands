@@ -23,6 +23,7 @@ import { Provider } from "#/types/settings";
 import { GitProviderDropdown } from "../../common/git-provider-dropdown";
 import { GitRepositoryDropdown } from "../../common/git-repository-dropdown";
 import { GitBranchDropdown } from "../../common/git-branch-dropdown";
+import { dataSourceToGitRepository } from "#/utils/utils";
 
 interface RepositorySelectionFormProps {
   onRepoSelection: (repo: GitRepository | null) => void;
@@ -44,10 +45,17 @@ export function RepositorySelectionForm({
   displayRepoSelector = true,
 }: RepositorySelectionFormProps) {
   const navigate = useNavigate();
-  const { selectedWorkspaceId } = useWorkspace();
+  const { selectedWorkspaceId, linkedRepo: linkedRepoWorkspace } =
+    useWorkspace();
 
   const [selectedRepository, setSelectedRepository] =
-    React.useState<GitRepository | null>(linkedRepo);
+    React.useState<GitRepository | null>(
+      linkedRepo
+        ? linkedRepo
+        : linkedRepoWorkspace
+          ? dataSourceToGitRepository(linkedRepoWorkspace!)
+          : null,
+    );
   const [selectedBranch, setSelectedBranch] = React.useState<Branch | null>(
     null,
   );
@@ -72,16 +80,39 @@ export function RepositorySelectionForm({
   }, [providers, selectedProvider]);
 
   React.useEffect(() => {
-    if (linkedRepo || linkedRepo !== null) {
+    if (linkedRepo !== null) {
       setSelectedRepository(linkedRepo);
-      // onRepoSelection(linkedRepo);
+      onRepoSelection(linkedRepo);
     } else {
       setSelectedRepository(null);
       onRepoSelection(null);
       setSelectedBranch(null);
       onBranchSelection(null);
     }
-  }, [linkedRepo, selectedWorkspaceId]);
+  }, [selectedWorkspaceId]);
+
+  // Auto-select main or master branch if it exists, but only if the branch wasn't manually cleared
+  React.useEffect(() => {
+    if (
+      branches &&
+      branches.length > 0 &&
+      !selectedBranch &&
+      !isLoadingBranches
+    ) {
+      // Look for main or master branch
+      const mainBranch = branches.find((branch) => branch.name === "main");
+      const masterBranch = branches.find((branch) => branch.name === "master");
+
+      // Select main if it exists, otherwise select master if it exists
+      if (mainBranch) {
+        setSelectedBranch(mainBranch);
+        onBranchSelection(mainBranch?.name);
+      } else if (masterBranch) {
+        setSelectedBranch(masterBranch);
+        onBranchSelection(masterBranch?.name);
+      }
+    }
+  }, [branches, isLoadingBranches, selectedBranch]);
 
   // We check for isSuccess because the app might require time to render
   // into the new conversation screen after the conversation is created.
@@ -95,6 +126,7 @@ export function RepositorySelectionForm({
     setSelectedProvider(provider);
     setSelectedRepository(null); // Reset repository selection when provider changes
     setSelectedBranch(null); // Reset branch selection when provider changes
+    onBranchSelection(null);
     onRepoSelection(null); // Reset parent component's selected repo
   };
 
@@ -104,6 +136,7 @@ export function RepositorySelectionForm({
     );
     if (selectedBranchObj) {
       setSelectedBranch(selectedBranchObj);
+      onBranchSelection(selectedBranchObj.name);
     }
   };
 
@@ -140,6 +173,40 @@ export function RepositorySelectionForm({
 
   // Render the repository selector using our new component
   const renderRepositorySelector = () => {
+    async function linkRepoToWorkspace() {
+      const repoUrl = selectedRepository
+        ? composeRepoUrl(
+            selectedRepository.git_provider,
+            selectedRepository.full_name,
+          )
+        : "";
+      const { success, errorMessage } = await createADatasource({
+        name: null,
+        type: "GIT_REPOSITORY",
+        url: repoUrl,
+        workspace_ids: [selectedWorkspaceId],
+        PAT_TOKEN: "",
+      });
+
+      if (!success) {
+        toast.error(errorMessage || "Failed to link repo");
+      } else {
+        toast.success("Repo linked successfully");
+        if (onLinkedRepoChanged) onLinkedRepoChanged();
+      }
+    }
+
+    async function unlinkRepoFromWorkspace(dataSourceId: string) {
+      const { success, errorMessage } = await deleteADataSource(dataSourceId);
+
+      if (!success) {
+        toast.error(errorMessage || "Failed to unlink repo");
+      } else {
+        toast.success("Repo unlinked successfully");
+        if (onLinkedRepoChanged) onLinkedRepoChanged();
+      }
+    }
+
     const handleRepoSelection = (repository?: GitRepository) => {
       if (repository) {
         onRepoSelection(repository);
@@ -147,69 +214,123 @@ export function RepositorySelectionForm({
       } else {
         setSelectedRepository(null);
         setSelectedBranch(null);
+        onBranchSelection(null);
       }
     };
 
     return (
-      <GitRepositoryDropdown
-        provider={selectedProvider || providers[0]}
-        value={selectedRepository?.id || null}
-        placeholder="Search repositories..."
-        disabled={!selectedProvider}
-        onChange={handleRepoSelection}
-        className="max-w-[500px]"
-      />
+      <div className="flex items-center w-full">
+        <div className="flex-1 max-w-[500px]">
+          <GitRepositoryDropdown
+            provider={selectedProvider || providers[0]}
+            value={selectedRepository?.id || null}
+            placeholder="Search repositories..."
+            disabled={!selectedProvider || !!linkedRepo}
+            onChange={handleRepoSelection}
+            className="max-w-[500px]"
+          />
+        </div>
+        {displayLinkUnlinkButton ? (
+          !linkedRepo ? (
+            <BrandButton
+              testId="repo-link-button"
+              variant="primary"
+              type="button"
+              isDisabled={
+                !!linkedRepo || !selectedRepository || isCreatingConversation
+              }
+              onClick={linkRepoToWorkspace}
+              className="ml-2 w-20"
+            >
+              Link
+            </BrandButton>
+          ) : (
+            <BrandButton
+              testId="repo-link-button"
+              variant="primary"
+              type="button"
+              onClick={() => unlinkRepoFromWorkspace(linkedRepo.id)}
+              className="ml-2 w-20"
+            >
+              UnLink
+            </BrandButton>
+          )
+        ) : null}
+      </div>
     );
   };
 
   // Render the branch selector
-  const renderBranchSelector = () => (
-    <GitBranchDropdown
-      repositoryName={selectedRepository?.full_name}
-      value={selectedBranch?.name || null}
-      placeholder="Select branch..."
-      className="max-w-[500px]"
-      disabled={!selectedRepository}
-      onChange={handleBranchSelection}
-    />
-  );
+  const renderBranchSelector = () => {
+    if (!selectedRepository) {
+      return (
+        <GitBranchDropdown
+          repositoryName={""}
+          value={selectedBranch?.name || null}
+          placeholder="Select branch..."
+          className="max-w-[500px]"
+          disabled
+          onChange={handleBranchSelection}
+        />
+      );
+    }
+    return (
+      <GitBranchDropdown
+        repositoryName={selectedRepository?.full_name}
+        value={selectedBranch?.name || null}
+        placeholder="Select branch..."
+        className="max-w-[500px]"
+        disabled={!selectedRepository}
+        onChange={handleBranchSelection}
+      />
+    );
+  };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 w-full">
       {renderProviderSelector()}
-      {renderRepositorySelector()}
-      {renderBranchSelector()}
+      {displayRepoSelector && renderRepositorySelector()}
 
-      <BrandButton
-        testId="repo-launch-button"
-        variant="primary"
-        type="button"
-        isDisabled={
-          !selectedRepository ||
-          (!selectedBranch && !hasNoBranches) ||
-          isLoadingBranches ||
-          isCreatingConversation ||
-          (providers.length > 1 && !selectedProvider)
-        }
-        onClick={() =>
-          createConversation(
-            {
-              repository: {
-                name: selectedRepository?.full_name || "",
-                gitProvider: selectedRepository?.git_provider || "github",
-                branch: selectedBranch?.name || (hasNoBranches ? "" : "main"),
+      {
+        <div>
+          {!displayRepoSelector && <span className="text-sm">Branch Name</span>}
+          <div className="mb-2"></div>
+          {renderBranchSelector()}
+        </div>
+      }
+
+      {displayLaunchButton && (
+        <BrandButton
+          testId="repo-launch-button"
+          variant="primary"
+          type="button"
+          isDisabled={
+            !selectedRepository ||
+            (!selectedBranch && !hasNoBranches) ||
+            isLoadingBranches ||
+            isCreatingConversation ||
+            (providers.length > 1 && !selectedProvider)
+          }
+          onClick={() =>
+            createConversation(
+              {
+                repository: {
+                  name: selectedRepository?.full_name || "",
+                  gitProvider: selectedRepository?.git_provider || "github",
+                  branch: selectedBranch?.name || (hasNoBranches ? "" : "main"),
+                },
               },
-            },
-            {
-              onSuccess: (data) =>
-                navigate(`/conversations/${data.conversation_id}`),
-            },
-          )
-        }
-      >
-        {!isCreatingConversation && "Launch"}
-        {isCreatingConversation && t("HOME$LOADING")}
-      </BrandButton>
+              {
+                onSuccess: (data) =>
+                  navigate(`/conversations/${data.conversation_id}`),
+              },
+            )
+          }
+        >
+          {!isCreatingConversation && "Launch"}
+          {isCreatingConversation && t("HOME$LOADING")}
+        </BrandButton>
+      )}
     </div>
   );
 }
