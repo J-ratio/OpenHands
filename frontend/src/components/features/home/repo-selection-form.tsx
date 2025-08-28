@@ -88,6 +88,9 @@ export function RepositorySelectionForm({
   React.useEffect(() => {
     if (linkedRepo !== null) {
       setSelectedRepository(linkedRepo);
+    } else {
+      setSelectedRepository(null);
+      onRepoSelection(null);
     }
   }, [linkedRepo]);
 
@@ -180,7 +183,7 @@ export function RepositorySelectionForm({
             selectedRepository.full_name,
           )
         : "";
-      const { success, errorMessage } = await createADatasource({
+      const { success, errorMessage, data } = await createADatasource({
         name: null,
         type: "GIT_REPOSITORY",
         url: repoUrl,
