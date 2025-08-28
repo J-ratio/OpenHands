@@ -50,7 +50,7 @@ export const getCustomStyles = <T extends SelectOptionBase>(): StylesConfig<
   option: (provided, state) => {
     let backgroundColor = "transparent";
     if (state.isSelected) {
-      backgroundColor = "#C9B974"; // primary for selected
+      backgroundColor = "#0072FF"; // primary for selected
     } else if (state.isFocused) {
       backgroundColor = "#24272E"; // base-secondary for hover/focus
     }
@@ -58,16 +58,16 @@ export const getCustomStyles = <T extends SelectOptionBase>(): StylesConfig<
     return {
       ...provided,
       backgroundColor,
-      color: state.isSelected ? "#000000" : "#ECEDEE", // black text on yellow, white on gray
+      color: state.isSelected ? "#FFFFFF" : "#ECEDEE", // black text on yellow, white on gray
       borderRadius: "0.5rem", // rounded menu items
       margin: "0.125rem 0", // small gap between items
       "&:hover": {
-        backgroundColor: state.isSelected ? "#C9B974" : "#24272E", // keep yellow if selected, else gray
-        color: state.isSelected ? "#000000" : "#ECEDEE", // maintain text color on hover
+        backgroundColor: state.isSelected ? "#0072FF" : "#24272E", // keep blue if selected, else gray
+        color: state.isSelected ? "#FFFFFF" : "#ECEDEE", // maintain text color on hover
       },
       "&:active": {
-        backgroundColor: state.isSelected ? "#C9B974" : "#24272E",
-        color: state.isSelected ? "#000000" : "#ECEDEE",
+        backgroundColor: state.isSelected ? "#0072FF" : "#24272E",
+        color: state.isSelected ? "#FFFFFF" : "#ECEDEE",
       },
     };
   },
