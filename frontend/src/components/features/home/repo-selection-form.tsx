@@ -45,17 +45,11 @@ export function RepositorySelectionForm({
   displayRepoSelector = true,
 }: RepositorySelectionFormProps) {
   const navigate = useNavigate();
-  const { selectedWorkspaceId, linkedRepo: linkedRepoWorkspace } =
-    useWorkspace();
+  const { selectedWorkspaceId } = useWorkspace();
 
   const [selectedRepository, setSelectedRepository] =
-    React.useState<GitRepository | null>(
-      linkedRepo
-        ? linkedRepo
-        : linkedRepoWorkspace
-          ? dataSourceToGitRepository(linkedRepoWorkspace!)
-          : null,
-    );
+    React.useState<GitRepository | null>(linkedRepo);
+
   const [selectedBranch, setSelectedBranch] = React.useState<Branch | null>(
     null,
   );
@@ -90,6 +84,12 @@ export function RepositorySelectionForm({
       onBranchSelection(null);
     }
   }, [selectedWorkspaceId]);
+
+  React.useEffect(() => {
+    if (linkedRepo !== null) {
+      setSelectedRepository(linkedRepo);
+    }
+  }, [linkedRepo]);
 
   // Auto-select main or master branch if it exists, but only if the branch wasn't manually cleared
   React.useEffect(() => {
