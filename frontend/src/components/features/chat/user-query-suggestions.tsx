@@ -10,7 +10,7 @@ const suggestions = [
   "Translate this hardware spec into configuration code.",
 ];
 
-const initialCodeSnippet = ` Only provide C code and nothing else.\n\`\`\`c
+const initialCodeSnippet = `\n\`\`\`c
 #include <stdint.h>
 #include <stddef.h>
 
@@ -39,7 +39,9 @@ static int32_t adc_read_channel(struct adc * const a, int32_t ch, uint16_t * con
     }
 
     return 0;
-}`;
+    }
+\`\`\`
+Only provide C code and nothing else.`;
 
 interface UserQuerySuggestionsProps {
   onSelect: (query: string) => void;
