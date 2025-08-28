@@ -10,7 +10,7 @@ const suggestions = [
   "Translate this hardware spec into configuration code.",
 ];
 
-const initialCodeSnippet = `\`\`\`c
+const initialCodeSnippet = ` Only provide C code and nothing else.\n\`\`\`c
 #include <stdint.h>
 #include <stddef.h>
 
@@ -93,7 +93,7 @@ export function UserQuerySuggestions({ onSelect }: UserQuerySuggestionsProps) {
                 key={idx}
                 onClick={() => {
                   onSelect(
-                    `${suggestion}${idx === 0 ? `\n${initialCodeSnippet}` : ""}`,
+                    `${suggestion}${idx === 0 ? initialCodeSnippet : ""}`,
                   );
                   setOpen(false);
                 }}
