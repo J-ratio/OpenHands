@@ -137,6 +137,17 @@ async def new_conversation(
 
     conversation_trigger = ConversationTrigger.GUI
 
+    if not provider_tokens:
+        return JSONResponse(
+            content={
+                'status': 'error',
+                'message': "Please add a git provider token",
+                'msg_id': RuntimeStatus.ERROR_LLM_AUTHENTICATION.value,
+            },
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+
     if suggested_task:
         initial_user_msg = suggested_task.get_prompt_for_task()
         conversation_trigger = ConversationTrigger.SUGGESTED_TASK
