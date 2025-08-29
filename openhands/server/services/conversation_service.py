@@ -52,6 +52,10 @@ async def initialize_conversation(
 
         conversation_title = get_default_conversation_title(conversation_id)
 
+        settings_store = await SettingsStoreImpl.get_instance(config, user_id)
+        settings = await settings_store.load()
+        logger.info('Settings loaded')
+
         logger.info(f'Saving metadata for conversation {conversation_id}')
         conversation_metadata = ConversationMetadata(
             trigger=conversation_trigger,
@@ -61,6 +65,7 @@ async def initialize_conversation(
             selected_repository=selected_repository,
             selected_branch=selected_branch,
             git_provider=git_provider,
+            workspace_id= settings.active_workspace_id,
         )
 
         await conversation_store.save_metadata(conversation_metadata)
@@ -99,7 +104,6 @@ async def start_conversation(
     settings_store = await SettingsStoreImpl.get_instance(config, user_id)
     settings = await settings_store.load()
     logger.info('Settings loaded')
-    active_workspace_id = settings.active_workspace_id
 
     session_init_args: dict[str, Any] = {}
     if settings:
@@ -130,39 +134,6 @@ async def start_conversation(
 
     conversation_init_data = ConversationInitData(**session_init_args)
 
-    # logger.info('Loading conversation store')
-    # conversation_store = await ConversationStoreImpl.get_instance(config, user_id)
-    # logger.info('ServerConversation store loaded')
-
-    # # For nested runtimes, we allow a single conversation id, passed in on container creation
-    # if conversation_id is None:
-    #     conversation_id = uuid.uuid4().hex
-
-    # if not await conversation_store.exists(conversation_id):
-    #     logger.info(
-    #         f'New conversation ID: {conversation_id}',
-    #         extra={'user_id': user_id, 'session_id': conversation_id},
-    #     )
-
-    #     conversation_init_data = ExperimentManagerImpl.run_conversation_variant_test(
-    #         user_id, conversation_id, conversation_init_data
-    #     )
-    #     conversation_title = get_default_conversation_title(conversation_id)
-
-    #     logger.info(f'Saving metadata for conversation {conversation_id}')
-    #     await conversation_store.save_metadata(
-    #         ConversationMetadata(
-    #             trigger=conversation_trigger,
-    #             conversation_id=conversation_id,
-    #             title=conversation_title,
-    #             user_id=user_id,
-    #             selected_repository=selected_repository,
-    #             selected_branch=selected_branch,
-    #             git_provider=git_provider,
-    #             llm_model=conversation_init_data.llm_model,
-    #             workspace_id=active_workspace_id
-    #         )
-    #     )
     conversation_init_data = ExperimentManagerImpl.run_conversation_variant_test(
         user_id, conversation_id, conversation_init_data
     )
