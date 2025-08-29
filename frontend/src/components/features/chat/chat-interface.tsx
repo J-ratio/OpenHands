@@ -153,18 +153,25 @@ export function ChatInterface() {
     let prompt =
       uploadedFiles.length > 0 ? `${content}\n\n${filePrompt}` : content;
 
-    if (attachedCodeBlocks.length > 0) {
-      prompt += `\n\nHere are the attached codeblocks:`;
-      attachedCodeBlocks.forEach((codeBlock) => {
-        prompt += `\n\nCodeblock from ${codeBlock.fileName}: ${codeBlock.selectedCode}`;
-      });
-    }
+    if (groupedStrings.length > 0 || attachedCodeBlocks.length > 0) {
+      prompt +=
+        "Please use following data chunks from attached files to inform your answer: ";
 
-    if (groupedStrings.length > 0) {
-      prompt += "\n\nHere are the relevant chunks from the workspace files: ";
-      groupedStrings.forEach((group) => {
-        prompt += `\n\nFile Name: ${group.fileName} and it's chunks: ${group.text}`;
-      });
+      if (attachedCodeBlocks.length > 0) {
+        prompt += `\n\nHere are the attached codeblocks:`;
+        attachedCodeBlocks.forEach((codeBlock) => {
+          prompt += `\n\nCodeblock from ${codeBlock.fileName}: ${codeBlock.selectedCode}`;
+        });
+      }
+
+      if (groupedStrings.length > 0) {
+        prompt += "\n\nHere are the relevant chunks from the workspace files: ";
+        groupedStrings.forEach((group) => {
+          prompt += `\n\nFile Name: ${group.fileName} and it's chunks: ${group.text}`;
+        });
+      }
+      prompt +=
+        "Do not attempt to read above files directly in workspace. Only use the above snippets to answer user query.";
     }
 
     send(
