@@ -35,12 +35,12 @@ import { useConfig } from "#/hooks/query/use-config";
 import { useActiveConversation } from "#/hooks/query/use-active-conversation";
 import { getStatusCode } from "#/utils/status";
 import { ChatSimulator } from "./chat-simulator";
-import { GENERATE_CLASS_DIAGRAM_MESSAGES } from "#/fake_scripts/generate_class_diagram_data";
 import { useSimulationMode } from "#/fake_scripts/simulation_context";
 import { AttachedCodeBlock, AttachedFile } from "./chat-input";
 import _ from "lodash";
 import { AttachedFileService } from "#/api/attached-file-service.api";
 import { validateFiles } from "#/utils/file-validation";
+import { DEBUG_CRASH_LOGS_MESSAGES } from "#/fake_scripts/debug_crash_logs_data";
 
 function getEntryPoint(
   hasRepository: boolean | null,
@@ -290,7 +290,7 @@ export function ChatInterface() {
         >
           {isSimulationMode && (
             <ChatSimulator
-              messages={GENERATE_CLASS_DIAGRAM_MESSAGES}
+              messages={DEBUG_CRASH_LOGS_MESSAGES}
               onComplete={() => {}}
             />
           )}

@@ -3,7 +3,11 @@ import React, { useState } from "react";
 
 const MAX_SIZE = 40 * 1024 * 1024; // 40MB
 
-const FileUpload = ({ setFile }) => {
+const FileUpload = ({
+  setFile,
+  fileInfo = `PDF - Max ${MAX_SIZE / 1024 / 1024} MB`,
+  allowedExtensions = ["pdf"],
+}) => {
   const [error, setError] = useState("");
 
   const handleFileChange = (event) => {
@@ -20,9 +24,11 @@ const FileUpload = ({ setFile }) => {
   const validateFile = (selectedFile) => {
     if (!selectedFile) return;
 
-    // Validate file type
-    if (selectedFile.type !== "application/pdf") {
-      setError("Only PDF files are allowed.");
+    const fileName = selectedFile.name.toLowerCase();
+    const fileExtension = fileName.split(".").pop();
+
+    if (!allowedExtensions.includes(fileExtension)) {
+      setError(`Only ${allowedExtensions.join(",")} files allowed.`);
       setFile(null);
       return;
     }
@@ -66,9 +72,7 @@ const FileUpload = ({ setFile }) => {
           </label>
           &nbsp;or drag and drop here
         </div>
-        <small className="text-neutral-500">
-          PDF - Max {MAX_SIZE / 1024 / 1024} MB
-        </small>
+        <small className="text-neutral-500">{fileInfo}</small>
       </div>
 
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
