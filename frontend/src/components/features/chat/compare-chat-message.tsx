@@ -1,7 +1,6 @@
 import React from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import rehypeRaw from "rehype-raw";
 import { code } from "../markdown/code";
 import { cn } from "#/utils/utils";
 import { ul, ol } from "../markdown/list";
@@ -13,15 +12,51 @@ import { paragraph } from "../markdown/paragraph";
 interface ChatMessageProps {
   type: OpenHandsSourceType;
   message: string;
+  enableTypewriter?: boolean;
+  typewriterSpeed?: number;
+  isLatestMessage?: boolean;
 }
 
-export function ChatMessage({
+export function CompareChatMessage({
   type,
   message,
   children,
+  enableTypewriter = false,
+  typewriterSpeed = 0.1,
+  isLatestMessage = false,
 }: React.PropsWithChildren<ChatMessageProps>) {
   const [isHovering, setIsHovering] = React.useState(false);
   const [isCopy, setIsCopy] = React.useState(false);
+  const [displayedMessage, setDisplayedMessage] = React.useState(
+    enableTypewriter ? "" : message,
+  );
+  const [isTypingComplete, setIsTypingComplete] =
+    React.useState(!enableTypewriter);
+
+  // Typewriter effect
+  React.useEffect(() => {
+    if (!enableTypewriter || !isLatestMessage) {
+      setDisplayedMessage(message);
+      setIsTypingComplete(true);
+      return;
+    }
+
+    setDisplayedMessage("");
+    setIsTypingComplete(false);
+
+    let currentIndex = 0;
+    const timer = setInterval(() => {
+      if (currentIndex < message.length) {
+        setDisplayedMessage(message.slice(0, currentIndex + 1));
+        currentIndex++;
+      } else {
+        setIsTypingComplete(true);
+        clearInterval(timer);
+      }
+    }, typewriterSpeed);
+
+    return () => clearInterval(timer);
+  }, [message, enableTypewriter, typewriterSpeed, isLatestMessage]);
 
   const handleCopyToClipboard = async () => {
     await navigator.clipboard.writeText(message);
@@ -70,10 +105,12 @@ export function ChatMessage({
             p: paragraph,
           }}
           remarkPlugins={[remarkGfm]}
-          rehypePlugins={[rehypeRaw]}
         >
-          {message}
+          {displayedMessage}
         </Markdown>
+        {enableTypewriter && !isTypingComplete && isLatestMessage && (
+          <span className="inline-block w-2 h-4 bg-primary ml-1 animate-pulse"></span>
+        )}
       </div>
       {children}
     </article>

@@ -57,7 +57,7 @@ export const ChatSimulator: React.FC<ChatSimulatorProps> = ({
       {visibleMessages.map((message, index) => (
         <div
           key={`msg-${index}-${Date.now()}`}
-          className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500"
+          className={`animate-in fade-in-0 slide-in-from-bottom-4 duration-500 ${index === 0 && "flex justify-end"}`}
         >
           <ChatMessage message={message.message} type={message.type} />
         </div>

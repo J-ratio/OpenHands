@@ -1,5 +1,5 @@
 import React from "react";
-import { ChatInput } from "./chat-input";
+import { AttachedCodeBlock, AttachedFile, ChatInput } from "./chat-input";
 import { cn } from "#/utils/utils";
 import { ImageCarousel } from "../images/image-carousel";
 import { UploadImageInput } from "../images/upload-image-input";
@@ -9,7 +9,13 @@ import { isFileImage } from "#/utils/is-file-image";
 interface InteractiveChatBoxProps {
   isDisabled?: boolean;
   mode?: "stop" | "submit";
-  onSubmit: (message: string, images: File[], files: File[]) => void;
+  onSubmit: (
+    message: string,
+    images: File[],
+    files: File[],
+    attachedFiles: AttachedFile[],
+    attachedCodeblocks: AttachedCodeBlock[],
+  ) => void;
   onStop: () => void;
   value?: string;
   onChange?: (message: string) => void;
@@ -50,8 +56,12 @@ export function InteractiveChatBox({
     setImages(removeElementByIndex(images, index));
   };
 
-  const handleSubmit = (message: string) => {
-    onSubmit(message, images, files);
+  const handleSubmit = (
+    message: string,
+    attachedFiles: AttachedFile[],
+    attachedCodeblocks: AttachedCodeBlock[],
+  ) => {
+    onSubmit(message, images, files, attachedFiles, attachedCodeblocks);
     setFiles([]);
     setImages([]);
     if (message) {
@@ -77,10 +87,9 @@ export function InteractiveChatBox({
           onRemove={handleRemoveFile}
         />
       )}
-
       <div
         className={cn(
-          "flex items-end gap-1",
+          "flex items-center gap-1",
           "bg-tertiary border border-neutral-600 rounded-lg px-2",
           "transition-colors duration-200",
           "hover:border-neutral-500 focus-within:border-neutral-500",
@@ -95,7 +104,7 @@ export function InteractiveChatBox({
           onStop={onStop}
           value={value}
           onFilesPaste={handleUpload}
-          className="py-[10px]"
+          className="ml-2 py-[10px]"
           buttonClassName="py-[10px]"
         />
       </div>

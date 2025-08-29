@@ -1,0 +1,46 @@
+{
+  "categories": [
+    {
+      "category": "Documentation",
+      "tools": [
+        {
+          "id": "GENERATE_INTERFACE_DOCUMENTATION",
+          "name": "Generate Interface Documentation",
+          "image": "/img/interface-doc.svg",
+          "description": "Automatically generate detailed interface documentation for your codebase."
+        },
+        {
+          "id": "GENERATE_CLASS_DIAGRAM",
+          "name": "Generate Class Diagram",
+          "image": "/img/class-diagram.svg",
+          "description": "Visualize class relationships and hierarchies in your project.",
+          "linked_repo_required": true
+        },
+        {
+          "id": "GENERATE_ARCHITECTURE_DIAGRAM",
+          "name": "Generate Architecture Diagram",
+          "image": "/img/code-flow.svg",
+          "description": "Quickly visualize your system's architecture.",
+          "linked_repo_required": true
+        },
+        {
+          "id": "GENERATE_SEQUENCE_DIAGRAM",
+          "name": "Generate Sequence Diagram",
+          "image": "/img/sequence-diagram.svg",
+          "description": "Create sequence diagrams to illustrate object interactions over time."
+        }
+      ]
+    },
+    {
+      "category": "Debugging",
+      "tools": [
+        {
+          "id": "DEBUG_USING_CRASHLOGS",
+          "name": "Debug using CrashLogs",
+          "image": "/img/debug-crash-log.svg",
+          "description": "Analyze crash logs to identify and fix bugs in your application."
+        }
+      ]
+    }
+  ]
+}

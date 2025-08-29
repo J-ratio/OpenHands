@@ -32,13 +32,26 @@ import { shouldRenderEvent } from "./event-content-helpers/should-render-event";
 import { useUploadFiles } from "#/hooks/mutation/use-upload-files";
 import { useConfig } from "#/hooks/query/use-config";
 import { useActiveConversation } from "#/hooks/query/use-active-conversation";
-import { getStatusCode } from "#/utils/status";
+import { getIndicatorColor, getStatusCode } from "#/utils/status";
 import { ChatSimulator } from "./chat-simulator";
+import { GENERATE_CLASS_DIAGRAM_MESSAGES } from "#/fake_scripts/generate_class_diagram_data";
 import { useSimulationMode } from "#/fake_scripts/simulation_context";
-import { AttachedCodeBlock, AttachedFile } from "./chat-input";
-import _ from "lodash";
-import { AttachedFileService } from "#/api/attached-file-service.api";
-import { DEBUG_CRASH_LOGS_MESSAGES } from "#/fake_scripts/debug_crash_logs_data";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "#/components/ui/select";
+import { PiInfinityLight } from "react-icons/pi";
+import { UserQuerySuggestions } from "./user-query-suggestions";
+import { OpenHandsAction } from "#/types/core/actions";
+import { OpenHandsObservation } from "#/types/core/observations";
+import { CompareChatMessage } from "./compare-chat-message";
+import { CompareMessages } from "./compare-messages";
+import { CompareChatSuggestions } from "./compare-chat-suggestions";
 
 function getEntryPoint(
   hasRepository: boolean | null,
@@ -49,7 +62,97 @@ function getEntryPoint(
   return "direct";
 }
 
-export function ChatInterface() {
+const llmModels = ["h2loop", "gpt-4o", "Claude", "Grok-4"];
+
+const modelOneResponse: string = `
+\`\`\`c
+#include <stdint.h>
+
+static int adc_read_channel(struct adc * const a, int ch, uint16_t * const val) {
+    if (a == NULL || val == NULL) {
+        return -1;
+    }
+
+    if (a->ops.start(ch) < 0) {
+        return -1;
+    }
+
+    a->ops.delay_ms(1U);
+
+    if (a->ops.read(ch, val) < 0) {
+        return -1;
+    }
+
+    return 0;
+}
+\`\`\`
+`;
+
+const modelTwoResponse: string = `
+\`\`\`c
+#include <stdint.h>
+#include <stddef.h>
+
+/* Forward declaration of the ADC device structure. */
+struct adc;
+
+/* Forward declaration of the operations structure, used by the ADC device. */
+struct adc_ops;
+
+/* Externally declared ADC operations structure, assumed to be defined elsewhere. */
+extern struct adc_ops ops;
+
+/* ADC device structure expected to contain an operations pointer. */
+struct adc {
+    struct adc_ops *ops;
+};
+
+/* Operations functions, assumed to be defined elsewhere. */
+struct adc_ops {
+    int (*start)(int);
+    void (*delay_ms)(unsigned int);
+    int (*read)(int, uint16_t *);
+};
+
+/*
+ * Read a single ADC channel value.
+ *
+ * @param a  Pointer to the ADC device (cannot be NULL).
+ * @param ch ADC channel number (non-negative value assumed).
+ * @param val Pointer to a uint16_t variable where the result is stored (cannot be NULL).
+ * @return 0 on success, -1 on error.
+ */
+static int adc_read_channel(struct adc * const a, int ch, uint16_t * const val)
+{
+    /* Check for NULL pointers. */
+    if ((a == NULL) || (val == NULL)) {
+        return -1;
+    }
+
+    /* Validate channel number range: ADC channels are assumed to be >= 0. */
+    if (ch < 0) {
+        return -1;
+    }
+
+    /* Start conversion. */
+    if ((a->ops->start)(ch) < 0) {
+        return -1;
+    }
+
+    /* Delay for at least 1 ms. */
+    (a->ops->delay_ms)((unsigned int)1U);
+
+    /* Read conversion result. */
+    if ((a->ops->read)(ch, val) < 0) {
+        return -1;
+    }
+
+    return 0;
+}
+\`\`\`
+`;
+
+export function CompareChatInterface() {
   const { getErrorMessage } = useWSErrorMessage();
   const { send, isLoadingMessages, parsedEvents } = useWsClient();
   const { setOptimisticUserMessage, getOptimisticUserMessage } =
@@ -68,6 +171,13 @@ export function ChatInterface() {
 
   const { curAgentState } = useSelector((state: RootState) => state.agent);
 
+  const [modelOne, setModelOne] = React.useState<string>(llmModels[0]);
+  const [modelTwo, setModelTwo] = React.useState<string>(llmModels[1]);
+
+  const [events, setEvents] = React.useState<
+    Array<OpenHandsAction | OpenHandsObservation>
+  >([]);
+
   const [feedbackPolarity, setFeedbackPolarity] = React.useState<
     "positive" | "negative"
   >("positive");
@@ -83,7 +193,7 @@ export function ChatInterface() {
   const optimisticUserMessage = getOptimisticUserMessage();
   const errorMessage = getErrorMessage();
 
-  const events = parsedEvents.filter(shouldRenderEvent);
+  // const events = parsedEvents.filter(shouldRenderEvent);
 
   const { curStatusMessage } = useSelector((state: RootState) => state.status);
   const { webSocketStatus } = useWsClient();
@@ -103,8 +213,6 @@ export function ChatInterface() {
     content: string,
     images: File[],
     files: File[],
-    attachedFiles: AttachedFile[],
-    attachedCodeBlocks: AttachedCodeBlock[],
   ) => {
     if (events.length === 0) {
       posthog.capture("initial_query_submitted", {
@@ -133,52 +241,33 @@ export function ChatInterface() {
 
     skippedFiles.forEach((f) => displayErrorToast(f.reason));
 
-    let groupedStrings: { fileName: string; text: string }[] = [];
-    if (attachedFiles.length > 0) {
-      const chunkResponse = await AttachedFileService.getChunksFromFiles(
-        attachedFiles.map((file) => file.id),
-      );
-
-      if (chunkResponse?.chunks?.length) {
-        const grouped = _.groupBy(chunkResponse?.chunks, "file_name");
-
-        groupedStrings = _.map(grouped, (chunks, fileName) => ({
-          fileName,
-          text: chunks.map((c) => c.text).join(" "),
-        }));
-      }
-    }
-
     const filePrompt = `${t("CHAT_INTERFACE$AUGMENTED_PROMPT_FILES_TITLE")}: ${uploadedFiles.join("\n\n")}`;
-    let prompt =
+    const prompt =
       uploadedFiles.length > 0 ? `${content}\n\n${filePrompt}` : content;
 
-    if (attachedCodeBlocks.length > 0) {
-      prompt += `\n\nHere are the attached codeblocks:`;
-      attachedCodeBlocks.forEach((codeBlock) => {
-        prompt += `\n\nCodeblock from ${codeBlock.fileName}: ${codeBlock.selectedCode}`;
-      });
-    }
-
-    if (groupedStrings.length > 0) {
-      prompt += "\n\nHere are the relevant chunks from the workspace files: ";
-      groupedStrings.forEach((group) => {
-        prompt += `\n\nFile Name: ${group.fileName} and it's chunks: ${group.text}`;
-      });
-    }
-
-    send(
-      createChatMessage(
-        prompt,
-        imageUrls,
-        uploadedFiles,
-        attachedFiles,
-        attachedCodeBlocks,
-        timestamp,
-      ),
-    );
+    // send(createChatMessage(prompt, imageUrls, uploadedFiles, timestamp));
     setOptimisticUserMessage(content);
+    setEvents((prev) => [
+      ...prev,
+      {
+        id: 4,
+        timestamp: "2025-08-26T08:26:20.878137",
+        source: "user",
+        message: content,
+        action: "message",
+        args: {
+          content: content,
+          file_urls: [...files.map((file) => file.name)],
+          image_urls: [],
+          wait_for_response: false,
+          attached_files: [],
+          attached_codeblocks: [],
+        },
+        timeout: 120,
+      },
+    ]);
     setMessageToSend(null);
+    console.log(events);
   };
 
   const handleStop = () => {
@@ -247,9 +336,60 @@ export function ChatInterface() {
 
   return (
     <ScrollProvider value={scrollProviderValue}>
-      <div className="h-full flex flex-col justify-between">
+      <div className="h-full flex flex-col justify-between w-full">
+        <p className="mb-2 font-light text-sm">Choose Models</p>
+        <div className="flex gap-4 items-center">
+          <Select
+            defaultValue={modelOne}
+            onValueChange={(val) => setModelOne(val)}
+          >
+            <SelectTrigger className="w-[100px]">
+              <SelectValue placeholder="Version" />
+            </SelectTrigger>
+
+            <SelectContent className="bg-neutral-900 text-neutral-100 border border-neutral-700 rounded-md shadow-lg">
+              <SelectGroup>
+                <SelectLabel>Models</SelectLabel>
+                {llmModels.map((model, _idx) => (
+                  <SelectItem
+                    value={model}
+                    key={"version-" + model + "-" + _idx}
+                    className="hover:bg-neutral-800 focus:bg-neutral-800 text-neutral-100 cursor-pointer transition-colors duration-100 rounded"
+                  >
+                    {model}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          vs
+          <Select
+            defaultValue={modelTwo}
+            onValueChange={(val) => setModelTwo(val)}
+          >
+            <SelectTrigger className="w-[100px]">
+              <SelectValue placeholder="Version" />
+            </SelectTrigger>
+
+            <SelectContent className="bg-neutral-900 text-neutral-100 border border-neutral-700 rounded-md shadow-lg">
+              <SelectGroup>
+                <SelectLabel>Models</SelectLabel>
+                {llmModels.map((model, _idx) => (
+                  <SelectItem
+                    value={model}
+                    key={"version-" + model + "-" + _idx}
+                    className="hover:bg-neutral-800 focus:bg-neutral-800 text-neutral-100 cursor-pointer transition-colors duration-100 rounded"
+                  >
+                    {model}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+
         {!isSimulationMode && events.length === 0 && !optimisticUserMessage && (
-          <ChatSuggestions onSuggestionsClick={setMessageToSend} />
+          <CompareChatSuggestions onSuggestionsClick={setMessageToSend} />
         )}
 
         <div
@@ -259,7 +399,7 @@ export function ChatInterface() {
         >
           {isSimulationMode && (
             <ChatSimulator
-              messages={DEBUG_CRASH_LOGS_MESSAGES}
+              messages={GENERATE_CLASS_DIAGRAM_MESSAGES}
               onComplete={() => {}}
             />
           )}
@@ -270,12 +410,71 @@ export function ChatInterface() {
           )}
 
           {!isSimulationMode && !isLoadingMessages && (
-            <Messages
-              messages={events}
-              isAwaitingUserConfirmation={
-                curAgentState === AgentState.AWAITING_USER_CONFIRMATION
-              }
-            />
+            <div>
+              <CompareMessages
+                messages={events}
+                isAwaitingUserConfirmation={
+                  curAgentState === AgentState.AWAITING_USER_CONFIRMATION
+                }
+                sideBySideResponse={
+                  <div className="flex gap-16 px-16 py-8 max-w-8xl mx-auto">
+                    <div className="flex-1 bg-base-secondary rounded-xl p-6 border border-tertiary-light/20 shadow-lg hover:shadow-xl transition-shadow">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                          <span className="text-white text-sm font-medium">
+                            AI
+                          </span>
+                        </div>
+                        <h3 className="text-primary-text font-semibold">
+                          {modelOne} Response
+                        </h3>
+                      </div>
+                      <div className="prose prose-invert prose-sm max-w-none">
+                        <CompareChatMessage
+                          type="agent"
+                          message={modelOneResponse}
+                          enableTypewriter={true}
+                          isLatestMessage={true}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex-1 bg-base-secondary rounded-xl p-6 border border-tertiary-light/20 shadow-lg hover:shadow-xl transition-shadow">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
+                          <span className="text-white text-sm font-medium">
+                            AI
+                          </span>
+                        </div>
+                        <h3 className="text-primary-text font-semibold">
+                          {modelTwo} Response
+                        </h3>
+                      </div>
+                      <div className="prose prose-invert prose-sm max-w-none">
+                        <CompareChatMessage
+                          type="agent"
+                          message={modelTwoResponse}
+                          enableTypewriter={true}
+                          isLatestMessage={true}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                }
+              />
+            </div>
+          )}
+
+          {!isSimulationMode && !isLoadingMessages && (
+            // userMessages.map((message) => (
+            <div>
+              {/* <Messages
+                messages={events}
+                isAwaitingUserConfirmation={
+                  curAgentState === AgentState.AWAITING_USER_CONFIRMATION
+                }
+              /> */}
+            </div>
           )}
 
           {!isSimulationMode &&
@@ -283,16 +482,14 @@ export function ChatInterface() {
             events.length > 0 &&
             !optimisticUserMessage && (
               <ActionSuggestions
-                onSuggestionsClick={(value) =>
-                  handleSendMessage(value, [], [], [], [])
-                }
+                onSuggestionsClick={(value) => handleSendMessage(value, [], [])}
               />
             )}
         </div>
 
         <div className="flex flex-col gap-[6px] px-4 pb-4">
           <div className="flex justify-between relative">
-            {config?.APP_MODE !== "saas" && (
+            {/* {config?.APP_MODE !== "saas" && (
               <TrajectoryActions
                 onPositiveFeedback={() =>
                   onClickShareFeedbackActionButton("positive")
@@ -302,7 +499,7 @@ export function ChatInterface() {
                 }
                 onExportTrajectory={() => onClickExportTrajectoryButton()}
               />
-            )}
+            )} */}
 
             <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0">
               {curAgentState === AgentState.RUNNING && <TypingIndicator />}
@@ -310,9 +507,20 @@ export function ChatInterface() {
 
             {!hitBottom && <ScrollToBottomButton onClick={scrollDomToBottom} />}
           </div>
-
           {errorMessage && <ErrorMessageBanner message={errorMessage} />}
-
+          {modelOne && modelTwo && (
+            <div className="flex items-center justify-between bg-logo p-1 rounded-md px-2">
+              <div className="flex items-center gap-2">
+                <PiInfinityLight />
+                <p>
+                  Comparision Mode:{" "}
+                  <span className="font-bold">{modelOne}</span> vs{" "}
+                  <span className="font-bold">{modelTwo}</span>
+                </p>
+              </div>
+              <UserQuerySuggestions onSelect={setMessageToSend} />
+            </div>
+          )}
           <InteractiveChatBox
             onSubmit={handleSendMessage}
             onStop={handleStop}
@@ -326,13 +534,13 @@ export function ChatInterface() {
           />
         </div>
 
-        {config?.APP_MODE !== "saas" && (
+        {/* {config?.APP_MODE !== "saas" && (
           <FeedbackModal
             isOpen={feedbackModalIsOpen}
             onClose={() => setFeedbackModalIsOpen(false)}
             polarity={feedbackPolarity}
           />
-        )}
+        )} */}
       </div>
     </ScrollProvider>
   );

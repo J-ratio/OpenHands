@@ -9,7 +9,7 @@ import { GitRepository } from "#/types/git";
 import { SuggestedTask } from "#/components/features/home/tasks/task.types";
 import { useSimulationMode } from "#/fake_scripts/simulation_context";
 
-export const useCreateConversation = () => {
+export const useCreateConversation = (comparision: boolean = false) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
@@ -61,7 +61,11 @@ export const useCreateConversation = () => {
       await queryClient.invalidateQueries({
         queryKey: ["user", "conversations"],
       });
-      navigate(`/conversations/${conversationId}`);
+      if (!comparision) {
+        navigate(`/conversations/${conversationId}`);
+      } else {
+        navigate(`/conversations/${conversationId}/compare`);
+      }
     },
   });
 };

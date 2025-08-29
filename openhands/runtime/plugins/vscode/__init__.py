@@ -114,7 +114,17 @@ class VSCodePlugin(Plugin):
         # Make sure the settings file is readable and writable by all users
         os.chmod(target_path, 0o666)
 
-        logger.debug(f'VSCode settings copied to {target_path}')
+        extensions_src = current_dir / "extensions"
+        extensions_dest = Path("/openhands/.openvscode-server/extensions")
+
+        if extensions_src.exists():
+            shutil.copytree(
+                extensions_src,
+                extensions_dest,
+                dirs_exist_ok=True
+            )
+
+        logger.debug(f'VSCode settings and extensions synced to {extensions_dest}')
 
     async def run(self, action: Action) -> Observation:
         """Run the plugin for a given action."""

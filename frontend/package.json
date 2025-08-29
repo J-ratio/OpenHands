@@ -71,6 +71,7 @@
     "react-router": "^7.6.2",
     "react-syntax-highlighter": "^15.6.1",
     "react-textarea-autosize": "^8.5.9",
+    "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.1",
     "sirv-cli": "^3.0.1",
     "socket.io-client": "^4.8.1",

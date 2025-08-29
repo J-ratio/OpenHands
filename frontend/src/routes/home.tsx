@@ -19,6 +19,8 @@ function HomeScreen() {
   >(null);
   const { linkedRepo } = useWorkspace();
 
+  const { linkedRepo } = useWorkspace();
+
   const providersAreSet = providers.length > 0;
 
   return (
