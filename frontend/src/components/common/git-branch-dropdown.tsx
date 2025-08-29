@@ -4,6 +4,7 @@ import { ReactSelectDropdown, SelectOption } from "./react-select-dropdown";
 
 export interface GitBranchDropdownProps {
   repositoryName?: string | null;
+  repoGitProvider?: string;
   value?: string | null;
   placeholder?: string;
   className?: string;
@@ -14,6 +15,7 @@ export interface GitBranchDropdownProps {
 
 export function GitBranchDropdown({
   repositoryName,
+  repoGitProvider,
   value,
   placeholder = "Select branch...",
   className,
@@ -23,6 +25,7 @@ export function GitBranchDropdown({
 }: GitBranchDropdownProps) {
   const { data: branches, isLoading } = useRepositoryBranches(
     repositoryName || null,
+    repoGitProvider,
   );
 
   const options: SelectOption[] = useMemo(

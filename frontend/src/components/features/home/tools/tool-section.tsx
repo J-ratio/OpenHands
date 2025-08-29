@@ -3,9 +3,8 @@ import styles from "./ToolsSection.module.css";
 import { useGetHomepageTools } from "#/hooks/query/use-get-homepage-tools";
 
 export function ToolsSection() {
-  const { data, isLoading, error } = useGetHomepageTools();
+  const { data, error } = useGetHomepageTools();
 
-  if (isLoading) return <div>Loading...</div>;
   if (error) return <div>{error.message}</div>;
 
   if (!data) return null;

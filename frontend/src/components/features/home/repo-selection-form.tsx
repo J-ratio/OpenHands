@@ -57,7 +57,10 @@ export function RepositorySelectionForm({
     React.useState<Provider | null>(null);
   const { providers } = useUserProviders();
   const { data: branches, isLoading: isLoadingBranches } =
-    useRepositoryBranches(selectedRepository?.full_name || null);
+    useRepositoryBranches(
+      selectedRepository?.full_name || null,
+      selectedRepository?.git_provider,
+    );
   const {
     mutate: createConversation,
     isPending,
@@ -280,6 +283,7 @@ export function RepositorySelectionForm({
     return (
       <GitBranchDropdown
         repositoryName={selectedRepository?.full_name}
+        repoGitProvider={selectedRepository?.git_provider}
         value={selectedBranch?.name || null}
         placeholder="Select branch..."
         className="max-w-[500px]"

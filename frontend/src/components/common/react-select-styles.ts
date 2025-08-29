@@ -45,7 +45,7 @@ export const getCustomStyles = <T extends SelectOptionBase>(): StylesConfig<
   }),
   menuList: (provided) => ({
     ...provided,
-    height: "180px",
+    maxHeight: "180px",
     padding: "0.25rem", // add some padding around menu items
   }),
   option: (provided, state) => {

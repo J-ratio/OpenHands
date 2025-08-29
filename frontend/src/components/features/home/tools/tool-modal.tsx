@@ -60,25 +60,37 @@ export function ToolModal({
 
   function handleCreateOrGenerate(id: string) {
     switch (id) {
-      // case "GENERATE_CLASS_DIAGRAM":
-      //   if (linkedRepo) {
-      //     createConversation({
-      //       selectedRepository: dataSourceToGitRepository(linkedRepo),
-      //       selected_branch: selectedBranchName ?? "main",
-      //       q: `/class_diagram CLASS_NAME="${className}" BRANCH_NAME="${selectedBranchName ?? "main"}"`,
-      //     });
-      //   }
-      //   break;
+      case "GENERATE_CLASS_DIAGRAM":
+        if (linkedRepo) {
+          createConversation({
+            // selectedRepository: dataSourceToGitRepository(linkedRepo),
+            // selected_branch: selectedBranchName ?? "main",
+            // q: `/class_diagram CLASS_NAME="${className}" BRANCH_NAME="${selectedBranchName ?? "main"}"`,
+            repository: {
+              gitProvider: dataSourceToGitRepository(linkedRepo).git_provider,
+              name: linkedRepo.name ?? "",
+              branch: selectedBranchName ?? "main",
+            },
+            query: `/class_diagram CLASS_NAME="${className}" BRANCH_NAME="${selectedBranchName ?? "main"}"`,
+          });
+        }
+        break;
 
-      // case "GENERATE_ARCHITECTURE_DIAGRAM":
-      //   if (linkedRepo) {
-      //     createConversation({
-      //       selectedRepository: dataSourceToGitRepository(linkedRepo),
-      //       selected_branch: selectedBranchName ?? "main",
-      //       q: `/architecture_diagram BRANCH_NAME="${selectedBranchName ?? "main"}"`,
-      //     });
-      //   }
-      //   break;
+      case "GENERATE_ARCHITECTURE_DIAGRAM":
+        if (linkedRepo) {
+          createConversation({
+            // selectedRepository: dataSourceToGitRepository(linkedRepo),
+            // selected_branch: selectedBranchName ?? "main",
+            // q: `/architecture_diagram BRANCH_NAME="${selectedBranchName ?? "main"}"`,
+            repository: {
+              gitProvider: dataSourceToGitRepository(linkedRepo).git_provider,
+              name: linkedRepo.name ?? "",
+              branch: selectedBranchName ?? "main",
+            },
+            query: `/architecture_diagram BRANCH_NAME="${selectedBranchName ?? "main"}"`,
+          });
+        }
+        break;
 
       case "FIND_BUGS_ANOMALIES":
         createConversation({
