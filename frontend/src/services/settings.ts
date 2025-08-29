@@ -30,8 +30,8 @@ export const DEFAULT_SETTINGS: Settings = {
     shttp_servers: [],
   },
   ACTIVE_WORKSPACE_ID: undefined,
-  GIT_USER_NAME: "openhands",
-  GIT_USER_EMAIL: "openhands@all-hands.dev",
+  GIT_USER_NAME: "h2loop",
+  GIT_USER_EMAIL: "h2loop@h2loop.ai",
 };
 
 /**

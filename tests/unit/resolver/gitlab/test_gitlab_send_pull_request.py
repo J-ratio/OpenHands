@@ -771,8 +771,8 @@ def test_process_single_pr_update(
         None,
         None,
         None,
-        'openhands',
-        'openhands@all-hands.dev',
+        'h2loop',
+        'h2loop@h2loop.ai',
     )
 
     mock_initialize_repo.assert_called_once_with(mock_output_dir, 1, 'pr', 'branch 1')
@@ -783,8 +783,8 @@ def test_process_single_pr_update(
         f'{mock_output_dir}/patches/pr_1',
         resolver_output.issue,
         'pr',
-        'openhands',
-        'openhands@all-hands.dev',
+        'h2loop',
+        'h2loop@h2loop.ai',
     )
     mock_update_existing_pull_request.assert_called_once_with(
         issue=resolver_output.issue,
@@ -857,8 +857,8 @@ def test_process_single_issue(
         None,
         None,
         None,
-        'openhands',
-        'openhands@all-hands.dev',
+        'h2loop',
+        'h2loop@h2loop.ai',
     )
 
     # Assert that the mocked functions were called with correct arguments
@@ -870,8 +870,8 @@ def test_process_single_issue(
         f'{mock_output_dir}/patches/issue_1',
         resolver_output.issue,
         'issue',
-        'openhands',
-        'openhands@all-hands.dev',
+        'h2loop',
+        'h2loop@h2loop.ai',
     )
     mock_send_pull_request.assert_called_once_with(
         issue=resolver_output.issue,
@@ -886,8 +886,8 @@ def test_process_single_issue(
         reviewer=None,
         pr_title=None,
         base_domain='gitlab.com',
-        git_user_name='openhands',
-        git_user_email='openhands@all-hands.dev',
+        git_user_name='h2loop',
+        git_user_email='h2loop@h2loop.ai',
     )
 
 
@@ -943,8 +943,8 @@ def test_process_single_issue_unsuccessful(
         None,
         None,
         None,
-        'openhands',
-        'openhands@all-hands.dev',
+        'h2loop',
+        'h2loop@h2loop.ai',
     )
 
     # Assert that none of the mocked functions were called
@@ -1048,8 +1048,8 @@ def test_main(
     mock_args.reviewer = None
     mock_args.pr_title = None
     mock_args.selected_repo = None
-    mock_args.git_user_name = 'openhands'
-    mock_args.git_user_email = 'openhands@all-hands.dev'
+    mock_args.git_user_name = 'h2loop'
+    mock_args.git_user_email = 'h2loop@h2loop.ai'
     mock_parser.return_value.parse_args.return_value = mock_args
 
     # Setup environment variables

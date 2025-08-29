@@ -877,8 +877,8 @@ def test_process_single_pr_update(
         f'{mock_output_dir}/patches/pr_1',
         resolver_output.issue,
         'pr',
-        'openhands',
-        'openhands@all-hands.dev',
+        'h2loop',
+        'h2loop@h2loop.ai',
     )
     mock_update_existing_pull_request.assert_called_once_with(
         issue=resolver_output.issue,
@@ -959,8 +959,8 @@ def test_process_single_issue(
         f'{mock_output_dir}/patches/issue_1',
         resolver_output.issue,
         'issue',
-        'openhands',
-        'openhands@all-hands.dev',
+        'h2loop',
+        'h2loop@h2loop.ai',
     )
     mock_send_pull_request.assert_called_once_with(
         issue=resolver_output.issue,
@@ -975,8 +975,8 @@ def test_process_single_issue(
         reviewer=None,
         pr_title=None,
         base_domain='github.com',
-        git_user_name='openhands',
-        git_user_email='openhands@all-hands.dev',
+        git_user_name='h2loop',
+        git_user_email='h2loop@h2loop.ai',
     )
 
 
