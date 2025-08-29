@@ -2,6 +2,8 @@ import clsx from "clsx";
 import React, { useState, useEffect, useRef } from "react";
 import { NavTab } from "./nav-tab";
 import { ChevronDownIcon } from "lucide-react";
+import { useNavigate } from "react-router";
+import { useConversationId } from "#/hooks/use-conversation-id";
 
 interface ContainerProps {
   label?: React.ReactNode;
@@ -25,6 +27,8 @@ export function Container({
 }: ContainerProps) {
   const [showOthersDropdown, setShowOthersDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { conversationId } = useConversationId();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -41,6 +45,21 @@ export function Container({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showOthersDropdown]);
+
+  const handleMermaidVisualizerMenuClick = () => {
+    const baseMermaidPath = `/conversations/${conversationId}/mermaid`;
+    const isAlreadyOnMermaid = location.pathname === baseMermaidPath;
+
+    if (isAlreadyOnMermaid) return;
+    console.log(children);
+
+    navigate(baseMermaidPath, {
+      replace: isAlreadyOnMermaid,
+      state: {
+        mermaidCode: "",
+      },
+    });
+  };
 
   return (
     <div
@@ -89,17 +108,10 @@ export function Container({
                       className="text-neutral-200 hover:bg-neutral-700 hover:text-neutral-100 px-4 py-2 cursor-pointer flex items-center"
                       onClick={() => {
                         setShowOthersDropdown(false);
+                        handleMermaidVisualizerMenuClick();
                       }}
                     >
                       <span className="truncate">Mermaid Visualizer</span>
-                    </div>
-                    <div
-                      className="text-neutral-200 hover:bg-neutral-700 hover:text-neutral-100 px-4 py-2 cursor-pointer flex items-center"
-                      onClick={() => {
-                        setShowOthersDropdown(false);
-                      }}
-                    >
-                      <span className="truncate">Other Visualizer</span>
                     </div>
                   </div>
                 </div>

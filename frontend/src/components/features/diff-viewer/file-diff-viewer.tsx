@@ -69,7 +69,7 @@ export function FileDiffViewer({ path, type }: FileDiffViewerProps) {
   } = useGitDiff({
     filePath,
     type,
-    enabled: !isCollapsed,
+    enabled: true,
   });
 
   // Function to update editor height based on content
