@@ -15,7 +15,7 @@ class MessageAction(Action):
     attached_codeblocks: list[str] | None = None
     wait_for_response: bool = False
     action: str = ActionType.MESSAGE
-    security_risk: ActionSecurityRisk | None = None
+    security_risk: ActionSecurityRisk = ActionSecurityRisk.UNKNOWN
 
     @property
     def message(self) -> str:
@@ -41,17 +41,16 @@ class MessageAction(Action):
                 ret += f'\nFILE_URL: {url}'
         if self.attached_files:
             for file in self.attached_files:
-                ret += f'\ATTACHED FILE NAME: {file}'
+                ret += f'\nATTACHED FILE NAME: {file}'
         if self.attached_codeblocks:
                     for code in self.attached_codeblocks:
-                        ret += f'\ATTACHED CODE BLOCK: {code}'
+                        ret += f'\nATTACHED CODE BLOCK: {code}'
         return ret
 
 
 @dataclass
 class SystemMessageAction(Action):
-    """
-    Action that represents a system message for an agent, including the system prompt
+    """Action that represents a system message for an agent, including the system prompt
     and available tools. This should be the first message in the event stream.
     """
 

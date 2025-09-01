@@ -10,6 +10,7 @@ import { createChatMessage } from "#/services/chat-service";
 import { InteractiveChatBox } from "./interactive-chat-box";
 import { RootState } from "#/store";
 import { AgentState } from "#/types/agent-state";
+import { isOpenHandsAction } from "#/types/core/guards";
 import { generateAgentStateChangeEvent } from "#/services/agent-state-service";
 import { FeedbackModal } from "../feedback/feedback-modal";
 import { useScrollToBottom } from "#/hooks/use-scroll-to-bottom";
@@ -38,6 +39,7 @@ import { useSimulationMode } from "#/fake_scripts/simulation_context";
 import { AttachedCodeBlock, AttachedFile } from "./chat-input";
 import _ from "lodash";
 import { AttachedFileService } from "#/api/attached-file-service.api";
+import { validateFiles } from "#/utils/file-validation";
 import { DEBUG_CRASH_LOGS_MESSAGES } from "#/fake_scripts/debug_crash_logs_data";
 
 function getEntryPoint(
@@ -99,13 +101,28 @@ export function ChatInterface() {
     curAgentState,
   );
 
+  // Check if there are any substantive agent actions (not just system messages)
+  const hasSubstantiveAgentActions = React.useMemo(
+    () =>
+      parsedEvents.some(
+        (event) =>
+          isOpenHandsAction(event) &&
+          event.source === "agent" &&
+          event.action !== "system",
+      ),
+    [parsedEvents],
+  );
+
   const handleSendMessage = async (
     content: string,
-    images: File[],
-    files: File[],
+    originalImages: File[],
+    originalFiles: File[],
     attachedFiles: AttachedFile[],
     attachedCodeBlocks: AttachedCodeBlock[],
   ) => {
+    // Create mutable copies of the arrays
+    const images = [...originalImages];
+    const files = [...originalFiles];
     if (events.length === 0) {
       posthog.capture("initial_query_submitted", {
         entry_point: getEntryPoint(
@@ -121,6 +138,16 @@ export function ChatInterface() {
         current_message_length: content.length,
       });
     }
+
+    // Validate file sizes before any processing
+    const allFiles = [...images, ...files];
+    const validation = validateFiles(allFiles);
+
+    if (!validation.isValid) {
+      displayErrorToast(`Error: ${validation.errorMessage}`);
+      return; // Stop processing if validation fails
+    }
+
     const promises = images.map((image) => convertImageToBase64(image));
     const imageUrls = await Promise.all(promises);
 
@@ -248,9 +275,13 @@ export function ChatInterface() {
   return (
     <ScrollProvider value={scrollProviderValue}>
       <div className="h-full flex flex-col justify-between">
-        {!isSimulationMode && events.length === 0 && !optimisticUserMessage && (
-          <ChatSuggestions onSuggestionsClick={setMessageToSend} />
-        )}
+        {!isSimulationMode &&
+          !hasSubstantiveAgentActions &&
+          !optimisticUserMessage &&
+          !events.some(
+            (event) => isOpenHandsAction(event) && event.source === "user",
+          ) && <ChatSuggestions onSuggestionsClick={setMessageToSend} />}
+        {/* Note: We only hide chat suggestions when there's a user message */}
 
         <div
           ref={scrollRef}
@@ -280,7 +311,7 @@ export function ChatInterface() {
 
           {!isSimulationMode &&
             isWaitingForUserInput &&
-            events.length > 0 &&
+            hasSubstantiveAgentActions &&
             !optimisticUserMessage && (
               <ActionSuggestions
                 onSuggestionsClick={(value) =>
@@ -292,17 +323,16 @@ export function ChatInterface() {
 
         <div className="flex flex-col gap-[6px] px-4 pb-4">
           <div className="flex justify-between relative">
-            {config?.APP_MODE !== "saas" && (
-              <TrajectoryActions
-                onPositiveFeedback={() =>
-                  onClickShareFeedbackActionButton("positive")
-                }
-                onNegativeFeedback={() =>
-                  onClickShareFeedbackActionButton("negative")
-                }
-                onExportTrajectory={() => onClickExportTrajectoryButton()}
-              />
-            )}
+            <TrajectoryActions
+              onPositiveFeedback={() =>
+                onClickShareFeedbackActionButton("positive")
+              }
+              onNegativeFeedback={() =>
+                onClickShareFeedbackActionButton("negative")
+              }
+              onExportTrajectory={() => onClickExportTrajectoryButton()}
+              isSaasMode={config?.APP_MODE === "saas"}
+            />
 
             <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0">
               {curAgentState === AgentState.RUNNING && <TypingIndicator />}

@@ -22,6 +22,7 @@ import { MdOutlineAddHomeWork } from "react-icons/md";
 import { IoDocumentTextSharp } from "react-icons/io5";
 import { FaFile } from "react-icons/fa";
 import { TbTemplate } from "react-icons/tb";
+import { MicroagentManagementButton } from "#/components/shared/buttons/microagent-management-button";
 
 export function Sidebar() {
   const location = useLocation();
@@ -48,6 +49,9 @@ export function Sidebar() {
   // TODO: Remove HIDE_LLM_SETTINGS check once released
   const shouldHideLlmSettings =
     config?.FEATURE_FLAGS.HIDE_LLM_SETTINGS && config?.APP_MODE === "saas";
+
+  const shouldHideMicroagentManagement =
+    config?.FEATURE_FLAGS.HIDE_MICROAGENT_MANAGEMENT;
 
   React.useEffect(() => {
     if (shouldHideLlmSettings) return;
@@ -149,6 +153,11 @@ export function Sidebar() {
               }
               comparision={true}
             />
+            {!shouldHideMicroagentManagement && (
+              <MicroagentManagementButton
+                disabled={settings?.EMAIL_VERIFIED === false}
+              />
+            )}
           </div>
 
           <div className="flex flex-row md:flex-col md:items-center gap-[26px] md:mb-4">

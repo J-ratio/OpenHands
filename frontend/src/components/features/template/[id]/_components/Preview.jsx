@@ -5,7 +5,10 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../../../../ui/accordion";
-import { cn, getAccordionDefaultValues } from "../../../../../utils/utils";
+import {
+  cn,
+  getAccordionDefaultValues,
+} from "../../../../../utils/basic-utils";
 import SingleCodebase from "./SingleCodebase";
 import { toast } from "sonner";
 import { syncCodebase } from "../../../../../api/data-sources";

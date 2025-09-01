@@ -13,6 +13,7 @@ export function ConnectToProviderMessage({ message }: { message?: string }) {
       <Link
         data-testid="navigate-to-settings-button"
         to="/settings/integrations"
+        className="self-start"
       >
         <BrandButton type="button" variant="primary" isDisabled={isLoading}>
           {!isLoading && t("SETTINGS$TITLE")}

@@ -18,6 +18,7 @@ from openhands.events.action import (
     FileReadAction,
     IPythonRunCellAction,
     MessageAction,
+    TaskTrackingAction,
 )
 from openhands.events.action.mcp import MCPAction
 from openhands.events.action.message import SystemMessageAction
@@ -28,9 +29,11 @@ from openhands.events.observation import (
     AgentThinkObservation,
     BrowserOutputObservation,
     CmdOutputObservation,
+    FileDownloadObservation,
     FileEditObservation,
     FileReadObservation,
     IPythonRunCellObservation,
+    TaskTrackingObservation,
     UserRejectObservation,
 )
 from openhands.events.observation.agent import (
@@ -86,7 +89,6 @@ class ConversationMemory:
             vision_is_active: Whether vision is active in the LLM. If True, image URLs will be included.
             initial_user_action: The initial user message action, if available. Used to ensure the conversation starts correctly.
         """
-
         events = condensed_history
 
         # Ensure the event list starts with SystemMessageAction, then MessageAction(source='user')
@@ -228,11 +230,27 @@ class ConversationMemory:
                 BrowseInteractiveAction,
                 BrowseURLAction,
                 MCPAction,
+                TaskTrackingAction,
             ),
         ) or (isinstance(action, CmdRunAction) and action.source == 'agent'):
             tool_metadata = action.tool_call_metadata
+
+            # Allow user actions to skip tool metadata validation
+            if action.source == 'user' and tool_metadata is None:
+                # For user-initiated actions without tool metadata, create a simple message
+                return [
+                    Message(
+                        role='user',
+                        content=[
+                            TextContent(
+                                text=f'User requested to read file: {str(action)}'
+                            )
+                        ],
+                    )
+                ]
+
             assert tool_metadata is not None, (
-                'Tool call metadata should NOT be None when function calling is enabled. Action: '
+                'Tool call metadata should NOT be None when function calling is enabled for agent actions. Action: '
                 + str(action)
             )
 
@@ -241,9 +259,6 @@ class ConversationMemory:
 
             # Add the LLM message (assistant) that initiated the tool calls
             # (overwrites any previous message with the same response_id)
-            logger.debug(
-                f'Tool calls type: {type(assistant_msg.tool_calls)}, value: {assistant_msg.tool_calls}'
-            )
             pending_tool_call_action_messages[llm_response.id] = Message(
                 role=getattr(assistant_msg, 'role', 'assistant'),
                 # tool call content SHOULD BE a string
@@ -288,7 +303,12 @@ class ConversationMemory:
             role = 'user' if action.source == 'user' else 'assistant'
             content = [TextContent(text=action.content or '')]
             if vision_is_active and action.image_urls:
-                content.append(ImageContent(image_urls=action.image_urls))
+                if role == 'user':
+                    for idx, url in enumerate(action.image_urls):
+                        content.append(TextContent(text=f'Image {idx + 1}:'))
+                        content.append(ImageContent(image_urls=[url]))
+                else:
+                    content.append(ImageContent(image_urls=action.image_urls))
             if role not in ('user', 'system', 'assistant', 'tool'):
                 raise ValueError(f'Invalid role: {role}')
             return [
@@ -339,6 +359,7 @@ class ConversationMemory:
         - AgentDelegateObservation: Formats results from delegated agent tasks
         - ErrorObservation: Formats error messages from failed actions
         - UserRejectObservation: Formats user rejection messages
+        - FileDownloadObservation: Formats the result of a browsing action that opened/downloaded a file
 
         In function calling mode, observations with tool_call_metadata are stored in
         tool_call_id_to_message for later processing instead of being returned immediately.
@@ -362,8 +383,11 @@ class ConversationMemory:
         message: Message
 
         if isinstance(obs, CmdOutputObservation):
-            # if it doesn't have tool call metadata, it was triggered by a user action
+            # Note: CmdOutputObservation content is already truncated at initialization,
+            # and the observation content should not have been modified after initialization
+            # we keep this truncation for backwards compatibility for a time
             if obs.tool_call_metadata is None:
+                # if it doesn't have tool call metadata, it was triggered by a user action
                 text = truncate_content(
                     f'\nObserved result of command executed by user:\n{obs.to_agent_observation()}',
                     max_message_chars,
@@ -388,7 +412,7 @@ class ConversationMemory:
             text = truncate_content(text, max_message_chars)
 
             # Create message content with text
-            content = [TextContent(text=text)]
+            content: list[TextContent | ImageContent] = [TextContent(text=text)]
 
             # Add image URLs if available and vision is active
             if vision_is_active and obs.image_urls:
@@ -404,7 +428,7 @@ class ConversationMemory:
                         # Add text indicating some images were filtered
                         content[
                             0
-                        ].text += f'\n\nNote: {invalid_count} invalid or empty image(s) were filtered from this output. The agent may need to use alternative methods to access visual information.'
+                        ].text += f'\n\nNote: {invalid_count} invalid or empty image(s) were filtered from this output. The agent may need to use alternative methods to access visual information.'  # type: ignore[union-attr]
                 else:
                     logger.debug(
                         'IPython observation has image URLs but none are valid'
@@ -412,7 +436,7 @@ class ConversationMemory:
                     # Add text indicating all images were filtered
                     content[
                         0
-                    ].text += f'\n\nNote: All {len(obs.image_urls)} image(s) in this output were invalid or empty and have been filtered. The agent should use alternative methods to access visual information.'
+                    ].text += f'\n\nNote: All {len(obs.image_urls)} image(s) in this output were invalid or empty and have been filtered. The agent should use alternative methods to access visual information.'  # type: ignore[union-attr]
 
             message = Message(role='user', content=content)
         elif isinstance(obs, FileEditObservation):
@@ -429,7 +453,7 @@ class ConversationMemory:
                 and enable_som_visual_browsing
                 and vision_is_active
             ):
-                text += 'Image: Current webpage screenshot (Note that only visible portion of webpage is present in the screenshot. You may need to scroll to view the remaining portion of the web-page.)\n'
+                text += 'Image: Current webpage screenshot (Note that only visible portion of webpage is present in the screenshot. However, the Accessibility tree contains information from the entire webpage.)\n'
 
                 # Determine which image to use and validate it
                 image_url = None
@@ -445,7 +469,7 @@ class ConversationMemory:
 
                 # Only add ImageContent if we have a valid image URL
                 if self._is_valid_image_url(image_url):
-                    content.append(ImageContent(image_urls=[image_url]))
+                    content.append(ImageContent(image_urls=[image_url]))  # type: ignore[list-item]
                     logger.debug(f'Vision enabled for browsing, showing {image_type}')
                 else:
                     if image_url:
@@ -455,7 +479,7 @@ class ConversationMemory:
                         # Add text indicating the image was filtered
                         content[
                             0
-                        ].text += f'\n\nNote: The {image_type} for this webpage was invalid or empty and has been filtered. The agent should use alternative methods to access visual information about the webpage.'
+                        ].text += f'\n\nNote: The {image_type} for this webpage was invalid or empty and has been filtered. The agent should use alternative methods to access visual information about the webpage.'  # type: ignore[union-attr]
                     else:
                         logger.debug(
                             'Vision enabled for browsing, but no valid image available'
@@ -463,7 +487,7 @@ class ConversationMemory:
                         # Add text indicating no image was available
                         content[
                             0
-                        ].text += '\n\nNote: No visual information (screenshot or set of marks) is available for this webpage. The agent should rely on the text content above.'
+                        ].text += '\n\nNote: No visual information (screenshot or set of marks) is available for this webpage. The agent should rely on the text content above.'  # type: ignore[union-attr]
 
                 message = Message(role='user', content=content)
             else:
@@ -481,6 +505,9 @@ class ConversationMemory:
         elif isinstance(obs, AgentThinkObservation):
             text = truncate_content(obs.content, max_message_chars)
             message = Message(role='user', content=[TextContent(text=text)])
+        elif isinstance(obs, TaskTrackingObservation):
+            text = truncate_content(obs.content, max_message_chars)
+            message = Message(role='user', content=[TextContent(text=text)])
         elif isinstance(obs, ErrorObservation):
             text = truncate_content(obs.content, max_message_chars)
             text += '\n[Error occurred in processing last action]'
@@ -490,6 +517,9 @@ class ConversationMemory:
             text += '\n[Last action has been rejected by the user]'
             message = Message(role='user', content=[TextContent(text=text)])
         elif isinstance(obs, AgentCondensationObservation):
+            text = truncate_content(obs.content, max_message_chars)
+            message = Message(role='user', content=[TextContent(text=text)])
+        elif isinstance(obs, FileDownloadObservation):
             text = truncate_content(obs.content, max_message_chars)
             message = Message(role='user', content=[TextContent(text=text)])
         elif (
@@ -502,6 +532,7 @@ class ConversationMemory:
                     repo_info = RepositoryInfo(
                         repo_name=obs.repo_name or '',
                         repo_directory=obs.repo_directory or '',
+                        branch_name=obs.repo_branch or None,
                     )
                 else:
                     repo_info = None
@@ -514,11 +545,13 @@ class ConversationMemory:
                         additional_agent_instructions=obs.additional_agent_instructions,
                         date=date,
                         custom_secrets_descriptions=obs.custom_secrets_descriptions,
+                        working_dir=obs.working_dir,
                     )
                 else:
                     runtime_info = RuntimeInfo(
                         date=date,
                         custom_secrets_descriptions=obs.custom_secrets_descriptions,
+                        working_dir=obs.working_dir,
                     )
 
                 conversation_instructions = None
@@ -555,7 +588,7 @@ class ConversationMemory:
                 has_microagent_knowledge = bool(filtered_agents)
 
                 # Generate appropriate content based on what is present
-                message_content = []
+                message_content: list[TextContent | ImageContent] = []
 
                 # Build the workspace context information
                 if (
@@ -776,7 +809,9 @@ class ConversationMemory:
                 '[ConversationMemory] No SystemMessageAction found in events. '
                 'Adding one for backward compatibility. '
             )
-            system_prompt = self.prompt_manager.get_system_message()
+            system_prompt = self.prompt_manager.get_system_message(
+                cli_mode=self.agent_config.cli_mode
+            )
             if system_prompt:
                 system_message = SystemMessageAction(content=system_prompt)
                 # Insert the system message directly at the beginning of the events list

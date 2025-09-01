@@ -70,7 +70,7 @@ describe("HomeHeader", () => {
       undefined,
       undefined,
       undefined,
-      [],
+      undefined,
       undefined,
       undefined,
       undefined,

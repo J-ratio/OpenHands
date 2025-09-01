@@ -10,13 +10,15 @@ export const DEFAULT_SETTINGS: Settings = {
   LANGUAGE: "en",
   SEARCH_API_KEY_SET: false,
   CONFIRMATION_MODE: false,
-  SECURITY_ANALYZER: "",
+  SECURITY_ANALYZER: "llm",
   REMOTE_RUNTIME_RESOURCE_FACTOR: 1,
   PROVIDER_TOKENS_SET: {},
   ENABLE_DEFAULT_CONDENSER: true,
+  CONDENSER_MAX_SIZE: 120,
   ENABLE_SOUND_NOTIFICATIONS: false,
   USER_CONSENTS_TO_ANALYTICS: false,
   ENABLE_PROACTIVE_CONVERSATION_STARTERS: false,
+  ENABLE_SOLVABILITY_ANALYSIS: false,
   SEARCH_API_KEY: "",
   IS_NEW_USER: true,
   MAX_BUDGET_PER_TASK: null,
@@ -25,8 +27,11 @@ export const DEFAULT_SETTINGS: Settings = {
   MCP_CONFIG: {
     sse_servers: [],
     stdio_servers: [],
+    shttp_servers: [],
   },
   ACTIVE_WORKSPACE_ID: undefined,
+  GIT_USER_NAME: "h2loop",
+  GIT_USER_EMAIL: "h2loop@h2loop.ai",
 };
 
 /**
