@@ -1,4 +1,4 @@
-"""Centralized command line argument configuration for OpenHands CLI and headless modes."""
+"""Centralized command line argument configuration for H2Loop CLI and headless modes."""
 
 import argparse
 from argparse import ArgumentParser, _SubParsersAction
@@ -146,31 +146,31 @@ def get_cli_parser() -> argparse.ArgumentParser:
     """Create argument parser for CLI mode with simplified argument set."""
     # Create a description with welcome message explaining available commands
     description = (
-        'Welcome to OpenHands: Code Less, Make More\n\n'
-        'OpenHands supports two main commands:\n'
-        '  serve - Launch the OpenHands GUI server (web interface)\n'
-        '  cli   - Run OpenHands in CLI mode (terminal interface)\n\n'
-        'Running "openhands" without a command is the same as "openhands cli"'
+        'Welcome to H2Loop: Code Less, Make More\n\n'
+        'H2Loop supports two main commands:\n'
+        '  serve - Launch the H2Loop GUI server (web interface)\n'
+        '  cli   - Run H2Loop in CLI mode (terminal interface)\n\n'
+        'Running "h2loop" without a command is the same as "h2loop cli"'
     )
 
     parser = argparse.ArgumentParser(
         description=description,
-        prog='openhands',
+        prog='h2loop',
         formatter_class=argparse.RawDescriptionHelpFormatter,  # Preserve formatting in description
-        epilog='For more information about a command, run: openhands COMMAND --help',
+        epilog='For more information about a command, run: h2loop COMMAND --help',
     )
 
     # Create subparsers
     subparsers = parser.add_subparsers(
         dest='command',
         title='commands',
-        description='OpenHands supports two main commands:',
+        description='H2Loop supports two main commands:',
         metavar='COMMAND',
     )
 
     # Add 'serve' subcommand
     serve_parser = subparsers.add_parser(
-        'serve', help='Launch the OpenHands GUI server using Docker (web interface)'
+        'serve', help='Launch the H2Loop GUI server using Docker (web interface)'
     )
     serve_parser.add_argument(
         '--mount-cwd',
@@ -187,7 +187,7 @@ def get_cli_parser() -> argparse.ArgumentParser:
 
     # Add 'cli' subcommand - import all the existing CLI arguments
     cli_parser = subparsers.add_parser(
-        'cli', help='Run OpenHands in CLI mode (terminal interface)'
+        'cli', help='Run H2Loop in CLI mode (terminal interface)'
     )
     add_common_arguments(cli_parser)
 
@@ -223,7 +223,7 @@ def get_headless_parser() -> argparse.ArgumentParser:
 
 def get_evaluation_parser() -> argparse.ArgumentParser:
     """Create argument parser for evaluation mode."""
-    parser = argparse.ArgumentParser(description='Run OpenHands in evaluation mode')
+    parser = argparse.ArgumentParser(description='Run H2Loop in evaluation mode')
     add_common_arguments(parser)
     add_headless_specific_arguments(parser)
     add_evaluation_arguments(parser)
