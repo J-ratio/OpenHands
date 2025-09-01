@@ -132,6 +132,7 @@ async def run_session(
     session_name: str | None = None,
     skip_banner: bool = False,
     conversation_id: str | None = None,
+    non_interactive: bool = False,
 ) -> bool:
     reload_microagents = False
     new_session_requested = False
@@ -233,6 +234,10 @@ async def run_session(
                 if is_paused.is_set():
                     return
 
+                # In non-interactive mode, exit when awaiting user input or finished
+                if non_interactive:
+                    return
+
                 # Reload microagents after initialization of repo.md
                 if reload_microagents:
                     microagents: list[BaseMicroagent] = (
@@ -248,7 +253,7 @@ async def run_session(
                 if is_paused.is_set():
                     return
 
-                if always_confirm_mode:
+                if always_confirm_mode or non_interactive:
                     event_stream.add_event(
                         ChangeAgentStateAction(AgentState.USER_CONFIRMED),
                         EventSource.USER,
@@ -303,8 +308,10 @@ async def run_session(
                 await prompt_for_next_task(event.agent_state)
 
             if event.agent_state == AgentState.RUNNING:
-                display_agent_running_message()
-                start_pause_listener(loop, is_paused, event_stream)
+                if not non_interactive:
+                    display_agent_running_message()
+                if not non_interactive:
+                    start_pause_listener(loop, is_paused, event_stream)
 
     def on_event(event: Event) -> None:
         loop.create_task(on_event_async(event))
@@ -359,7 +366,7 @@ async def run_session(
     clear()
 
     # Show H2Loop banner and session ID if not skipped
-    if not skip_banner:
+    if not skip_banner and not non_interactive:
         display_banner(session_id=sid)
 
     welcome_message = ''
@@ -417,15 +424,17 @@ async def run_session(
             welcome_message += '\nLoading previous conversation.'
 
     # Show H2Loop welcome
-    display_welcome_message(welcome_message)
+    if not non_interactive:
+        display_welcome_message(welcome_message)
 
     # The prompt_for_next_task will be triggered if the agent enters AWAITING_USER_INPUT.
     # If the restored state is already AWAITING_USER_INPUT, on_event_async will handle it.
 
     if initial_message:
-        display_initial_user_prompt(initial_message)
+        if not non_interactive:
+            display_initial_user_prompt(initial_message)
         event_stream.add_event(MessageAction(content=initial_message), EventSource.USER)
-    else:
+    elif not non_interactive:
         # No session restored, no initial action: prompt for the user's first message
         asyncio.create_task(prompt_for_next_task(''))
 
@@ -730,6 +739,9 @@ After reviewing the file, please ask the user what they would like to do with it
     else:
         task_str = read_task(args, config.cli_multiline_input)
 
+    # Determine if non-interactive mode
+    non_interactive = hasattr(args, 'prompt') and args.prompt is not None
+
     # Setup the runtime
     get_runtime_cls(config.runtime).setup(config)
 
@@ -743,12 +755,18 @@ After reviewing the file, please ask the user what they would like to do with it
         session_name=args.name,
         skip_banner=banner_shown,
         conversation_id=args.conversation,
+        non_interactive=non_interactive,
     )
 
     # If a new session was requested, run it
     while new_session_requested:
         new_session_requested = await run_session(
-            loop, config, settings_store, current_dir, None
+            loop,
+            config,
+            settings_store,
+            current_dir,
+            None,
+            non_interactive=non_interactive,
         )
 
     # Teardown the runtime
@@ -757,12 +775,19 @@ After reviewing the file, please ask the user what they would like to do with it
 
 def run_cli_command(args):
     """Run the CLI command with proper error handling and cleanup."""
+    non_interactive = hasattr(args, 'prompt') and args.prompt is not None
+
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
         loop.run_until_complete(main_with_loop(loop, args))
     except KeyboardInterrupt:
-        print_formatted_text('⚠️ Session was interrupted: interrupted\n')
+        if non_interactive:
+            # In non-interactive mode, exit immediately on Ctrl+C
+            print_formatted_text('\n⚠️ Session interrupted by user\n')
+            sys.exit(1)
+        else:
+            print_formatted_text('⚠️ Session was interrupted: interrupted\n')
     except ConnectionRefusedError as e:
         print_formatted_text(f'Connection refused: {e}')
         sys.exit(1)

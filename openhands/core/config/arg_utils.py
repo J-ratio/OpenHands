@@ -197,6 +197,12 @@ def get_cli_parser() -> argparse.ArgumentParser:
         type=bool,
         default=False,
     )
+    cli_parser.add_argument(
+        '-p',
+        '--prompt',
+        type=str,
+        help='Non-interactive mode: provide a prompt and exit after response',
+    )
     parser.add_argument(
         '--conversation',
         help='The conversation id to continue',
