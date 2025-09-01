@@ -24,11 +24,12 @@ export const parseMessageFromEvent = (
   ) {
     return m;
   }
+
   const delimiter = !uploadedFilesNotPresent
     ? i18n.t("CHAT_INTERFACE$AUGMENTED_PROMPT_FILES_TITLE")
-    : !attachedCodeblocksNotPresent
-      ? "Here are the attached codeblocks:"
-      : "Here are the relevant chunks from the workspace files:";
+    : !attachedFilesNotPresent || !attachedCodeblocksNotPresent
+      ? "Please use following data chunks from attached files to inform your answer: "
+      : "";
   const parts = m.split(delimiter);
 
   return parts[0];

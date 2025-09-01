@@ -1,9 +1,9 @@
 import clsx from "clsx";
-import React, { useRef, useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { NavTab } from "./nav-tab";
-import { ScrollLeftButton } from "./scroll-left-button";
-import { ScrollRightButton } from "./scroll-right-button";
-import { useTrackElementWidth } from "#/hooks/use-track-element-width";
+import { ChevronDownIcon } from "lucide-react";
+import { useNavigate } from "react-router";
+import { useConversationId } from "#/hooks/use-conversation-id";
 
 interface ContainerProps {
   label?: React.ReactNode;
@@ -25,77 +25,52 @@ export function Container({
   children,
   className,
 }: ContainerProps) {
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
-  const [showScrollButtons, setShowScrollButtons] = useState(false);
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [showOthersDropdown, setShowOthersDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const { conversationId } = useConversationId();
+  const navigate = useNavigate();
 
-  // Check scroll position and update button states
-  const updateScrollButtons = () => {
-    if (scrollContainerRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } =
-        scrollContainerRef.current;
-      setCanScrollLeft(scrollLeft > 0);
-      setCanScrollRight(scrollLeft < scrollWidth - clientWidth);
-    }
-  };
-
-  // Track container width using ResizeObserver
-  useTrackElementWidth({
-    elementRef: containerRef,
-    callback: (width: number) => {
-      // Only update scroll button visibility when crossing the threshold
-      const shouldShowScrollButtons =
-        width < 598 && Boolean(labels) && labels!.length > 0;
-      if (shouldShowScrollButtons) {
-        setShowScrollButtons(shouldShowScrollButtons);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        showOthersDropdown &&
+        !dropdownRef.current?.contains(event.target as Node)
+      ) {
+        setShowOthersDropdown(false);
       }
-      updateScrollButtons();
-    },
-  });
+    };
 
-  // Scroll functions
-  const scrollLeft = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -200, behavior: "smooth" });
-    }
-  };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showOthersDropdown]);
 
-  const scrollRight = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 200, behavior: "smooth" });
-    }
+  const handleMermaidVisualizerMenuClick = () => {
+    const baseMermaidPath = `/conversations/${conversationId}/mermaid`;
+    const isAlreadyOnMermaid = location.pathname === baseMermaidPath;
+
+    if (isAlreadyOnMermaid) return;
+
+    navigate(baseMermaidPath, {
+      replace: isAlreadyOnMermaid,
+      state: {
+        mermaidCode: "",
+      },
+    });
   };
 
   return (
     <div
-      ref={containerRef}
       className={clsx(
         "bg-base-secondary border border-neutral-600 rounded-xl flex flex-col h-full w-full",
         className,
       )}
     >
       {labels && (
-        <div className="relative flex items-center h-[36px] w-full">
-          {/* Left scroll button */}
-          {showScrollButtons && (
-            <ScrollLeftButton
-              scrollLeft={scrollLeft}
-              canScrollLeft={canScrollLeft}
-            />
-          )}
-
-          {/* Scrollable tabs container */}
-          <div
-            ref={scrollContainerRef}
-            className={clsx(
-              "flex text-xs overflow-x-auto scrollbar-hide w-full",
-              showScrollButtons && "mx-8",
-            )}
-            onScroll={updateScrollButtons}
-          >
-            {labels.map(
+        <div className="flex text-xs h-[36px] items-center">
+          {...[
+            labels.map(
               ({ label: l, to, icon, isBeta, isLoading, rightContent }) => (
                 <NavTab
                   key={to}
@@ -107,16 +82,41 @@ export function Container({
                   rightContent={rightContent}
                 />
               ),
-            )}
-          </div>
+            ),
+            <div
+              key="mermaid-dropdown"
+              className="relative"
+              ref={dropdownRef}
+              data-dropdown="mermaid"
+            >
+              <button
+                onClick={() => setShowOthersDropdown(!showOthersDropdown)}
+                className="flex items-center px-3 py-2 text-neutral-300 hover:text-neutral-100 hover:bg-neutral-700 rounded-md transition-colors"
+              >
+                <span>Others</span>
+                <ChevronDownIcon className="w-4 h-4 ml-1" />
+              </button>
 
-          {/* Right scroll button */}
-          {showScrollButtons && (
-            <ScrollRightButton
-              scrollRight={scrollRight}
-              canScrollRight={canScrollRight}
-            />
-          )}
+              {showOthersDropdown && (
+                <div className="absolute top-full right-0 mt-1 min-w-48 bg-neutral-800 border border-neutral-600 rounded-md shadow-lg overflow-hidden z-50">
+                  <div className="text-neutral-200 px-4 py-2 bg-neutral-700 font-semibold">
+                    <span>Other Options</span>
+                  </div>
+                  <div className="max-h-60 overflow-y-auto">
+                    <div
+                      className="text-neutral-200 hover:bg-neutral-700 hover:text-neutral-100 px-4 py-2 cursor-pointer flex items-center"
+                      onClick={() => {
+                        setShowOthersDropdown(false);
+                        handleMermaidVisualizerMenuClick();
+                      }}
+                    >
+                      <span className="truncate">Mermaid Visualizer</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>,
+          ]}
         </div>
       )}
       {!labels && label && (
