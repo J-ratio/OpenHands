@@ -23,6 +23,7 @@ export const MAP_PROVIDER = {
   replicate: "Replicate",
   voyage: "Voyage AI",
   openrouter: "OpenRouter",
+  openhands: "OpenHands",
 };
 
 export const mapProvider = (provider: string) =>
@@ -46,3 +47,10 @@ export function composeRepoUrl(provider: string, fullName: string): string {
   }
   return "";
 }
+
+export const getProviderId = (displayName: string): string => {
+  const entry = Object.entries(MAP_PROVIDER).find(
+    ([, value]) => value === displayName,
+  );
+  return entry ? entry[0] : displayName;
+};

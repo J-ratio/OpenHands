@@ -17,7 +17,7 @@ export interface UserMessageAction extends OpenHandsActionEvent<"message"> {
 }
 
 export interface SystemMessageAction extends OpenHandsActionEvent<"system"> {
-  source: "agent";
+  source: "agent" | "environment";
   args: {
     content: string;
     tools: Array<Record<string, unknown>> | null;
@@ -72,7 +72,6 @@ export interface FinishAction extends OpenHandsActionEvent<"finish"> {
   source: "agent";
   args: {
     final_thought: string;
-    task_completed: "success" | "failure" | "partial";
     outputs: Record<string, unknown>;
     thought: string;
   };
@@ -171,6 +170,21 @@ export interface MCPAction extends OpenHandsActionEvent<"call_tool_mcp"> {
   };
 }
 
+export interface TaskTrackingAction
+  extends OpenHandsActionEvent<"task_tracking"> {
+  source: "agent";
+  args: {
+    command: string;
+    task_list: Array<{
+      id: string;
+      title: string;
+      status: "todo" | "in_progress" | "done";
+      notes?: string;
+    }>;
+    thought: string;
+  };
+}
+
 export type OpenHandsAction =
   | UserMessageAction
   | AssistantMessageAction
@@ -187,4 +201,5 @@ export type OpenHandsAction =
   | FileWriteAction
   | RejectAction
   | RecallAction
-  | MCPAction;
+  | MCPAction
+  | TaskTrackingAction;

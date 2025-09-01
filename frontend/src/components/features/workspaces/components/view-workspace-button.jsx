@@ -13,7 +13,7 @@ import {
 } from "../../../ui/dialog";
 import DocumentationTab from "./tabs/documentation-tab";
 import DataSourcesTab from "./tabs/data-sources-tab";
-import { getTabs } from "../../../../utils/utils";
+import { getTabs } from "../../../../utils/basic-utils";
 
 const ViewWorkspaceButton = ({
   workspace,

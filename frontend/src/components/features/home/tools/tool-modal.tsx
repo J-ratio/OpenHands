@@ -13,6 +13,7 @@ import { useWorkspace } from "#/context/WorkspaceContext";
 import { RepositorySelectionForm } from "../repo-selection-form";
 import { dataSourceToGitRepository } from "#/utils/utils.ts";
 import GenerateInterfaceDocForm from "./generate-interface-documentation-form";
+import { GitRepository } from "#/types/git";
 import FileUpload from "../../templates/_components/FileUpload";
 
 const DialogContent = RawDialogContent as React.FC<
@@ -39,9 +40,9 @@ export function ToolModal({
   linkedRepoRequired,
 }: ToolModalProps) {
   const { linkedRepo } = useWorkspace();
-  const [selectedRepoTitle, setSelectedRepoTitle] = React.useState<
-    string | null
-  >(linkedRepo?.name ?? "");
+  const [selectedRepo, setSelectedRepo] = React.useState<GitRepository | null>(
+    linkedRepo ? dataSourceToGitRepository(linkedRepo) : null,
+  );
   const [selectedBranchName, setSelectedBranchName] = React.useState<
     string | null
   >(null);
@@ -62,9 +63,15 @@ export function ToolModal({
       case "GENERATE_CLASS_DIAGRAM":
         if (linkedRepo) {
           createConversation({
-            selectedRepository: dataSourceToGitRepository(linkedRepo),
-            selected_branch: selectedBranchName ?? "main",
-            q: `/class_diagram CLASS_NAME="${className}" BRANCH_NAME="${selectedBranchName ?? "main"}"`,
+            // selectedRepository: dataSourceToGitRepository(linkedRepo),
+            // selected_branch: selectedBranchName ?? "main",
+            // q: `/class_diagram CLASS_NAME="${className}" BRANCH_NAME="${selectedBranchName ?? "main"}"`,
+            repository: {
+              gitProvider: dataSourceToGitRepository(linkedRepo).git_provider,
+              name: linkedRepo.name ?? "",
+              branch: selectedBranchName ?? "main",
+            },
+            query: `/class_diagram CLASS_NAME="${className}" BRANCH_NAME="${selectedBranchName ?? "main"}"`,
           });
         }
         break;
@@ -72,9 +79,15 @@ export function ToolModal({
       case "GENERATE_ARCHITECTURE_DIAGRAM":
         if (linkedRepo) {
           createConversation({
-            selectedRepository: dataSourceToGitRepository(linkedRepo),
-            selected_branch: selectedBranchName ?? "main",
-            q: `/architecture_diagram BRANCH_NAME="${selectedBranchName ?? "main"}"`,
+            // selectedRepository: dataSourceToGitRepository(linkedRepo),
+            // selected_branch: selectedBranchName ?? "main",
+            // q: `/architecture_diagram BRANCH_NAME="${selectedBranchName ?? "main"}"`,
+            repository: {
+              gitProvider: dataSourceToGitRepository(linkedRepo).git_provider,
+              name: linkedRepo.name ?? "",
+              branch: selectedBranchName ?? "main",
+            },
+            query: `/architecture_diagram BRANCH_NAME="${selectedBranchName ?? "main"}"`,
           });
         }
         break;
@@ -201,7 +214,7 @@ export function ToolModal({
               <>
                 <div className="flex flex-col items-center w-full max-w-md mx-auto mt-4 gap-8">
                   <RepositorySelectionForm
-                    onRepoSelection={setSelectedRepoTitle}
+                    onRepoSelection={setSelectedRepo}
                     onBranchSelection={setSelectedBranchName}
                     displayLaunchButton={false}
                     displayLinkUnlinkButton={false}
@@ -233,7 +246,7 @@ export function ToolModal({
                     isDisabled={
                       !linkedRepo ||
                       !selectedBranchName ||
-                      !selectedRepoTitle ||
+                      !selectedRepo ||
                       isCreatingConversation ||
                       (id === "GENERATE_CLASS_DIAGRAM" && !className.trim())
                     }

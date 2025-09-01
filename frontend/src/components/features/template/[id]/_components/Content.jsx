@@ -30,7 +30,7 @@ import {
   normalizeAIChatBlocks,
   getTheMarkdownContentForEditor,
   updateCustomBlocks,
-} from "../../../../../utils/utils";
+} from "../../../../../utils/basic-utils";
 import { DocumentIdContext } from "../../use-document-id";
 
 const LAST_UPDATED_AT_BE_PREFIX = "lastUpdatedAtBE-doc-";

@@ -4,7 +4,7 @@ import { Input } from "../../../ui/input";
 import { Switch } from "../../../ui/switch";
 import { Tooltip, TooltipProvider } from "../../../ui/tooltip";
 import { createADatasource } from "../../../../api/data-sources";
-import { checkGithubRepositoryURl } from "../../../../utils/utils";
+import { checkGithubRepositoryURl } from "../../../../utils/basic-utils";
 import { ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
