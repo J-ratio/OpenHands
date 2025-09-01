@@ -9,14 +9,16 @@ import { TaskSuggestions } from "#/components/features/home/tasks/task-suggestio
 import { useUserProviders } from "#/hooks/use-user-providers";
 import { ToolsSection } from "#/components/features/home/tools/tool-section";
 import { useWorkspace } from "#/context/WorkspaceContext";
+import { GitRepository } from "#/types/git";
 
 <PrefetchPageLinks page="/conversations/:conversationId" />;
 
 function HomeScreen() {
   const { providers } = useUserProviders();
-  const [selectedRepoTitle, setSelectedRepoTitle] = React.useState<
-    string | null
-  >(null);
+  const [selectedRepo, setSelectedRepo] = React.useState<GitRepository | null>(
+    null,
+  );
+
   const { linkedRepo } = useWorkspace();
 
   const providersAreSet = providers.length > 0;
@@ -30,9 +32,9 @@ function HomeScreen() {
 
       <hr className="border-[#717888]" />
 
-      <main className="flex flex-col md:flex-row justify-between gap-8">
+      <main className="flex flex-col lg:flex-row justify-between gap-8">
         <RepoConnector
-          onRepoSelection={(title) => setSelectedRepoTitle(title)}
+          onRepoSelection={(repo) => setSelectedRepo(repo)}
           onBranchSelection={(_) => {}}
           heading={
             linkedRepo
@@ -41,7 +43,7 @@ function HomeScreen() {
           }
         />
         <hr className="md:hidden border-[#717888]" />
-        {providersAreSet && <TaskSuggestions filterFor={selectedRepoTitle} />}
+        {providersAreSet && <TaskSuggestions filterFor={selectedRepo} />}
       </main>
       <ToolsSection />
     </div>

@@ -7,7 +7,7 @@ export const useUserConversations = (pageId?: string) => {
 
   return useQuery({
     queryKey: ["user", "conversations"],
-    queryFn: () => OpenHands.getUserConversations(pageId),
+    queryFn: () => OpenHands.getUserConversations(20, pageId),
     enabled: !!userIsAuthenticated,
   });
 };

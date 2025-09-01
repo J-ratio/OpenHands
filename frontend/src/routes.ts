@@ -50,5 +50,9 @@ export default [
   layout("routes/auth-layout.tsx", [
     route("/register", "routes/register.tsx"),
     route("/login", "routes/login.tsx"),
+    
+    route("status/", "routes/api-status-page.jsx"),
+    
+    route("microagent-management", "routes/microagent-management.tsx"),
   ]),
 ] satisfies RouteConfig;

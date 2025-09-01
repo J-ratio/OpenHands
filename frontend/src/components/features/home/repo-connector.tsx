@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { FaInfoCircle } from "react-icons/fa";
 import { ConnectToProviderMessage } from "./connect-to-provider-message";
 import { RepositorySelectionForm } from "./repo-selection-form";
 import { useConfig } from "#/hooks/query/use-config";
@@ -11,6 +12,8 @@ import NewCodebaseInput from "../workspaces/components/new-codebase-input";
 import { BrandButton } from "../settings/brand-button";
 import { toast } from "sonner";
 import { dataSourceToGitRepository } from "#/utils/utils.ts";
+import { GitRepository } from "#/types/git";
+import { TooltipButton } from "#/components/shared/buttons/tooltip-button";
 
 export interface DataSource {
   name: string | undefined;
@@ -25,7 +28,7 @@ export interface DataSource {
 }
 
 interface RepoConnectorProps {
-  onRepoSelection: (repoTitle: string | null) => void;
+  onRepoSelection: (repo: GitRepository | null) => void;
   onBranchSelection: (branchName: string | null) => void;
   displayLaunchButton?: boolean;
   heading?: string;
@@ -67,7 +70,21 @@ export function RepoConnector({
       data-testid="repo-connector"
       className="w-full flex flex-col gap-6"
     >
-      <h2 className="heading">{heading ?? t("HOME$CONNECT_TO_REPOSITORY")}</h2>
+      <div className="flex items-center gap-2">
+        <h2 className="heading">
+          {heading ?? t("HOME$CONNECT_TO_REPOSITORY")}
+        </h2>
+        <TooltipButton
+          testId="repo-connector-info"
+          tooltip={t("HOME$CONNECT_TO_REPOSITORY_TOOLTIP")}
+          ariaLabel={t("HOME$CONNECT_TO_REPOSITORY_TOOLTIP")}
+          className="text-[#9099AC] hover:text-white"
+          placement="bottom"
+          tooltipClassName="max-w-[348px]"
+        >
+          <FaInfoCircle size={16} />
+        </TooltipButton>
+      </div>
 
       {/* Tab Bar */}
       {!linkedRepo && (

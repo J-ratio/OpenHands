@@ -22,5 +22,5 @@ export function useDocumentTitleFromState(suffix = "H2Loop") {
     return () => {
       document.title = suffix;
     };
-  }, [conversation, suffix]);
+  }, [conversation?.title, suffix]);
 }

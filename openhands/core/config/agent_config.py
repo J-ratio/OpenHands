@@ -1,14 +1,19 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from openhands.core.config.condenser_config import CondenserConfig, NoOpCondenserConfig
+from openhands.core.config.condenser_config import (
+    CondenserConfig,
+    ConversationWindowCondenserConfig,
+)
 from openhands.core.config.extended_config import ExtendedConfig
 from openhands.core.logger import openhands_logger as logger
 from openhands.utils.import_utils import get_impl
 
 
 class AgentConfig(BaseModel):
+    cli_mode: bool = Field(default=False)
+    """Whether the agent is running in CLI mode. This can be used to disable certain tools that are not supported in CLI mode."""
     llm_config: str | None = Field(default=None)
     """The name of the llm config to use. If specified, this will override global llm config."""
     classpath: str | None = Field(default=None)
@@ -31,6 +36,8 @@ class AgentConfig(BaseModel):
     """Whether to enable think tool"""
     enable_finish: bool = Field(default=True)
     """Whether to enable finish tool"""
+    enable_condensation_request: bool = Field(default=False)
+    """Whether to enable condensation request tool"""
     enable_prompt_extensions: bool = Field(default=True)
     """Whether to enable prompt extensions"""
     enable_mcp: bool = Field(default=True)
@@ -41,18 +48,34 @@ class AgentConfig(BaseModel):
     """Whether history should be truncated to continue the session when hitting LLM context length limit."""
     enable_som_visual_browsing: bool = Field(default=True)
     """Whether to enable SoM (Set of Marks) visual browsing."""
+    enable_plan_mode: bool = Field(default=True)
+    """Whether to enable plan mode, which uses the long horizon system message and add the new tool - task_tracker - for planning, tracking and executing complex tasks."""
     condenser: CondenserConfig = Field(
-        default_factory=lambda: NoOpCondenserConfig(type='noop')
+        # The default condenser is set to the conversation window condenser -- if
+        # we use NoOp and the conversation hits the LLM context length limit,
+        # the agent will generate a condensation request which will never be
+        # handled.
+        default_factory=lambda: ConversationWindowCondenserConfig()
     )
     extended: ExtendedConfig = Field(default_factory=lambda: ExtendedConfig({}))
     """Extended configuration for the agent."""
 
-    model_config = {'extra': 'forbid'}
+    model_config = ConfigDict(extra='forbid')
+
+    @property
+    def resolved_system_prompt_filename(self) -> str:
+        """
+        Returns the appropriate system prompt filename based on the agent configuration.
+        When enable_plan_mode is True, automatically uses the long horizon system prompt
+        unless a custom system_prompt_filename was explicitly set (not the default).
+        """
+        if self.enable_plan_mode and self.system_prompt_filename == 'system_prompt.j2':
+            return 'system_prompt_long_horizon.j2'
+        return self.system_prompt_filename
 
     @classmethod
     def from_toml_section(cls, data: dict) -> dict[str, AgentConfig]:
-        """
-        Create a mapping of AgentConfig instances from a toml dictionary representing the [agent] section.
+        """Create a mapping of AgentConfig instances from a toml dictionary representing the [agent] section.
 
         The default configuration is built from all non-dict keys in data.
         Then, each key with a dict value is treated as a custom agent configuration, and its values override
@@ -70,7 +93,6 @@ class AgentConfig(BaseModel):
             dict[str, AgentConfig]: A mapping where the key "agent" corresponds to the default configuration
             and additional keys represent custom configurations.
         """
-
         # Initialize the result mapping
         agent_mapping: dict[str, AgentConfig] = {}
 

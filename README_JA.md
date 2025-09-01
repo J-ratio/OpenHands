@@ -10,7 +10,7 @@
   <a href="https://github.com/All-Hands-AI/OpenHands/stargazers"><img src="https://img.shields.io/github/stars/All-Hands-AI/OpenHands?style=for-the-badge&color=blue" alt="Stargazers"></a>
   <a href="https://github.com/All-Hands-AI/OpenHands/blob/main/LICENSE"><img src="https://img.shields.io/github/license/All-Hands-AI/OpenHands?style=for-the-badge&color=blue" alt="MIT License"></a>
   <br/>
-  <a href="https://join.slack.com/t/openhands-ai/shared_invite/zt-34zm4j0gj-Qz5kRHoca8DFCbqXPS~f_A"><img src="https://img.shields.io/badge/Slack-Join%20Us-red?logo=slack&logoColor=white&style=for-the-badge" alt="Slackコミュニティに参加"></a>
+  <a href="https://join.slack.com/t/openhands-ai/shared_invite/zt-3847of6xi-xuYJIPa6YIPg4ElbDWbtSA"><img src="https://img.shields.io/badge/Slack-Join%20Us-red?logo=slack&logoColor=white&style=for-the-badge" alt="Slackコミュニティに参加"></a>
   <a href="https://discord.gg/ESHStjSjD4"><img src="https://img.shields.io/badge/Discord-Join%20Us-purple?logo=discord&logoColor=white&style=for-the-badge" alt="Discordコミュニティに参加"></a>
   <a href="https://github.com/All-Hands-AI/OpenHands/blob/main/CREDITS.md"><img src="https://img.shields.io/badge/Project-Credits-blue?style=for-the-badge&color=FFE165&logo=github&logoColor=white" alt="クレジット"></a>
   <br/>
@@ -42,17 +42,17 @@ OpenHandsはDockerを利用してローカル環境でも実行できます。�
 > 公共ネットワークで実行していますか？[Hardened Docker Installation Guide](https://docs.all-hands.dev/usage/runtimes/docker#hardened-docker-installation)を参照して、ネットワークバインディングの制限や追加のセキュリティ対策を実施してください。
 
 ```bash
-docker pull docker.all-hands.dev/all-hands-ai/runtime:0.45-nikolaik
+docker pull docker.all-hands.dev/all-hands-ai/runtime:0.54-nikolaik
 
 docker run -it --rm --pull=always \
-    -e SANDBOX_RUNTIME_CONTAINER_IMAGE=docker.all-hands.dev/all-hands-ai/runtime:0.45-nikolaik \
+    -e SANDBOX_RUNTIME_CONTAINER_IMAGE=docker.all-hands.dev/all-hands-ai/runtime:0.54-nikolaik \
     -e LOG_ALL_EVENTS=true \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v ~/.openhands:/.openhands \
     -p 3000:3000 \
     --add-host host.docker.internal:host-gateway \
     --name openhands-app \
-    docker.all-hands.dev/all-hands-ai/openhands:0.45
+    docker.all-hands.dev/all-hands-ai/openhands:0.54
 ```
 
 **注**: バージョン0.44以前のOpenHandsを使用していた場合は、会話履歴を移行するために `mv ~/.openhands-state ~/.openhands` を実行してください。

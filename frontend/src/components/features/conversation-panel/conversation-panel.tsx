@@ -3,9 +3,12 @@ import { NavLink, useParams, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { I18nKey } from "#/i18n/declaration";
 import { ConversationCard } from "./conversation-card";
-import { useUserConversations } from "#/hooks/query/use-user-conversations";
+import { usePaginatedConversations } from "#/hooks/query/use-paginated-conversations";
+import { useInfiniteScroll } from "#/hooks/use-infinite-scroll";
 import { useDeleteConversation } from "#/hooks/mutation/use-delete-conversation";
+import { useStopConversation } from "#/hooks/mutation/use-stop-conversation";
 import { ConfirmDeleteModal } from "./confirm-delete-modal";
+import { ConfirmStopModal } from "./confirm-stop-modal";
 import { LoadingSpinner } from "#/components/shared/loading-spinner";
 import { ExitConversationModal } from "./exit-conversation-modal";
 import { useClickOutsideElement } from "#/hooks/use-click-outside-element";
@@ -15,6 +18,9 @@ import { useCreateConversation } from "#/hooks/mutation/use-create-conversation"
 import OpenHands from "#/api/open-hands";
 import { displayErrorToast } from "#/utils/custom-toast-handlers";
 import { useSimulationMode } from "#/fake_scripts/simulation_context";
+import { Provider } from "#/types/settings";
+import { useUpdateConversation } from "#/hooks/mutation/use-update-conversation";
+import { displaySuccessToast } from "#/utils/custom-toast-handlers";
 
 interface ConversationPanelProps {
   onClose: () => void;
@@ -29,6 +35,8 @@ export function ConversationPanel({ onClose }: ConversationPanelProps) {
 
   const [confirmDeleteModalVisible, setConfirmDeleteModalVisible] =
     React.useState(false);
+  const [confirmStopModalVisible, setConfirmStopModalVisible] =
+    React.useState(false);
   const [
     confirmExitConversationModalVisible,
     setConfirmExitConversationModalVisible,
@@ -36,29 +44,60 @@ export function ConversationPanel({ onClose }: ConversationPanelProps) {
   const [selectedConversationId, setSelectedConversationId] = React.useState<
     string | null
   >(null);
+  const [openContextMenuId, setOpenContextMenuId] = React.useState<
+    string | null
+  >(null);
 
-  const [conversations, setConversations] = React.useState<any[]>([]);
-  const [nextPageId, setNextPageId] = React.useState<string | null>(null);
-  const [isLoadingMore, setIsLoadingMore] = React.useState(false);
+  const {
+    data,
+    isFetching,
+    error,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = usePaginatedConversations();
 
-  const { mutate: createConversation } = useCreateConversation();
-  const { data, isFetching, error, isFetchedAfterMount } =
-    useUserConversations();
+  // Flatten all pages into a single array of conversations
+  const conversations = data?.pages.flatMap((page) => page.results) ?? [];
 
   const { mutate: deleteConversation } = useDeleteConversation();
+  const { mutate: stopConversation } = useStopConversation();
+  const { mutate: updateConversation } = useUpdateConversation();
+
+  const { mutate: createConversation } = useCreateConversation();
+
+  // Set up infinite scroll
+  const scrollContainerRef = useInfiniteScroll({
+    hasNextPage: !!hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    threshold: 200, // Load more when 200px from bottom
+  });
 
   const { isSimulationMode, disableSimulation } = useSimulationMode();
-
-  React.useEffect(() => {
-    if (data?.results) {
-      setConversations(data.results);
-      setNextPageId(data.next_page_id);
-    }
-  }, [data]);
 
   const handleDeleteProject = (conversationId: string) => {
     setConfirmDeleteModalVisible(true);
     setSelectedConversationId(conversationId);
+  };
+
+  const handleStopConversation = (conversationId: string) => {
+    setConfirmStopModalVisible(true);
+    setSelectedConversationId(conversationId);
+  };
+
+  const handleConversationTitleChange = async (
+    conversationId: string,
+    newTitle: string,
+  ) => {
+    updateConversation(
+      { conversationId, newTitle },
+      {
+        onSuccess: () => {
+          displaySuccessToast(t(I18nKey.CONVERSATION$TITLE_UPDATED));
+        },
+      },
+    );
   };
 
   const handleConfirmDelete = () => {
@@ -76,26 +115,29 @@ export function ConversationPanel({ onClose }: ConversationPanelProps) {
     }
   };
 
-  const handleLoadMore = async () => {
-    if (!nextPageId || isLoadingMore) return;
-
-    setIsLoadingMore(true);
-    try {
-      const response = await OpenHands.getUserConversations(nextPageId);
-
-      setConversations((prev) => [...prev, ...response.results]);
-      setNextPageId(response.next_page_id);
-    } catch (error) {
-      console.error("Failed to load more conversations:", error);
-      displayErrorToast("Failed to load more conversations");
-    } finally {
-      setIsLoadingMore(false);
+  const handleConfirmStop = () => {
+    if (selectedConversationId) {
+      stopConversation(
+        { conversationId: selectedConversationId },
+        {
+          onSuccess: () => {
+            if (selectedConversationId === currentConversationId) {
+              navigate("/");
+            }
+          },
+        },
+      );
     }
   };
 
   return (
     <div
-      ref={ref}
+      ref={(node) => {
+        // TODO: Combine both refs somehow
+        if (ref.current !== node) ref.current = node;
+        if (scrollContainerRef.current !== node)
+          scrollContainerRef.current = node;
+      }}
       data-testid="conversation-panel"
       className="w-[350px] h-full border border-neutral-700 bg-base-secondary rounded-xl overflow-y-auto absolute"
     >
@@ -106,7 +148,7 @@ export function ConversationPanel({ onClose }: ConversationPanelProps) {
         </span>
         <div className="w-full h-px bg-neutral-700 mt-2" />
       </div>
-      {isFetching && (
+      {isFetching && conversations.length === 0 && (
         <div className="w-full h-full absolute flex justify-center items-center">
           <LoadingSpinner size="small" />
         </div>
@@ -116,7 +158,7 @@ export function ConversationPanel({ onClose }: ConversationPanelProps) {
           <p className="text-danger">{error.message}</p>
         </div>
       )}
-      {conversations.length === 0 && !isFetching && isFetchedAfterMount && (
+      {conversations.length === 0 && !isFetching && (
         <div className="flex flex-col items-center justify-center h-full gap-4">
           <p className="text-neutral-400">
             {t(I18nKey.CONVERSATION$NO_CONVERSATIONS)}
@@ -148,31 +190,36 @@ export function ConversationPanel({ onClose }: ConversationPanelProps) {
             <ConversationCard
               isActive={isActive}
               onDelete={() => handleDeleteProject(project.conversation_id)}
+              onStop={() => handleStopConversation(project.conversation_id)}
+              onChangeTitle={(title) =>
+                handleConversationTitleChange(project.conversation_id, title)
+              }
               title={project.title}
-              selectedRepository={project.selected_repository}
+              selectedRepository={{
+                selected_repository: project.selected_repository,
+                selected_branch: project.selected_branch,
+                git_provider: project.git_provider as Provider,
+              }}
               lastUpdatedAt={project.last_updated_at}
               createdAt={project.created_at}
               conversationStatus={project.status}
               conversationId={project.conversation_id}
+              contextMenuOpen={openContextMenuId === project.conversation_id}
+              onContextMenuToggle={(isOpen) =>
+                setOpenContextMenuId(isOpen ? project.conversation_id : null)
+              }
             />
           )}
         </NavLink>
       ))}
-      {nextPageId !== null && (
-        <div className="flex justify-center my-4">
-          <button
-            onClick={handleLoadMore}
-            disabled={isLoadingMore}
-            className={`px-4 py-2 text-sm font-medium rounded ${
-              isLoadingMore
-                ? "bg-neutral-700 text-neutral-400 cursor-not-allowed"
-                : "bg-primary text-white hover:bg-primary-dark"
-            }`}
-          >
-            {isLoadingMore ? "Loading..." : "Load More"}
-          </button>
+
+      {/* Loading indicator for fetching more conversations */}
+      {isFetchingNextPage && (
+        <div className="flex justify-center py-4">
+          <LoadingSpinner size="small" />
         </div>
       )}
+
       {confirmDeleteModalVisible && (
         <ConfirmDeleteModal
           onConfirm={() => {
@@ -182,6 +229,17 @@ export function ConversationPanel({ onClose }: ConversationPanelProps) {
           onCancel={() => setConfirmDeleteModalVisible(false)}
         />
       )}
+
+      {confirmStopModalVisible && (
+        <ConfirmStopModal
+          onConfirm={() => {
+            handleConfirmStop();
+            setConfirmStopModalVisible(false);
+          }}
+          onCancel={() => setConfirmStopModalVisible(false)}
+        />
+      )}
+
       {confirmExitConversationModalVisible && (
         <ExitConversationModal
           onConfirm={() => {

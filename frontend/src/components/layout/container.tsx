@@ -51,7 +51,6 @@ export function Container({
     const isAlreadyOnMermaid = location.pathname === baseMermaidPath;
 
     if (isAlreadyOnMermaid) return;
-    console.log(children);
 
     navigate(baseMermaidPath, {
       replace: isAlreadyOnMermaid,
@@ -64,7 +63,7 @@ export function Container({
   return (
     <div
       className={clsx(
-        "bg-base-secondary border border-neutral-600 rounded-xl flex flex-col h-full",
+        "bg-base-secondary border border-neutral-600 rounded-xl flex flex-col h-full w-full",
         className,
       )}
     >

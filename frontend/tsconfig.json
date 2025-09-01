@@ -7,7 +7,9 @@
     "**/.client/**/*.ts",
     "**/.client/**/*.tsx",
     ".react-router/types/**/*",
-    "src/**/*.js"
+    "src/**/*.js",
+    "src/routes/api-status-page.jsx",
+    "src/utils/api-status-utils.jsx"
   ],
   "compilerOptions": {
     "lib": ["dom", "dom.iterable", "es2022"],

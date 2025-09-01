@@ -27,23 +27,22 @@ describe("RepositorySelectionForm", () => {
     (useUserRepositories as any).mockReturnValue({
       data: [
         { id: "1", full_name: "test/repo1" },
-        { id: "2", full_name: "test/repo2" }
+        { id: "2", full_name: "test/repo2" },
       ],
       isLoading: false,
       isError: false,
     });
 
     (useRepositoryBranches as any).mockReturnValue({
-      data: [
-        { name: "main" },
-        { name: "develop" }
-      ],
+      data: [{ name: "main" }, { name: "develop" }],
       isLoading: false,
       isError: false,
     });
 
     (useCreateConversation as any).mockReturnValue({
-      mutate: vi.fn(),
+      mutate: vi.fn(() =>
+        (useIsCreatingConversation as any).mockReturnValue(true),
+      ),
       isPending: false,
       isSuccess: false,
     });
@@ -52,7 +51,12 @@ describe("RepositorySelectionForm", () => {
   });
 
   it("should clear selected branch when input is empty", async () => {
-    render(<RepositorySelectionForm onRepoSelection={mockOnRepoSelection} />);
+    render(
+      <RepositorySelectionForm
+        onRepoSelection={mockOnRepoSelection}
+        onBranchSelection={(_) => {}}
+      />,
+    );
 
     // First select a repository to enable the branch dropdown
     const repoDropdown = screen.getByTestId("repository-dropdown");
@@ -70,7 +74,12 @@ describe("RepositorySelectionForm", () => {
   });
 
   it("should clear selected branch when input contains only whitespace", async () => {
-    render(<RepositorySelectionForm onRepoSelection={mockOnRepoSelection} />);
+    render(
+      <RepositorySelectionForm
+        onRepoSelection={mockOnRepoSelection}
+        onBranchSelection={(_) => {}}
+      />,
+    );
 
     // First select a repository to enable the branch dropdown
     const repoDropdown = screen.getByTestId("repository-dropdown");
@@ -88,7 +97,12 @@ describe("RepositorySelectionForm", () => {
   });
 
   it("should keep branch empty after being cleared even with auto-selection", async () => {
-    render(<RepositorySelectionForm onRepoSelection={mockOnRepoSelection} />);
+    render(
+      <RepositorySelectionForm
+        onRepoSelection={mockOnRepoSelection}
+        onBranchSelection={(_) => {}}
+      />,
+    );
 
     // First select a repository to enable the branch dropdown
     const repoDropdown = screen.getByTestId("repository-dropdown");

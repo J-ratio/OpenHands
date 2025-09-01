@@ -1,62 +1,71 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "react-router";
 import posthog from "posthog-js";
-import { useDispatch, useSelector } from "react-redux";
 import OpenHands from "#/api/open-hands";
-import { setInitialPrompt } from "#/state/initial-query-slice";
-import { RootState } from "#/store";
-import { GitRepository } from "#/types/git";
 import { SuggestedTask } from "#/components/features/home/tasks/task.types";
 import { useSimulationMode } from "#/fake_scripts/simulation_context";
+import { Provider } from "#/types/settings";
+import { CreateMicroagent } from "#/api/open-hands.types";
+import { setInitialPrompt } from "#/state/initial-query-slice";
+import { useNavigate } from "react-router";
+import { useDispatch } from "react-redux";
+
+interface CreateConversationVariables {
+  query?: string;
+  repository?: {
+    name: string;
+    gitProvider: Provider;
+    branch?: string;
+  };
+  suggestedTask?: SuggestedTask;
+  conversationInstructions?: string;
+  createMicroagent?: CreateMicroagent;
+}
 
 export const useCreateConversation = (comparision: boolean = false) => {
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const queryClient = useQueryClient();
   const { enableSimulation, disableSimulation } = useSimulationMode();
-
-  const { selectedRepository, files, replayJson } = useSelector(
-    (state: RootState) => state.initialQuery,
-  );
 
   return useMutation({
     mutationKey: ["create-conversation"],
-    mutationFn: async (variables: {
-      q?: string;
-      selectedRepository?: GitRepository | null;
-      selected_branch?: string;
-      suggested_task?: SuggestedTask;
-      simulationMode?: boolean;
-    }) => {
+    mutationFn: async (
+      variables: CreateConversationVariables & { simulationMode?: boolean },
+    ) => {
+      const {
+        query,
+        repository,
+        suggestedTask,
+        conversationInstructions,
+        createMicroagent,
+      } = variables;
+
       if (variables.simulationMode) {
         enableSimulation();
       } else {
         disableSimulation();
       }
 
-      if (variables.q) dispatch(setInitialPrompt(variables.q));
+      if (variables.query) dispatch(setInitialPrompt(variables.query));
 
       return OpenHands.createConversation(
-        variables.selectedRepository
-          ? variables.selectedRepository.full_name
-          : undefined,
-        variables.selectedRepository
-          ? variables.selectedRepository.git_provider
-          : undefined,
-        variables.q,
-        files,
-        replayJson || undefined,
-        variables.suggested_task || undefined,
-        variables.selected_branch,
+        repository?.name,
+        repository?.gitProvider,
+        query,
+        suggestedTask,
+        repository?.branch,
+        conversationInstructions,
+        createMicroagent,
       );
     },
-    onSuccess: async ({ conversation_id: conversationId }, { q }) => {
+    onSuccess: async (
+      { conversation_id: conversationId },
+      { query, repository },
+    ) => {
       posthog.capture("initial_query_submitted", {
         entry_point: "task_form",
-        query_character_length: q?.length,
-        has_repository: !!selectedRepository,
-        has_files: files.length > 0,
-        has_replay_json: !!replayJson,
+        query_character_length: query?.length,
+        has_repository: !!repository,
       });
       await queryClient.invalidateQueries({
         queryKey: ["user", "conversations"],

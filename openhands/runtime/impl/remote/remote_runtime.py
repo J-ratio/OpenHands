@@ -19,6 +19,7 @@ from openhands.core.exceptions import (
 from openhands.core.logger import openhands_logger as logger
 from openhands.events import EventStream
 from openhands.integrations.provider import PROVIDER_TOKEN_TYPE
+from openhands.llm.llm_registry import LLMRegistry
 from openhands.runtime.builder.remote import RemoteRuntimeBuilder
 from openhands.runtime.impl.action_execution.action_execution_client import (
     ActionExecutionClient,
@@ -51,6 +52,7 @@ class RemoteRuntime(ActionExecutionClient):
         self,
         config: OpenHandsConfig,
         event_stream: EventStream,
+        llm_registry: LLMRegistry,
         sid: str = 'default',
         plugins: list[PluginRequirement] | None = None,
         env_vars: dict[str, str] | None = None,
@@ -64,6 +66,7 @@ class RemoteRuntime(ActionExecutionClient):
         super().__init__(
             config,
             event_stream,
+            llm_registry,
             sid,
             plugins,
             env_vars,
@@ -250,6 +253,7 @@ class RemoteRuntime(ActionExecutionClient):
             platform=self.config.sandbox.platform,
             extra_deps=self.config.sandbox.runtime_extra_deps,
             force_rebuild=self.config.sandbox.force_rebuild_runtime,
+            enable_browser=self.config.enable_browser,
         )
 
         response = self._send_runtime_api_request(
@@ -375,11 +379,16 @@ class RemoteRuntime(ActionExecutionClient):
         token = super().get_vscode_token()
         if not token:
             return None
-        _parsed_url = urlparse(self.runtime_url)
-        assert isinstance(_parsed_url.scheme, str) and isinstance(
-            _parsed_url.netloc, str
-        )
-        vscode_url = f'{_parsed_url.scheme}://vscode-{_parsed_url.netloc}/?tkn={token}&folder={self.config.workspace_mount_path_in_sandbox}'
+        assert self.runtime_url is not None and self.runtime_id is not None
+        self.log('debug', f'runtime_url: {self.runtime_url}')
+        parsed = urlparse(self.runtime_url)
+        scheme, netloc, path = parsed.scheme, parsed.netloc, parsed.path or '/'
+        # Path mode if runtime_url path starts with /{id}
+        path_mode = path.startswith(f'/{self.runtime_id}')
+        if path_mode:
+            vscode_url = f'{scheme}://{netloc}/{self.runtime_id}/vscode?tkn={token}&folder={self.config.workspace_mount_path_in_sandbox}'
+        else:
+            vscode_url = f'{scheme}://vscode-{netloc}/?tkn={token}&folder={self.config.workspace_mount_path_in_sandbox}'
         self.log(
             'debug',
             f'VSCode URL: {vscode_url}',

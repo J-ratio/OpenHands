@@ -47,7 +47,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
 
   const handleRefreshLinkedRepo = () => setRefreshKey((k) => k + 1);
 
-  async function fetchLinkedRepo(workspaceId?: string) {
+  async function fetchLinkedRepo(workspaceId: string) {
     if (!workspaceId) {
       setLinkedRepo(undefined);
       return;
@@ -80,7 +80,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   }, [settings?.ACTIVE_WORKSPACE_ID]);
 
   useEffect(() => {
-    fetchLinkedRepo();
+    fetchLinkedRepo(settings?.ACTIVE_WORKSPACE_ID ?? "");
   }, [refreshKey]);
 
   useEffect(() => {

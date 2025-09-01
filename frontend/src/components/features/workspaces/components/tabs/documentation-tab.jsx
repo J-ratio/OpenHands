@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import DocumentationButtons from "../documentation-buttons";
-import { getLastProcessedVersion } from "../../../../../utils/utils";
+import { getLastProcessedVersion } from "../../../../../utils/basic-utils";
 
 const DocumentationTab = ({ repositories, workspace, setOpen }) => {
   if (!Array.isArray(repositories) || repositories.length !== 1) {

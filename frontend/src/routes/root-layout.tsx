@@ -28,6 +28,9 @@ import { Toaster } from "../components/ui/sonner";
 import { useWorkspace, WorkspaceProvider } from "#/context/WorkspaceContext";
 import { WorkspaceSelect } from "#/components/features/documents/_components/WorkspaceSelect";
 import { SimulationProvider } from "#/fake_scripts/simulation_context";
+import { MaintenanceBanner } from "#/components/features/maintenance/maintenance-banner";
+import { useMigrateUserConsent } from "#/hooks/use-migrate-user-consent";
+import { AnalyticsConsentFormModal } from "#/components/features/analytics/analytics-consent-form-modal";
 
 export function ErrorBoundary() {
   const error = useRouteError();
@@ -68,6 +71,7 @@ export default function MainApp() {
   const isOnTosPage = useIsOnTosPage();
   const { data: settings } = useSettings();
   const { error } = useBalance();
+  const { migrateUserConsent } = useMigrateUserConsent();
   const { t } = useTranslation();
 
   const config = useConfig();
@@ -77,10 +81,13 @@ export default function MainApp() {
   const gitHubAuthUrl = useGitHubAuthUrl({
     appMode: config.data?.APP_MODE || null,
     gitHubClientId: config.data?.GITHUB_CLIENT_ID || null,
+    authUrl: config.data?.AUTH_URL,
   });
 
   // When on TOS page, we don't use the GitHub auth URL
   const effectiveGitHubAuthUrl = isOnTosPage ? null : gitHubAuthUrl;
+
+  const [consentFormIsOpen, setConsentFormIsOpen] = React.useState(false);
 
   // Auto-login if login method is stored in local storage
   useAutoLogin();
@@ -94,6 +101,28 @@ export default function MainApp() {
       i18n.changeLanguage(settings.LANGUAGE);
     }
   }, [settings?.LANGUAGE, isOnTosPage]);
+
+  React.useEffect(() => {
+    // Don't show consent form when on TOS page
+    if (!isOnTosPage) {
+      const consentFormModalIsOpen =
+        settings?.USER_CONSENTS_TO_ANALYTICS === null;
+
+      setConsentFormIsOpen(consentFormModalIsOpen);
+    }
+  }, [settings, isOnTosPage]);
+
+  React.useEffect(() => {
+    // Don't migrate user consent when on TOS page
+    if (!isOnTosPage) {
+      // Migrate user consent to the server if it was previously stored in localStorage
+      migrateUserConsent({
+        handleAnalyticsWasPresentInLocalStorage: () => {
+          setConsentFormIsOpen(false);
+        },
+      });
+    }
+  }, [isOnTosPage]);
 
   React.useEffect(() => {
     if (settings?.IS_NEW_USER && config.data?.APP_MODE === "saas") {
@@ -178,6 +207,13 @@ export default function MainApp() {
             id="root-outlet"
             className="h-[calc(100%-50px)] md:h-full w-full relative"
           >
+            {config.data?.MAINTENANCE && (
+              <div className="flex-shrink-0">
+                <MaintenanceBanner
+                  startTime={config.data.MAINTENANCE.startTime}
+                />
+              </div>
+            )}
             <WorkspaceSelector />
             <EmailVerificationGuard>
               <Outlet />
@@ -188,9 +224,19 @@ export default function MainApp() {
             <AuthModal
               githubAuthUrl={effectiveGitHubAuthUrl}
               appMode={config.data?.APP_MODE}
+              providersConfigured={config.data?.PROVIDERS_CONFIGURED}
+              authUrl={config.data?.AUTH_URL}
             />
           )}
           {renderReAuthModal && <ReauthModal />}
+
+          {config.data?.APP_MODE === "oss" && consentFormIsOpen && (
+            <AnalyticsConsentFormModal
+              onClose={() => {
+                setConsentFormIsOpen(false);
+              }}
+            />
+          )}
 
           {config.data?.FEATURE_FLAGS.ENABLE_BILLING &&
             config.data?.APP_MODE === "saas" &&

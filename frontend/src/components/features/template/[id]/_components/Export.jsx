@@ -2,24 +2,24 @@
 
 import { Button } from "../../../../ui/button";
 import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "../../../../ui/dropdown-menu";
-import { getTheMarkdownContentForEditor } from "../../../../../utils/utils";
+import { getTheMarkdownContentForEditor } from "../../../../../utils/basic-utils";
 import { toast } from "sonner";
 
 const ExportDocumentContent = ({ editor, hiddenEditor, title }) => {
-	if (!editor) return null;
+  if (!editor) return null;
 
-	const generateHTMLContent = async (blocksJSON) => {
-		const baseHtmlContent = await editor.blocksToHTMLLossy(blocksJSON);
-		const hasMermaid = JSON.stringify(blocksJSON).includes('"type":"mermaid"');
+  const generateHTMLContent = async (blocksJSON) => {
+    const baseHtmlContent = await editor.blocksToHTMLLossy(blocksJSON);
+    const hasMermaid = JSON.stringify(blocksJSON).includes('"type":"mermaid"');
 
-		let html = `
+    let html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -31,13 +31,13 @@ const ExportDocumentContent = ({ editor, hiddenEditor, title }) => {
     .mermaid { background-color: #f9f9f9; padding: 15px; border-radius: 5px; }
   </style>
   ${
-		hasMermaid
-			? '<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>'
-			: ""
-	}
+    hasMermaid
+      ? '<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>'
+      : ""
+  }
   ${
-		hasMermaid
-			? `<script>
+    hasMermaid
+      ? `<script>
     mermaid.initialize({
         startOnLoad: true,
         theme: "default",
@@ -100,94 +100,95 @@ const ExportDocumentContent = ({ editor, hiddenEditor, title }) => {
         fontFamily: "Fira Code",
     });
     </script>`
-			: ""
-	}
+      : ""
+  }
 </head>
 <body>
   ${baseHtmlContent}
   ${
-		hasMermaid
-			? '<script>document.addEventListener("DOMContentLoaded", function() { mermaid.init(undefined, ".mermaid"); });</script>'
-			: ""
-	}
+    hasMermaid
+      ? '<script>document.addEventListener("DOMContentLoaded", function() { mermaid.init(undefined, ".mermaid"); });</script>'
+      : ""
+  }
 </body>
 </html>`;
 
-		if (hasMermaid) {
-			html = html.replace(
-				/<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/g,
-				'<pre class="mermaid">$1</pre>'
-			);
-		}
+    if (hasMermaid) {
+      html = html.replace(
+        /<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/g,
+        '<pre class="mermaid">$1</pre>',
+      );
+    }
 
-		return html;
-	};
+    return html;
+  };
 
-	const downloadFile = (content, fileName, type) => {
-		const blob = new Blob([content], { type });
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement("a");
+  const downloadFile = (content, fileName, type) => {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
 
-		a.href = url;
-		a.download = fileName;
-		document.body.appendChild(a);
-		a.click();
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
 
-		setTimeout(() => URL.revokeObjectURL(url), 100);
-		document.body.removeChild(a);
-	};
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+    document.body.removeChild(a);
+  };
 
-	const handleMarkdownExport = async () => {
-		try {
-			const blocksJSON = editor.document;
-			if (!blocksJSON) {
-				console.error("[EXPORT_MD]: No blocks found");
-				toast.error("No blocks found");
-				return;
-			}
+  const handleMarkdownExport = async () => {
+    try {
+      const blocksJSON = editor.document;
+      if (!blocksJSON) {
+        console.error("[EXPORT_MD]: No blocks found");
+        toast.error("No blocks found");
+        return;
+      }
 
-			const mdContent = await getTheMarkdownContentForEditor(
-				blocksJSON,
-				hiddenEditor
-			);
-			downloadFile(mdContent, `${title}.md`, "text/plain;charset=utf-8");
-		} catch (error) {
-			console.error("Error exporting markdown:", error);
-			toast.error("Failed to export as Markdown");
-		}
-	};
+      const mdContent = await getTheMarkdownContentForEditor(
+        blocksJSON,
+        hiddenEditor,
+      );
+      downloadFile(mdContent, `${title}.md`, "text/plain;charset=utf-8");
+    } catch (error) {
+      console.error("Error exporting markdown:", error);
+      toast.error("Failed to export as Markdown");
+    }
+  };
 
-	const handleHTMLExport = async () => {
-		try {
-			const blocksJSON = editor.document;
-			if (!blocksJSON) {
-				console.error("[EXPORT_HTML]: No blocks found");
-				toast.error("No blocks found");
-				return;
-			}
+  const handleHTMLExport = async () => {
+    try {
+      const blocksJSON = editor.document;
+      if (!blocksJSON) {
+        console.error("[EXPORT_HTML]: No blocks found");
+        toast.error("No blocks found");
+        return;
+      }
 
-			const htmlContent = await generateHTMLContent(blocksJSON);
-			downloadFile(htmlContent, `${title}.html`, "text/html");
-		} catch (error) {
-			console.error("Error exporting HTML:", error);
-			toast.error("Failed to export as HTML");
-		}
-	};
+      const htmlContent = await generateHTMLContent(blocksJSON);
+      downloadFile(htmlContent, `${title}.html`, "text/html");
+    } catch (error) {
+      console.error("Error exporting HTML:", error);
+      toast.error("Failed to export as HTML");
+    }
+  };
 
-	const handlePDFExport = async () => {
-		try {
-			const blocksJSON = editor.document;
-			if (!blocksJSON) {
-				console.error("[EXPORT_PDF]: No blocks found");
-				toast.error("No blocks found");
-				return;
-			}
+  const handlePDFExport = async () => {
+    try {
+      const blocksJSON = editor.document;
+      if (!blocksJSON) {
+        console.error("[EXPORT_PDF]: No blocks found");
+        toast.error("No blocks found");
+        return;
+      }
 
-			const htmlContent = await generateHTMLContent(blocksJSON);
-			const hasMermaid = JSON.stringify(blocksJSON).includes('"type":"mermaid"');
+      const htmlContent = await generateHTMLContent(blocksJSON);
+      const hasMermaid =
+        JSON.stringify(blocksJSON).includes('"type":"mermaid"');
 
-			// Add print-specific styles to make pagination more predictable
-			const printStyles = `
+      // Add print-specific styles to make pagination more predictable
+      const printStyles = `
       @media print {
         body {
           width: 210mm;
@@ -204,116 +205,121 @@ const ExportDocumentContent = ({ editor, hiddenEditor, title }) => {
       }
     `;
 
-			const printHtml = htmlContent.replace(
-				"</head>",
-				`<style>${printStyles}</style></head>`
-			);
+      const printHtml = htmlContent.replace(
+        "</head>",
+        `<style>${printStyles}</style></head>`,
+      );
 
-			const printWindow = window.open("", "_blank");
-			printWindow.document.write(printHtml);
-			printWindow.document.close();
+      const printWindow = window.open("", "_blank");
+      printWindow.document.write(printHtml);
+      printWindow.document.close();
 
-			printWindow.onload = () => {
-				if (hasMermaid) {
-					// Set a notification for users that diagrams are rendering
-					const notificationDiv = printWindow.document.createElement('div');
-					notificationDiv.style.position = 'fixed';
-					notificationDiv.style.top = '10px';
-					notificationDiv.style.left = '50%';
-					notificationDiv.style.transform = 'translateX(-50%)';
-					notificationDiv.style.backgroundColor = '#f0f9ff';
-					notificationDiv.style.color = '#0369a1';
-					notificationDiv.style.padding = '10px 20px';
-					notificationDiv.style.borderRadius = '4px';
-					notificationDiv.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.2)';
-					notificationDiv.style.zIndex = '9999';
-					notificationDiv.id = 'mermaid-loading';
-					notificationDiv.innerText = 'Rendering diagrams...';
-					printWindow.document.body.appendChild(notificationDiv);
+      printWindow.onload = () => {
+        if (hasMermaid) {
+          // Set a notification for users that diagrams are rendering
+          const notificationDiv = printWindow.document.createElement("div");
+          notificationDiv.style.position = "fixed";
+          notificationDiv.style.top = "10px";
+          notificationDiv.style.left = "50%";
+          notificationDiv.style.transform = "translateX(-50%)";
+          notificationDiv.style.backgroundColor = "#f0f9ff";
+          notificationDiv.style.color = "#0369a1";
+          notificationDiv.style.padding = "10px 20px";
+          notificationDiv.style.borderRadius = "4px";
+          notificationDiv.style.boxShadow = "0 2px 5px rgba(0, 0, 0, 0.2)";
+          notificationDiv.style.zIndex = "9999";
+          notificationDiv.id = "mermaid-loading";
+          notificationDiv.innerText = "Rendering diagrams...";
+          printWindow.document.body.appendChild(notificationDiv);
 
-					// Add a longer delay for mermaid to properly initialize and render
-					const renderTimeout = 3000; // 3 seconds
+          // Add a longer delay for mermaid to properly initialize and render
+          const renderTimeout = 3000; // 3 seconds
 
-					if (
-						printWindow.mermaid &&
-						typeof printWindow.mermaid.init === "function"
-					) {
-						try {
-							// Initialize mermaid in the new window
-							printWindow.mermaid.init(
-								undefined,
-								printWindow.document.querySelectorAll(".mermaid")
-							);
-							console.log("Mermaid initialized in print window");
+          if (
+            printWindow.mermaid &&
+            typeof printWindow.mermaid.init === "function"
+          ) {
+            try {
+              // Initialize mermaid in the new window
+              printWindow.mermaid.init(
+                undefined,
+                printWindow.document.querySelectorAll(".mermaid"),
+              );
+              console.log("Mermaid initialized in print window");
 
-							// Wait for rendering to complete before printing
-							setTimeout(() => {
-								// Remove notification before printing
-								const notificationElement = printWindow.document.getElementById('mermaid-loading');
-								if (notificationElement) {
-									notificationElement.remove();
-								}
-								printWindow.print();
-							}, renderTimeout);
-						} catch (e) {
-							console.warn("Failed to manually initialize mermaid:", e);
-							// Remove notification and print anyway in case of error
-							const notificationElement = printWindow.document.getElementById('mermaid-loading');
-							if (notificationElement) {
-								notificationElement.remove();
-							}
-							printWindow.print();
-						}
-					} else {
-						// If mermaid isn't available for some reason, print anyway after delay
-						setTimeout(() => {
-							const notificationElement = printWindow.document.getElementById('mermaid-loading');
-							if (notificationElement) {
-								notificationElement.remove();
-							}
-							printWindow.print();
-						}, renderTimeout);
-					}
-				} else {
-					// If no mermaid diagrams, print immediately
-					printWindow.print();
-				}
-			};
-		} catch (error) {
-			console.error("Error exporting PDF:", error);
-			toast.error("Failed to export as PDF");
-		}
-	};
+              // Wait for rendering to complete before printing
+              setTimeout(() => {
+                // Remove notification before printing
+                const notificationElement =
+                  printWindow.document.getElementById("mermaid-loading");
+                if (notificationElement) {
+                  notificationElement.remove();
+                }
+                printWindow.print();
+              }, renderTimeout);
+            } catch (e) {
+              console.warn("Failed to manually initialize mermaid:", e);
+              // Remove notification and print anyway in case of error
+              const notificationElement =
+                printWindow.document.getElementById("mermaid-loading");
+              if (notificationElement) {
+                notificationElement.remove();
+              }
+              printWindow.print();
+            }
+          } else {
+            // If mermaid isn't available for some reason, print anyway after delay
+            setTimeout(() => {
+              const notificationElement =
+                printWindow.document.getElementById("mermaid-loading");
+              if (notificationElement) {
+                notificationElement.remove();
+              }
+              printWindow.print();
+            }, renderTimeout);
+          }
+        } else {
+          // If no mermaid diagrams, print immediately
+          printWindow.print();
+        }
+      };
+    } catch (error) {
+      console.error("Error exporting PDF:", error);
+      toast.error("Failed to export as PDF");
+    }
+  };
 
-	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Button variant='outline'>Export</Button>
-			</DropdownMenuTrigger>
-			<DropdownMenuContent className='bg-neutral-900 text-neutral-100 rounded-md shadow-lg border border-neutral-700 p-1 min-w-[160px]'>
-				<DropdownMenuLabel className='text-neutral-300'>Export as</DropdownMenuLabel>
-				<DropdownMenuSeparator className='bg-neutral-700' />
-				<DropdownMenuItem
-					onClick={handleMarkdownExport}
-					className='hover:bg-neutral-800 focus:bg-neutral-800 rounded text-neutral-100 cursor-pointer transition-colors duration-100'
-				>
-					Markdown
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={handleHTMLExport}
-					className='hover:bg-neutral-800 focus:bg-neutral-800 rounded text-neutral-100 cursor-pointer transition-colors duration-100'
-				>
-					HTML
-				</DropdownMenuItem>
-				<DropdownMenuItem
-					onClick={handlePDFExport}
-					className='hover:bg-neutral-800 focus:bg-neutral-800 rounded text-neutral-100 cursor-pointer transition-colors duration-100'
-				>
-					PDF
-				</DropdownMenuItem>
-			</DropdownMenuContent>
-		</DropdownMenu>
-	);
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline">Export</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="bg-neutral-900 text-neutral-100 rounded-md shadow-lg border border-neutral-700 p-1 min-w-[160px]">
+        <DropdownMenuLabel className="text-neutral-300">
+          Export as
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator className="bg-neutral-700" />
+        <DropdownMenuItem
+          onClick={handleMarkdownExport}
+          className="hover:bg-neutral-800 focus:bg-neutral-800 rounded text-neutral-100 cursor-pointer transition-colors duration-100"
+        >
+          Markdown
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={handleHTMLExport}
+          className="hover:bg-neutral-800 focus:bg-neutral-800 rounded text-neutral-100 cursor-pointer transition-colors duration-100"
+        >
+          HTML
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={handlePDFExport}
+          className="hover:bg-neutral-800 focus:bg-neutral-800 rounded text-neutral-100 cursor-pointer transition-colors duration-100"
+        >
+          PDF
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 };
 
 export default ExportDocumentContent;
