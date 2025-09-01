@@ -234,8 +234,12 @@ async def run_session(
                 if is_paused.is_set():
                     return
 
-                # In non-interactive mode, exit when awaiting user input or finished
+                # In non-interactive mode, stop the agent when awaiting user input or finished
                 if non_interactive:
+                    event_stream.add_event(
+                        ChangeAgentStateAction(AgentState.STOPPED),
+                        EventSource.USER,
+                    )
                     return
 
                 # Reload microagents after initialization of repo.md
