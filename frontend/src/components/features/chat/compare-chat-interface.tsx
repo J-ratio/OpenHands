@@ -52,6 +52,7 @@ import { OpenHandsObservation } from "#/types/core/observations";
 import { CompareChatMessage } from "./compare-chat-message";
 import { CompareMessages } from "./compare-messages";
 import { CompareChatSuggestions } from "./compare-chat-suggestions";
+import { AttachedCodeBlock, AttachedFile } from "./chat-input";
 
 function getEntryPoint(
   hasRepository: boolean | null,
@@ -174,9 +175,9 @@ export function CompareChatInterface() {
   const [modelOne, setModelOne] = React.useState<string>(llmModels[0]);
   const [modelTwo, setModelTwo] = React.useState<string>(llmModels[1]);
 
-  const [events, setEvents] = React.useState<
-    Array<OpenHandsAction | OpenHandsObservation>
-  >([]);
+  // const [events, setEvents] = React.useState<
+  //   Array<OpenHandsAction | OpenHandsObservation>
+  // >([]);
 
   const [feedbackPolarity, setFeedbackPolarity] = React.useState<
     "positive" | "negative"
@@ -193,7 +194,7 @@ export function CompareChatInterface() {
   const optimisticUserMessage = getOptimisticUserMessage();
   const errorMessage = getErrorMessage();
 
-  // const events = parsedEvents.filter(shouldRenderEvent);
+  const events = parsedEvents.filter(shouldRenderEvent);
 
   const { curStatusMessage } = useSelector((state: RootState) => state.status);
   const { webSocketStatus } = useWsClient();
@@ -213,6 +214,8 @@ export function CompareChatInterface() {
     content: string,
     images: File[],
     files: File[],
+    attachedFiles: AttachedFile[],
+    attachedCodeBlocks: AttachedCodeBlock[],
   ) => {
     if (events.length === 0) {
       posthog.capture("initial_query_submitted", {
@@ -245,29 +248,38 @@ export function CompareChatInterface() {
     const prompt =
       uploadedFiles.length > 0 ? `${content}\n\n${filePrompt}` : content;
 
-    // send(createChatMessage(prompt, imageUrls, uploadedFiles, timestamp));
+    send(
+      createChatMessage(
+        prompt,
+        imageUrls,
+        uploadedFiles,
+        attachedFiles,
+        attachedCodeBlocks,
+        timestamp,
+      ),
+    );
     setOptimisticUserMessage(content);
-    setEvents((prev) => [
-      ...prev,
-      {
-        id: 4,
-        timestamp: "2025-08-26T08:26:20.878137",
-        source: "user",
-        message: content,
-        action: "message",
-        args: {
-          content: content,
-          file_urls: [...files.map((file) => file.name)],
-          image_urls: [],
-          wait_for_response: false,
-          attached_files: [],
-          attached_codeblocks: [],
-        },
-        timeout: 120,
-      },
-    ]);
+    // setEvents((prev) => [
+    //   ...prev,
+    //   {
+    //     id: 4,
+    //     timestamp: "2025-08-26T08:26:20.878137",
+    //     source: "user",
+    //     message: content,
+    //     action: "message",
+    //     args: {
+    //       content: content,
+    //       file_urls: [...files.map((file) => file.name)],
+    //       image_urls: [],
+    //       wait_for_response: false,
+    //       attached_files: [],
+    //       attached_codeblocks: [],
+    //     },
+    //     timeout: 120,
+    //   },
+    // ]);
     setMessageToSend(null);
-    console.log(events);
+    // console.log(events);
   };
 
   const handleStop = () => {
@@ -409,61 +421,67 @@ export function CompareChatInterface() {
             </div>
           )}
 
-          {!isSimulationMode && !isLoadingMessages && (
-            <div>
-              <CompareMessages
-                messages={events}
-                isAwaitingUserConfirmation={
-                  curAgentState === AgentState.AWAITING_USER_CONFIRMATION
-                }
-                sideBySideResponse={
-                  <div className="flex gap-16 px-16 py-8 max-w-8xl mx-auto">
-                    <div className="flex-1 bg-base-secondary rounded-xl p-6 border border-tertiary-light/20 shadow-lg hover:shadow-xl transition-shadow">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                          <span className="text-white text-sm font-medium">
-                            AI
-                          </span>
-                        </div>
-                        <h3 className="text-primary-text font-semibold">
-                          {modelOne} Response
-                        </h3>
-                      </div>
-                      <div className="prose prose-invert prose-sm max-w-none">
-                        <CompareChatMessage
-                          type="agent"
-                          message={modelOneResponse}
-                          enableTypewriter={true}
-                          isLatestMessage={true}
-                        />
-                      </div>
-                    </div>
+          {!isSimulationMode &&
+            !isLoadingMessages &&
+            events.length > 0 &&
+            modelTwoResponse && (
+              <div>
+                <CompareMessages
+                  messages={events}
+                  isAwaitingUserConfirmation={
+                    curAgentState === AgentState.AWAITING_USER_CONFIRMATION
+                  }
+                  modelOne={modelOne}
+                  modelTwo={modelTwo}
+                  modelTwoResponse={modelTwoResponse}
+                  // sideBySideResponse={
+                  //   <div className="flex gap-16 px-16 py-8 max-w-8xl mx-auto">
+                  //     <div className="flex-1 bg-base-secondary rounded-xl p-6 border border-tertiary-light/20 shadow-lg hover:shadow-xl transition-shadow">
+                  //       <div className="flex items-center gap-3 mb-4">
+                  //         <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                  //           <span className="text-white text-sm font-medium">
+                  //             AI
+                  //           </span>
+                  //         </div>
+                  //         <h3 className="text-primary-text font-semibold">
+                  //           {modelOne} Response
+                  //         </h3>
+                  //       </div>
+                  //       <div className="prose prose-invert prose-sm max-w-none">
+                  //         <CompareChatMessage
+                  //           type="agent"
+                  //           message={modelOneResponse}
+                  //           enableTypewriter={true}
+                  //           isLatestMessage={true}
+                  //         />
+                  //       </div>
+                  //     </div>
 
-                    <div className="flex-1 bg-base-secondary rounded-xl p-6 border border-tertiary-light/20 shadow-lg hover:shadow-xl transition-shadow">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
-                          <span className="text-white text-sm font-medium">
-                            AI
-                          </span>
-                        </div>
-                        <h3 className="text-primary-text font-semibold">
-                          {modelTwo} Response
-                        </h3>
-                      </div>
-                      <div className="prose prose-invert prose-sm max-w-none">
-                        <CompareChatMessage
-                          type="agent"
-                          message={modelTwoResponse}
-                          enableTypewriter={true}
-                          isLatestMessage={true}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                }
-              />
-            </div>
-          )}
+                  //     <div className="flex-1 bg-base-secondary rounded-xl p-6 border border-tertiary-light/20 shadow-lg hover:shadow-xl transition-shadow">
+                  //       <div className="flex items-center gap-3 mb-4">
+                  //         <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
+                  //           <span className="text-white text-sm font-medium">
+                  //             AI
+                  //           </span>
+                  //         </div>
+                  //         <h3 className="text-primary-text font-semibold">
+                  //           {modelTwo} Response
+                  //         </h3>
+                  //       </div>
+                  //       <div className="prose prose-invert prose-sm max-w-none">
+                  //         <CompareChatMessage
+                  //           type="agent"
+                  //           message={modelTwoResponse}
+                  //           enableTypewriter={true}
+                  //           isLatestMessage={true}
+                  //         />
+                  //       </div>
+                  //     </div>
+                  //   </div>
+                  // }
+                />
+              </div>
+            )}
 
           {!isSimulationMode && !isLoadingMessages && (
             // userMessages.map((message) => (
@@ -482,7 +500,9 @@ export function CompareChatInterface() {
             events.length > 0 &&
             !optimisticUserMessage && (
               <ActionSuggestions
-                onSuggestionsClick={(value) => handleSendMessage(value, [], [])}
+                onSuggestionsClick={(value) =>
+                  handleSendMessage(value, [], [], [], [])
+                }
               />
             )}
         </div>

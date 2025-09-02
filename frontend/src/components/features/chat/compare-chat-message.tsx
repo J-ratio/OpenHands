@@ -89,12 +89,12 @@ export function CompareChatMessage({
         type === "agent" && "mt-6 max-w-full bg-transparent",
       )}
     >
-      <CopyToClipboardButton
+      {/* <CopyToClipboardButton
         isHidden={!isHovering}
         isDisabled={isCopy}
         onClick={handleCopyToClipboard}
         mode={isCopy ? "copied" : "copy"}
-      />
+      /> */}
       <div className="text-sm break-words">
         <Markdown
           components={{

@@ -4,15 +4,25 @@ import { OpenHandsObservation } from "#/types/core/observations";
 import { isOpenHandsAction, isOpenHandsObservation } from "#/types/core/guards";
 import { EventMessage } from "./event-message";
 import { useOptimisticUserMessage } from "#/hooks/use-optimistic-user-message";
+import { CompareChatMessage } from "./compare-chat-message";
 
 interface MessagesProps {
   messages: (OpenHandsAction | OpenHandsObservation)[];
   isAwaitingUserConfirmation: boolean;
   sideBySideResponse?: React.ReactNode;
+  modelOne: string;
+  modelTwo: string;
+  modelTwoResponse: string;
 }
 
 export const CompareMessages: React.FC<MessagesProps> = React.memo(
-  ({ messages, isAwaitingUserConfirmation, sideBySideResponse }) => {
+  ({
+    messages,
+    isAwaitingUserConfirmation,
+    modelOne,
+    modelTwo,
+    modelTwoResponse,
+  }) => {
     const { getOptimisticUserMessage } = useOptimisticUserMessage();
 
     const optimisticUserMessage = getOptimisticUserMessage();
@@ -32,25 +42,62 @@ export const CompareMessages: React.FC<MessagesProps> = React.memo(
 
     return (
       <>
-        {messages.map((message, index) => (
-          <div>
-            <div className="flex justify-end">
-              <EventMessage
-                key={index}
-                event={message}
-                hasObservationPair={actionHasObservationPair(message)}
-                isAwaitingUserConfirmation={isAwaitingUserConfirmation}
-                isLastMessage={messages.length - 1 === index}
-                isInLast10Actions={messages.length - 1 - index < 10}
-              />
+        <div className="flex gap-16 px-16 py-8 max-w-8xl mx-auto">
+          <div className="flex-1 bg-base-secondary rounded-xl p-6 border border-tertiary-light/20 shadow-lg hover:shadow-xl transition-shadow">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-medium">AI</span>
+              </div>
+              <h3 className="text-primary-text font-semibold">
+                {modelOne} Response
+              </h3>
             </div>
-            {
+            {/* <div className="prose prose-invert prose-sm max-w-none">
+                              <CompareChatMessage
+                                type="agent"
+                                message={modelOneResponse}
+                                enableTypewriter={true}
+                                isLatestMessage={true}
+                              />
+                            </div> */}
+            {messages.map((message, index) => (
+              <div>
+                <EventMessage
+                  key={index}
+                  event={message}
+                  hasObservationPair={actionHasObservationPair(message)}
+                  isAwaitingUserConfirmation={isAwaitingUserConfirmation}
+                  isLastMessage={messages.length - 1 === index}
+                  isInLast10Actions={messages.length - 1 - index < 10}
+                />
+                {/* {
               <DelayedSideBySideResponse
                 sideBySideResponse={sideBySideResponse}
               />
-            }
+            } */}
+              </div>
+            ))}
           </div>
-        ))}
+
+          <div className="flex-1 bg-base-secondary rounded-xl p-6 border border-tertiary-light/20 shadow-lg hover:shadow-xl transition-shadow">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-medium">AI</span>
+              </div>
+              <h3 className="text-primary-text font-semibold">
+                {modelTwo} Response
+              </h3>
+            </div>
+            <div className="prose prose-invert prose-sm max-w-none">
+              <CompareChatMessage
+                type="agent"
+                message={modelTwoResponse}
+                enableTypewriter={true}
+                isLatestMessage={true}
+              />
+            </div>
+          </div>
+        </div>
 
         {/* {optimisticUserMessage && (
           <ChatMessage type="user" message={optimisticUserMessage} />
