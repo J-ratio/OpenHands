@@ -152,6 +152,7 @@ export function Sidebar() {
                 settings?.EMAIL_VERIFIED === false || isCreatingConversation
               }
               comparision={true}
+              useH2LoopModel={true}
             />
             {!shouldHideMicroagentManagement && (
               <MicroagentManagementButton

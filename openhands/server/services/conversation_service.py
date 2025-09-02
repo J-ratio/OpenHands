@@ -2,6 +2,8 @@ import uuid
 from types import MappingProxyType
 from typing import Any
 
+from pydantic import SecretStr
+
 from openhands.core.config.mcp_config import MCPConfig
 from openhands.core.logger import openhands_logger as logger
 from openhands.events.action.message import MessageAction
@@ -91,6 +93,7 @@ async def start_conversation(
     conversation_metadata: ConversationMetadata,
     conversation_instructions: str | None,
     mcp_config: MCPConfig | None = None,
+    use_h2loop_model: bool | None = None,
 ) -> AgentLoopInfo:
     logger.info(
         'Creating conversation',
@@ -108,13 +111,25 @@ async def start_conversation(
     session_init_args: dict[str, Any] = {}
     if settings:
         session_init_args = {**settings.__dict__, **session_init_args}
+
+        # Handle h2loop model selection
+        if use_h2loop_model:
+            # Override with h2loop predefined values
+            session_init_args['llm_model'] = 'hosted_vllm/Qwen/Qwen2.5-Coder-32B-Instruct-AWQ'
+            session_init_args['llm_base_url'] = 'https://h2loop--qwen25-coder-32b-serve.modal.run/v1'
+            session_init_args['llm_api_key'] = 'super-secret-key'
+            logger.info('Using h2loop model configuration for conversation')
+
         # We could use litellm.check_valid_key for a more accurate check,
         # but that would run a tiny inference.
+        llm_api_key = session_init_args.get('llm_api_key')
         if (
-            not settings.llm_api_key
-            or settings.llm_api_key.get_secret_value().isspace()
+            not llm_api_key
+            or (hasattr(llm_api_key, 'get_secret_value') and
+                llm_api_key.get_secret_value().isspace())
+            or (isinstance(llm_api_key, str) and llm_api_key.isspace())
         ):
-            logger.warning(f'Missing api key for model {settings.llm_model}')
+            logger.warning(f'Missing api key for model {session_init_args.get("llm_model")}')
             raise LLMAuthenticationError(
                 'Error authenticating with the LLM provider. Please check your API key'
             )
@@ -133,6 +148,10 @@ async def start_conversation(
         session_init_args['mcp_config'] = mcp_config
 
     conversation_init_data = ConversationInitData(**session_init_args)
+
+    # Set the use_h2loop_model flag for tracking
+    if use_h2loop_model is not None:
+        conversation_init_data.use_h2loop_model = use_h2loop_model
 
     conversation_init_data = ExperimentManagerImpl.run_conversation_variant_test(
         user_id, conversation_id, conversation_init_data
@@ -175,6 +194,7 @@ async def create_new_conversation(
     git_provider: ProviderType | None = None,
     conversation_id: str | None = None,
     mcp_config: MCPConfig | None = None,
+    use_h2loop_model: bool | None = None,
 ) -> AgentLoopInfo:
     conversation_metadata = await initialize_conversation(
         user_id,
@@ -199,6 +219,7 @@ async def create_new_conversation(
         conversation_metadata,
         conversation_instructions,
         mcp_config,
+        use_h2loop_model,
     )
 
 
@@ -215,7 +236,7 @@ def create_provider_tokens_object(
 
 
 async def setup_init_conversation_settings(
-    user_id: str | None, conversation_id: str, providers_set: list[ProviderType]
+    user_id: str | None, conversation_id: str, providers_set: list[ProviderType], use_h2loop_model: bool | None = None
 ) -> ConversationInitData:
     """Set up conversation initialization data with provider tokens.
 
@@ -254,6 +275,18 @@ async def setup_init_conversation_settings(
         session_init_args['custom_secrets'] = user_secrets.custom_secrets
 
     conversation_init_data = ConversationInitData(**session_init_args)
+
+    # Handle h2loop model selection for conversation restart
+    if use_h2loop_model:
+        conversation_init_data.llm_model = 'hosted_vllm/Qwen/Qwen2.5-Coder-32B-Instruct-AWQ'
+        conversation_init_data.llm_base_url = 'https://h2loop--qwen25-coder-32b-serve.modal.run/v1'
+        conversation_init_data.llm_api_key = SecretStr('super-secret-key')
+        logger.info('Using h2loop model configuration for conversation restart')
+
+    # Set the use_h2loop_model flag for tracking
+    if use_h2loop_model is not None:
+        conversation_init_data.use_h2loop_model = use_h2loop_model
+
     # We should recreate the same experiment conditions when restarting a conversation
     return ExperimentManagerImpl.run_conversation_variant_test(
         user_id, conversation_id, conversation_init_data

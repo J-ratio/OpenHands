@@ -8,11 +8,13 @@ import { GrCompare } from "react-icons/gr";
 interface NewProjectButtonProps {
   disabled?: boolean;
   comparision?: boolean;
+  useH2LoopModel?: boolean;
 }
 
 export function NewProjectButton({
   disabled = false,
   comparision = false,
+  useH2LoopModel = false,
 }: NewProjectButtonProps) {
   const { t } = useTranslation();
   const startNewProject = !comparision
@@ -27,7 +29,7 @@ export function NewProjectButton({
       ariaLabel={startNewProject}
       navLinkTo="/"
       testId="new-project-button"
-      onClick={() => createConversation({})}
+      onClick={() => createConversation({ use_h2loop_model: useH2LoopModel })}
       disabled={disabled}
     >
       {!comparision ? (
