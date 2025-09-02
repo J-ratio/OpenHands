@@ -12,6 +12,7 @@ interface MessagesProps {
   sideBySideResponse?: React.ReactNode;
   modelOne: string;
   modelTwo: string;
+  modelOneResponse: string;
   modelTwoResponse: string;
 }
 
@@ -21,8 +22,11 @@ export const CompareMessages: React.FC<MessagesProps> = React.memo(
     isAwaitingUserConfirmation,
     modelOne,
     modelTwo,
+    modelOneResponse,
     modelTwoResponse,
   }) => {
+    console.log(modelOneResponse);
+    console.log(modelTwoResponse);
     const { getOptimisticUserMessage } = useOptimisticUserMessage();
 
     const optimisticUserMessage = getOptimisticUserMessage();
@@ -52,31 +56,34 @@ export const CompareMessages: React.FC<MessagesProps> = React.memo(
                 {modelOne} Response
               </h3>
             </div>
-            {/* <div className="prose prose-invert prose-sm max-w-none">
-                              <CompareChatMessage
-                                type="agent"
-                                message={modelOneResponse}
-                                enableTypewriter={true}
-                                isLatestMessage={true}
-                              />
-                            </div> */}
-            {messages.map((message, index) => (
-              <div>
-                <EventMessage
-                  key={index}
-                  event={message}
-                  hasObservationPair={actionHasObservationPair(message)}
-                  isAwaitingUserConfirmation={isAwaitingUserConfirmation}
-                  isLastMessage={messages.length - 1 === index}
-                  isInLast10Actions={messages.length - 1 - index < 10}
+            {modelOneResponse ? (
+              <div className="prose prose-invert prose-sm max-w-none">
+                <CompareChatMessage
+                  type="agent"
+                  message={modelOneResponse}
+                  enableTypewriter={true}
+                  isLatestMessage={true}
                 />
-                {/* {
-              <DelayedSideBySideResponse
-                sideBySideResponse={sideBySideResponse}
-              />
-            } */}
               </div>
-            ))}
+            ) : (
+              messages.map((message, index) => (
+                <div>
+                  <EventMessage
+                    key={message.id}
+                    event={message}
+                    hasObservationPair={actionHasObservationPair(message)}
+                    isAwaitingUserConfirmation={isAwaitingUserConfirmation}
+                    isLastMessage={messages.length - 1 === index}
+                    isInLast10Actions={messages.length - 1 - index < 10}
+                  />
+                  {/* {
+                <DelayedSideBySideResponse
+                  sideBySideResponse={sideBySideResponse}
+                />
+              } */}
+                </div>
+              ))
+            )}
           </div>
 
           <div className="flex-1 bg-base-secondary rounded-xl p-6 border border-tertiary-light/20 shadow-lg hover:shadow-xl transition-shadow">
@@ -88,14 +95,29 @@ export const CompareMessages: React.FC<MessagesProps> = React.memo(
                 {modelTwo} Response
               </h3>
             </div>
-            <div className="prose prose-invert prose-sm max-w-none">
-              <CompareChatMessage
-                type="agent"
-                message={modelTwoResponse}
-                enableTypewriter={true}
-                isLatestMessage={true}
-              />
-            </div>
+            {modelTwoResponse ? (
+              <div className="prose prose-invert prose-sm max-w-none">
+                <CompareChatMessage
+                  type="agent"
+                  message={modelTwoResponse}
+                  enableTypewriter={true}
+                  isLatestMessage={true}
+                />
+              </div>
+            ) : (
+              messages.map((message, index) => (
+                <div>
+                  <EventMessage
+                    key={message.id}
+                    event={message}
+                    hasObservationPair={actionHasObservationPair(message)}
+                    isAwaitingUserConfirmation={isAwaitingUserConfirmation}
+                    isLastMessage={messages.length - 1 === index}
+                    isInLast10Actions={messages.length - 1 - index < 10}
+                  />
+                </div>
+              ))
+            )}
           </div>
         </div>
 

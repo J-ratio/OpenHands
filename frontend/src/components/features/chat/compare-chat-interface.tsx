@@ -53,6 +53,7 @@ import { CompareChatMessage } from "./compare-chat-message";
 import { CompareMessages } from "./compare-messages";
 import { CompareChatSuggestions } from "./compare-chat-suggestions";
 import { AttachedCodeBlock, AttachedFile } from "./chat-input";
+import { OpenAI } from "openai";
 
 function getEntryPoint(
   hasRepository: boolean | null,
@@ -64,94 +65,6 @@ function getEntryPoint(
 }
 
 const llmModels = ["h2loop", "gpt-4o", "Claude", "Grok-4"];
-
-const modelOneResponse: string = `
-\`\`\`c
-#include <stdint.h>
-
-static int adc_read_channel(struct adc * const a, int ch, uint16_t * const val) {
-    if (a == NULL || val == NULL) {
-        return -1;
-    }
-
-    if (a->ops.start(ch) < 0) {
-        return -1;
-    }
-
-    a->ops.delay_ms(1U);
-
-    if (a->ops.read(ch, val) < 0) {
-        return -1;
-    }
-
-    return 0;
-}
-\`\`\`
-`;
-
-const modelTwoResponse: string = `
-\`\`\`c
-#include <stdint.h>
-#include <stddef.h>
-
-/* Forward declaration of the ADC device structure. */
-struct adc;
-
-/* Forward declaration of the operations structure, used by the ADC device. */
-struct adc_ops;
-
-/* Externally declared ADC operations structure, assumed to be defined elsewhere. */
-extern struct adc_ops ops;
-
-/* ADC device structure expected to contain an operations pointer. */
-struct adc {
-    struct adc_ops *ops;
-};
-
-/* Operations functions, assumed to be defined elsewhere. */
-struct adc_ops {
-    int (*start)(int);
-    void (*delay_ms)(unsigned int);
-    int (*read)(int, uint16_t *);
-};
-
-/*
- * Read a single ADC channel value.
- *
- * @param a  Pointer to the ADC device (cannot be NULL).
- * @param ch ADC channel number (non-negative value assumed).
- * @param val Pointer to a uint16_t variable where the result is stored (cannot be NULL).
- * @return 0 on success, -1 on error.
- */
-static int adc_read_channel(struct adc * const a, int ch, uint16_t * const val)
-{
-    /* Check for NULL pointers. */
-    if ((a == NULL) || (val == NULL)) {
-        return -1;
-    }
-
-    /* Validate channel number range: ADC channels are assumed to be >= 0. */
-    if (ch < 0) {
-        return -1;
-    }
-
-    /* Start conversion. */
-    if ((a->ops->start)(ch) < 0) {
-        return -1;
-    }
-
-    /* Delay for at least 1 ms. */
-    (a->ops->delay_ms)((unsigned int)1U);
-
-    /* Read conversion result. */
-    if ((a->ops->read)(ch, val) < 0) {
-        return -1;
-    }
-
-    return 0;
-}
-\`\`\`
-`;
 
 export function CompareChatInterface() {
   const { getErrorMessage } = useWSErrorMessage();
@@ -174,6 +87,8 @@ export function CompareChatInterface() {
 
   const [modelOne, setModelOne] = React.useState<string>(llmModels[0]);
   const [modelTwo, setModelTwo] = React.useState<string>(llmModels[1]);
+  const [modelOneResponse, setModelOneResponse] = React.useState<string>("");
+  const [modelTwoResponse, setModelTwoResponse] = React.useState<string>("");
 
   // const [events, setEvents] = React.useState<
   //   Array<OpenHandsAction | OpenHandsObservation>
@@ -201,6 +116,11 @@ export function CompareChatInterface() {
   const { data: conversation } = useActiveConversation();
 
   const { isSimulationMode } = useSimulationMode();
+
+  const openai = new OpenAI({
+    apiKey: import.meta.env.VITE_OPENAI_API_KEY,
+    dangerouslyAllowBrowser: true,
+  });
 
   const statusCode = getStatusCode(
     curStatusMessage,
@@ -248,36 +168,48 @@ export function CompareChatInterface() {
     const prompt =
       uploadedFiles.length > 0 ? `${content}\n\n${filePrompt}` : content;
 
-    send(
-      createChatMessage(
-        prompt,
-        imageUrls,
-        uploadedFiles,
-        attachedFiles,
-        attachedCodeBlocks,
-        timestamp,
-      ),
-    );
     setOptimisticUserMessage(content);
-    // setEvents((prev) => [
-    //   ...prev,
-    //   {
-    //     id: 4,
-    //     timestamp: "2025-08-26T08:26:20.878137",
-    //     source: "user",
-    //     message: content,
-    //     action: "message",
-    //     args: {
-    //       content: content,
-    //       file_urls: [...files.map((file) => file.name)],
-    //       image_urls: [],
-    //       wait_for_response: false,
-    //       attached_files: [],
-    //       attached_codeblocks: [],
-    //     },
-    //     timeout: 120,
-    //   },
-    // ]);
+
+    try {
+      if (modelOne === "h2loop" || modelTwo === "h2loop") {
+        send(
+          createChatMessage(
+            prompt,
+            imageUrls,
+            uploadedFiles,
+            attachedFiles,
+            attachedCodeBlocks,
+            timestamp,
+          ),
+        );
+
+        const openAiResponse = await openai.chat.completions.create({
+          model: modelOne === "h2loop" ? modelTwo : modelOne,
+          messages: [{ role: "user", content: prompt }],
+        });
+        if (modelOne === "h2loop") {
+          setModelTwoResponse(openAiResponse.choices[0].message.content || "");
+        } else {
+          setModelOneResponse(openAiResponse.choices[0].message.content || "");
+        }
+      } else {
+        const responseOne = await openai.chat.completions.create({
+          model: modelOne,
+          messages: [{ role: "user", content: prompt }],
+        });
+        setModelOneResponse(responseOne.choices[0].message.content || "");
+
+        const responseTwo = await openai.chat.completions.create({
+          model: modelTwo,
+          messages: [{ role: "user", content: prompt }],
+        });
+        setModelTwoResponse(responseTwo.choices[0].message.content || "");
+      }
+    } catch (error) {
+      console.error("Error calling OpenAI:", error);
+      displayErrorToast("Failed to get response from model");
+    }
+
     setMessageToSend(null);
     // console.log(events);
   };
@@ -423,8 +355,7 @@ export function CompareChatInterface() {
 
           {!isSimulationMode &&
             !isLoadingMessages &&
-            events.length > 0 &&
-            modelTwoResponse && (
+            (events.length > 0 || modelOneResponse || modelTwoResponse) && (
               <div>
                 <CompareMessages
                   messages={events}
@@ -433,6 +364,7 @@ export function CompareChatInterface() {
                   }
                   modelOne={modelOne}
                   modelTwo={modelTwo}
+                  modelOneResponse={modelOneResponse}
                   modelTwoResponse={modelTwoResponse}
                   // sideBySideResponse={
                   //   <div className="flex gap-16 px-16 py-8 max-w-8xl mx-auto">
