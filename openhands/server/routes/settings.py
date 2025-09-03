@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 
+from openhands.core.config.utils import load_openhands_config
 from openhands.core.logger import openhands_logger as logger
 from openhands.integrations.provider import (
     PROVIDER_TOKEN_TYPE,
@@ -41,10 +42,27 @@ async def load_settings(
 ) -> GETSettingsModel | JSONResponse:
     try:
         if not settings:
-            return JSONResponse(
-                status_code=status.HTTP_404_NOT_FOUND,
-                content={'error': 'Settings not found'},
-            )
+            # Return default settings from the file when user settings not found
+            default_settings = Settings.from_file()
+            if default_settings:
+                await settings_store.store(default_settings)
+                settings_with_token_data = GETSettingsModel(
+                    **default_settings.model_dump(exclude={'secrets_store'}),
+                    llm_api_key_set=default_settings.llm_api_key is not None
+                    and bool(default_settings.llm_api_key),
+                    search_api_key_set=default_settings.search_api_key is not None
+                    and bool(default_settings.search_api_key),
+                    provider_tokens_set={},
+                )
+                settings_with_token_data.llm_api_key = None
+                settings_with_token_data.search_api_key = None
+                settings_with_token_data.sandbox_api_key = None
+                return settings_with_token_data
+            else:
+                return JSONResponse(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    content={'error': 'Settings not found and no defaults available'},
+                )
 
         # On initial load, user secrets may not be populated with values migrated from settings store
         user_secrets = await invalidate_legacy_secrets_store(

@@ -230,13 +230,13 @@ export default function MainApp() {
           )}
           {renderReAuthModal && <ReauthModal />}
 
-          {config.data?.APP_MODE === "oss" && consentFormIsOpen && (
+          {/* {config.data?.APP_MODE === "oss" && consentFormIsOpen && (
             <AnalyticsConsentFormModal
               onClose={() => {
                 setConsentFormIsOpen(false);
               }}
             />
-          )}
+          )} */}
 
           {config.data?.FEATURE_FLAGS.ENABLE_BILLING &&
             config.data?.APP_MODE === "saas" &&

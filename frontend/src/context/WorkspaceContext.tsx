@@ -84,9 +84,10 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   }, [refreshKey]);
 
   useEffect(() => {
+    if (settings?.ACTIVE_WORKSPACE_ID) return;
     if (!selectedWorkspaceId || !settings?.LLM_MODEL) return;
     saveUserSettings({ ACTIVE_WORKSPACE_ID: selectedWorkspaceId?.toString() });
-  }, [selectedWorkspaceId]);
+  }, [settings, selectedWorkspaceId]);
 
   return (
     <WorkspaceContext.Provider
