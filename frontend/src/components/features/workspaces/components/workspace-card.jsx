@@ -9,6 +9,7 @@ import {
   displayErrorToast,
   displaySuccessToast,
 } from "../../../../utils/custom-toast-handlers";
+import { getColorFromName } from "../../../../utils/basic-utils";
 
 const WorkspaceCard = ({
   workspace,
@@ -61,8 +62,14 @@ const WorkspaceCard = ({
 
   return (
     <Card className="flex flex-col justify-between space-y-0 gap-0 h-fit">
-      <CardHeader className=" inline-flex ">
-        <CardTitle className="font-bold w-fit">{workspace.name}</CardTitle>
+      <CardHeader className=" inline-flex">
+        <div className="flex items-center gap-2">
+          <div
+            className="w-3 h-3 rounded-full"
+            style={{ backgroundColor: getColorFromName(workspace.name) }}
+          ></div>
+          <CardTitle className="font-bold w-fit">{workspace.name}</CardTitle>
+        </div>
         <CardDescription className="h-10">
           {truncatedDescription ?? "No description available"}
         </CardDescription>
