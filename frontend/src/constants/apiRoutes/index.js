@@ -1,4 +1,4 @@
-const VITE_H2LOOP_API_BASE_URL = "https://coreapi.h2loop.ai";
+const VITE_H2LOOP_API_BASE_URL = import.meta.env.VITE_H2LOOP_API_BASE_URL;
 
 const API_URL = `${VITE_H2LOOP_API_BASE_URL}/api/v1`;
 
