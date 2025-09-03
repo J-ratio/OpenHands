@@ -77,6 +77,12 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     } else {
       setLinkedRepo(undefined);
     }
+
+    if (activeWorkspaceId === null) {
+      saveUserSettings({
+        ACTIVE_WORKSPACE_ID: selectedWorkspaceId?.toString(),
+      });
+    }
   }, [settings?.ACTIVE_WORKSPACE_ID]);
 
   useEffect(() => {
