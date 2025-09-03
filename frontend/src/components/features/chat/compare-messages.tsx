@@ -1,10 +1,16 @@
 import React from "react";
 import { OpenHandsAction } from "#/types/core/actions";
 import { OpenHandsObservation } from "#/types/core/observations";
-import { isOpenHandsAction, isOpenHandsObservation } from "#/types/core/guards";
+import {
+  isOpenHandsAction,
+  isOpenHandsObservation,
+  isUserMessage,
+} from "#/types/core/guards";
 import { EventMessage } from "./event-message";
 import { useOptimisticUserMessage } from "#/hooks/use-optimistic-user-message";
 import { CompareChatMessage } from "./compare-chat-message";
+import { CompareEventMessage } from "./compare-event-message";
+import { parseMessageFromEvent } from "./event-content-helpers/parse-message-from-event";
 
 interface MessagesProps {
   messages: (OpenHandsAction | OpenHandsObservation)[];
@@ -14,6 +20,7 @@ interface MessagesProps {
   modelTwo: string;
   modelOneResponse: string;
   modelTwoResponse: string;
+  modelHistory: { [content: string]: { modelOne: string; modelTwo: string } };
 }
 
 export const CompareMessages: React.FC<MessagesProps> = React.memo(
@@ -24,9 +31,8 @@ export const CompareMessages: React.FC<MessagesProps> = React.memo(
     modelTwo,
     modelOneResponse,
     modelTwoResponse,
+    modelHistory,
   }) => {
-    console.log(modelOneResponse);
-    console.log(modelTwoResponse);
     const { getOptimisticUserMessage } = useOptimisticUserMessage();
 
     const optimisticUserMessage = getOptimisticUserMessage();
@@ -44,86 +50,127 @@ export const CompareMessages: React.FC<MessagesProps> = React.memo(
       [messages],
     );
 
+    const userMessages = messages.filter(isUserMessage);
+
+    // Group messages by conversation turns
+    const groups = [];
+    for (let i = 0; i < userMessages.length; i++) {
+      const userMsg = userMessages[i];
+      const userIndex = messages.indexOf(userMsg);
+      const nextUserIndex =
+        i + 1 < userMessages.length
+          ? messages.indexOf(userMessages[i + 1])
+          : messages.length;
+      const groupMessages = messages
+        .slice(userIndex + 1, nextUserIndex)
+        .filter((msg) => !isUserMessage(msg));
+
+      // Get the stored models for this message, fallback to current models
+      const messageContent = userMsg.args.content;
+      const messageModels = modelHistory[messageContent] || {
+        modelOne,
+        modelTwo,
+      };
+
+      groups.push({ userMsg, responses: groupMessages, models: messageModels });
+    }
+
     return (
       <>
-        <div className="flex gap-16 px-16 py-8 max-w-8xl mx-auto">
-          <div className="flex-1 bg-base-secondary rounded-xl p-6 border border-tertiary-light/20 shadow-lg hover:shadow-xl transition-shadow">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-medium">AI</span>
-              </div>
-              <h3 className="text-primary-text font-semibold">
-                {modelOne} Response
-              </h3>
+        {/* Display each question-response group */}
+        {groups.map((group, groupIndex) => (
+          <div key={group.userMsg.id} className="mb-8">
+            <div className="flex justify-end mb-4">
+              <CompareChatMessage
+                type="user"
+                message={parseMessageFromEvent(group.userMsg)}
+              />
             </div>
-            {modelOneResponse ? (
-              <div className="prose prose-invert prose-sm max-w-none">
-                <CompareChatMessage
-                  type="agent"
-                  message={modelOneResponse}
-                  enableTypewriter={true}
-                  isLatestMessage={true}
-                />
-              </div>
-            ) : (
-              messages.map((message, index) => (
-                <div>
-                  <EventMessage
-                    key={message.id}
-                    event={message}
-                    hasObservationPair={actionHasObservationPair(message)}
-                    isAwaitingUserConfirmation={isAwaitingUserConfirmation}
-                    isLastMessage={messages.length - 1 === index}
-                    isInLast10Actions={messages.length - 1 - index < 10}
-                  />
-                  {/* {
-                <DelayedSideBySideResponse
-                  sideBySideResponse={sideBySideResponse}
-                />
-              } */}
-                </div>
-              ))
-            )}
-          </div>
 
-          <div className="flex-1 bg-base-secondary rounded-xl p-6 border border-tertiary-light/20 shadow-lg hover:shadow-xl transition-shadow">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-medium">AI</span>
+            <div className="flex gap-16 px-16 py-8 max-w-8xl mx-auto">
+              <div className="flex-1 bg-base-secondary rounded-xl p-6 border border-tertiary-light/20 shadow-lg hover:shadow-xl transition-shadow">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-medium">AI</span>
+                  </div>
+                  <h3 className="text-primary-text font-semibold">
+                    {group.models.modelOne} Response
+                  </h3>
+                </div>
+                {groupIndex === groups.length - 1 && modelOneResponse ? (
+                  <div className="prose prose-invert prose-sm max-w-none">
+                    <CompareChatMessage
+                      type="agent"
+                      message={modelOneResponse}
+                      enableTypewriter={true}
+                      isLatestMessage={true}
+                    />
+                  </div>
+                ) : (
+                  group.responses.map((message, index) => (
+                    <div key={message.id}>
+                      <CompareEventMessage
+                        event={message}
+                        hasObservationPair={actionHasObservationPair(message)}
+                        isAwaitingUserConfirmation={isAwaitingUserConfirmation}
+                        isLastMessage={messages.length - 1 === index}
+                        isInLast10Actions={messages.length - 1 - index < 10}
+                      />
+                    </div>
+                  ))
+                )}
               </div>
-              <h3 className="text-primary-text font-semibold">
-                {modelTwo} Response
-              </h3>
+
+              <div className="flex-1 bg-base-secondary rounded-xl p-6 border border-tertiary-light/20 shadow-lg hover:shadow-xl transition-shadow">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-medium">AI</span>
+                  </div>
+                  <h3 className="text-primary-text font-semibold">
+                    {group.models.modelTwo} Response
+                  </h3>
+                </div>
+                {groupIndex === groups.length - 1 && modelTwoResponse ? (
+                  <div className="prose prose-invert prose-sm max-w-none">
+                    <CompareChatMessage
+                      type="agent"
+                      message={modelTwoResponse}
+                      enableTypewriter={true}
+                      isLatestMessage={true}
+                    />
+                  </div>
+                ) : (
+                  group.responses.map((message, index) => (
+                    <div key={message.id}>
+                      <CompareEventMessage
+                        event={message}
+                        hasObservationPair={actionHasObservationPair(message)}
+                        isAwaitingUserConfirmation={isAwaitingUserConfirmation}
+                        isLastMessage={messages.length - 1 === index}
+                        isInLast10Actions={messages.length - 1 - index < 10}
+                      />
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
-            {modelTwoResponse ? (
-              <div className="prose prose-invert prose-sm max-w-none">
+          </div>
+        ))}
+
+        {/* Show optimistic user message if it exists and isn't already in messages */}
+        {optimisticUserMessage &&
+          !userMessages.some(
+            (msg) => parseMessageFromEvent(msg) === optimisticUserMessage,
+          ) && (
+            <div className="mb-8">
+              <div className="flex justify-end mb-4">
                 <CompareChatMessage
-                  type="agent"
-                  message={modelTwoResponse}
-                  enableTypewriter={true}
-                  isLatestMessage={true}
+                  type="user"
+                  message={optimisticUserMessage}
                 />
               </div>
-            ) : (
-              messages.map((message, index) => (
-                <div>
-                  <EventMessage
-                    key={message.id}
-                    event={message}
-                    hasObservationPair={actionHasObservationPair(message)}
-                    isAwaitingUserConfirmation={isAwaitingUserConfirmation}
-                    isLastMessage={messages.length - 1 === index}
-                    isInLast10Actions={messages.length - 1 - index < 10}
-                  />
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* {optimisticUserMessage && (
-          <ChatMessage type="user" message={optimisticUserMessage} />
-        )} */}
+            </div>
+          )}
       </>
     );
   },
@@ -138,32 +185,3 @@ export const CompareMessages: React.FC<MessagesProps> = React.memo(
 );
 
 CompareMessages.displayName = "Messages";
-
-const DelayedSideBySideResponse = ({
-  sideBySideResponse,
-  delay = 200,
-}: {
-  sideBySideResponse: React.ReactNode;
-  delay?: number;
-}) => {
-  const [showResponse, setShowResponse] = React.useState(false);
-
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowResponse(true);
-    }, delay);
-
-    return () => clearTimeout(timer);
-  }, [delay]);
-
-  return (
-    <div
-      style={{
-        opacity: showResponse ? 1 : 0,
-        transition: "opacity 0.3s ease-in-out",
-      }}
-    >
-      {sideBySideResponse}
-    </div>
-  );
-};

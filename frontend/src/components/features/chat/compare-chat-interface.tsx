@@ -89,6 +89,9 @@ export function CompareChatInterface() {
   const [modelTwo, setModelTwo] = React.useState<string>(llmModels[1]);
   const [modelOneResponse, setModelOneResponse] = React.useState<string>("");
   const [modelTwoResponse, setModelTwoResponse] = React.useState<string>("");
+  const [modelHistory, setModelHistory] = React.useState<{
+    [messageId: string]: { modelOne: string; modelTwo: string };
+  }>({});
 
   // const [events, setEvents] = React.useState<
   //   Array<OpenHandsAction | OpenHandsObservation>
@@ -156,6 +159,12 @@ export function CompareChatInterface() {
     const imageUrls = await Promise.all(promises);
 
     const timestamp = new Date().toISOString();
+
+    // Store the current models for this message using content as key
+    setModelHistory((prev) => ({
+      ...prev,
+      [content]: { modelOne, modelTwo },
+    }));
 
     const { skipped_files: skippedFiles, uploaded_files: uploadedFiles } =
       files.length > 0
@@ -366,6 +375,7 @@ export function CompareChatInterface() {
                   modelTwo={modelTwo}
                   modelOneResponse={modelOneResponse}
                   modelTwoResponse={modelTwoResponse}
+                  modelHistory={modelHistory}
                   // sideBySideResponse={
                   //   <div className="flex gap-16 px-16 py-8 max-w-8xl mx-auto">
                   //     <div className="flex-1 bg-base-secondary rounded-xl p-6 border border-tertiary-light/20 shadow-lg hover:shadow-xl transition-shadow">
