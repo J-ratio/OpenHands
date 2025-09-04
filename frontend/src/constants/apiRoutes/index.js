@@ -1,5 +1,4 @@
 const VITE_H2LOOP_API_BASE_URL = import.meta.env.VITE_H2LOOP_API_BASE_URL;
-console.log(`env variables: ${JSON.stringify(import.meta.env)}`);
 
 const API_URL = `${VITE_H2LOOP_API_BASE_URL}/api/v1`;
 
