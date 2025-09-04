@@ -88,7 +88,7 @@ const CreateTemplateUsingFile = () => {
           </DialogDescription>
         </DialogHeader>
 
-        <FileUpload setFile={setFile} />
+        <FileUpload file={file} setFile={setFile} />
 
         {file && <FileDetails file={file} />}
 

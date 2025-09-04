@@ -191,6 +191,7 @@ export function ToolModal({
               <div className="w-full text-center">
                 <p className="text-start text-sm mt-4">Upload Log File Here</p>
                 <FileUpload
+                  file={crashLogFile}
                   setFile={setCrashLogFile}
                   fileInfo="Upload .txt or .log file"
                   allowedExtensions={["log", "txt"]}
