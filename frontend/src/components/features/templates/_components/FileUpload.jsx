@@ -64,7 +64,7 @@ const FileUpload = ({
             <input
               id="fileInput"
               type="file"
-              accept="application/pdf"
+              accept={allowedExtensions.map((ext) => `.${ext}`).join(",")}
               className="sr-only"
               onChange={handleFileChange}
             />
