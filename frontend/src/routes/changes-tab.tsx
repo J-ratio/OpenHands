@@ -8,6 +8,8 @@ import { I18nKey } from "#/i18n/declaration";
 import { RootState } from "#/store";
 import { RUNTIME_INACTIVE_STATES } from "#/types/agent-state";
 import { RandomTip } from "#/components/features/tips/random-tip";
+import { DebugCrashLogFileDiffViewer } from "#/components/features/home/tools/debug-crash-log-file-diff-viewer";
+import { useSimulationMode } from "#/fake_scripts/simulation_context";
 
 // Error message patterns
 const GIT_REPO_ERROR_PATTERN = /not a git repository/i;
@@ -22,6 +24,7 @@ function StatusMessage({ children }: React.PropsWithChildren) {
 
 function GitChanges() {
   const { t } = useTranslation();
+  const { isSimulationMode, toolId } = useSimulationMode();
   const {
     data: gitChanges,
     isSuccess,
@@ -65,6 +68,10 @@ function GitChanges() {
     error,
     setStatusMessage,
   ]);
+
+  if (isSimulationMode && toolId === "DEBUG_USING_CRASHLOGS") {
+    return <DebugCrashLogFileDiffViewer path="imx219.c" type="M" />;
+  }
 
   return (
     <main className="h-full overflow-y-scroll px-4 py-3 gap-3 flex flex-col items-center">
