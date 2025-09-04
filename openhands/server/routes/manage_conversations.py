@@ -1,3 +1,4 @@
+import asyncio
 import itertools
 import os
 import re
@@ -194,7 +195,7 @@ async def new_conversation(
             mcp_config=data.mcp_config,
         )
 
-        await trigger_default_llm_model(settings)
+        asyncio.create_task(trigger_default_llm_model(settings))
 
         return ConversationResponse(
             status='ok',
@@ -225,9 +226,14 @@ async def new_conversation(
 async def trigger_default_llm_model(settings):
     deafult_llm_model_base_url = "https://h2loop--qwen25-coder-32b-serve.modal.run/v1"
     if(settings.llm_base_url == deafult_llm_model_base_url):
-        requests.get(deafult_llm_model_base_url, headers={
-            "Authorization": f"Bearer ${os.environ.get("DEFAULT_LLM_MODEL_SECRET_KEY")}"
-        })
+        response = await asyncio.to_thread(
+            requests.get,
+            deafult_llm_model_base_url,
+            headers={
+                "Authorization": f"Bearer ${os.environ.get("DEFAULT_LLM_MODEL_SECRET_KEY")}"
+            }
+        )
+
 
 @app.get('/conversations')
 async def search_conversations(
