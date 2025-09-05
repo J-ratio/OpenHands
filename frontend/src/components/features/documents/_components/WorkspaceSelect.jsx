@@ -13,7 +13,6 @@ import CreateWorkspaceButton from "../../../features/workspaces/components/creat
 import { getWorkspaceNameFromId } from "../../../../utils/workspace-utils";
 import { getColorFromName } from "../../../../utils/basic-utils";
 import { useSettings } from "../../../../hooks/query/use-settings";
-import { HorizontalDotsLoader } from "../../../shared/horizontal-dots-loader";
 
 export const WorkspaceSelect = ({
   workspaces,
@@ -27,7 +26,7 @@ export const WorkspaceSelect = ({
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { data: settings, isLoading: isSettingsLoading } = useSettings();
+  const { data: settings } = useSettings();
 
   async function getData() {
     setLoading(true);
@@ -78,54 +77,46 @@ export const WorkspaceSelect = ({
       }}
       className="bg-neutral-900 text-neutral-100 rounded-md border border-neutral-700"
     >
-      {isSettingsLoading ? (
-        <HorizontalDotsLoader />
-      ) : (
-        <>
-          <SelectTrigger
-            className={
-              (fullWidth ? "w-full" : "w-[250px]") +
-              " text-lg font-semibold bg-neutral-900 text-neutral-100 border border-neutral-700 placeholder:text-neutral-500 focus:ring-0 outline-none rounded-md transition-colors duration-150"
-            }
-          >
-            <SelectValue placeholder={label} className="text-neutral-500" />
-          </SelectTrigger>
-          <SelectContent className="bg-neutral-900 text-neutral-100 border border-neutral-700 rounded-md shadow-lg">
-            <SelectGroup>
-              {(workspaces || data).map((workspace) => (
-                <SelectItem
-                  value={workspace.id}
-                  key={workspace.id}
-                  onClick={() => {
-                    setSelectedWorkspace(workspace.id.toString());
-                    if (setSelectedWorkspaceName) {
-                      setSelectedWorkspaceName(workspace.name);
-                    }
-                  }}
-                  className="hover:bg-neutral-800 focus:bg-neutral-800 text-neutral-100 cursor-pointer transition-colors duration-100 rounded flex items-center"
-                >
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{
-                        backgroundColor: getColorFromName(workspace.name),
-                      }}
-                    ></div>
-                    <span>
-                      {workspace.name.length < 30
-                        ? workspace.name
-                        : `${workspace.name.substring(0, 30)}...`}
-                    </span>
-                  </div>
-                </SelectItem>
-              ))}
-              <div className="my-2 text-center">
-                <CreateWorkspaceButton onCreateSuccess={getData} />
+      <SelectTrigger
+        className={
+          (fullWidth ? "w-full" : "w-[250px]") +
+          " text-lg font-semibold bg-neutral-900 text-neutral-100 border border-neutral-700 placeholder:text-neutral-500 focus:ring-0 outline-none rounded-md transition-colors duration-150"
+        }
+      >
+        <SelectValue placeholder={label} className="text-neutral-500" />
+      </SelectTrigger>
+      <SelectContent className="bg-neutral-900 text-neutral-100 border border-neutral-700 rounded-md shadow-lg">
+        <SelectGroup>
+          {(workspaces || data).map((workspace) => (
+            <SelectItem
+              value={workspace.id}
+              key={workspace.id}
+              onClick={() => {
+                setSelectedWorkspace(workspace.id.toString());
+                if (setSelectedWorkspaceName) {
+                  setSelectedWorkspaceName(workspace.name);
+                }
+              }}
+              className="hover:bg-neutral-800 focus:bg-neutral-800 text-neutral-100 cursor-pointer transition-colors duration-100 rounded flex items-center"
+            >
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: getColorFromName(workspace.name) }}
+                ></div>
+                <span>
+                  {workspace.name.length < 30
+                    ? workspace.name
+                    : `${workspace.name.substring(0, 30)}...`}
+                </span>
               </div>
-            </SelectGroup>
-          </SelectContent>
-        </>
-      )}
+            </SelectItem>
+          ))}
+          <div className="my-2 text-center">
+            <CreateWorkspaceButton onCreateSuccess={getData} />
+          </div>
+        </SelectGroup>
+      </SelectContent>
     </Select>
   );
 };
