@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogTitle as RawDialogTitle,
@@ -15,6 +15,7 @@ import { dataSourceToGitRepository } from "#/utils/utils.ts";
 import GenerateInterfaceDocForm from "./generate-interface-documentation-form";
 import { GitRepository } from "#/types/git";
 import FileUpload from "../../templates/_components/FileUpload";
+import { useSimulationMode } from "#/fake_scripts/simulation_context";
 
 const DialogContent = RawDialogContent as React.FC<
   React.PropsWithChildren<any>
@@ -52,6 +53,7 @@ export function ToolModal({
     isPending,
     isSuccess,
   } = useCreateConversation();
+  const { setToolId } = useSimulationMode();
   const [crashLogFile, setCrashLogFile] = React.useState();
 
   const isCreatingConversation = isPending || isSuccess;
@@ -59,6 +61,7 @@ export function ToolModal({
   const DialogTitle = RawDialogTitle as React.FC<{ children: React.ReactNode }>;
 
   function handleCreateOrGenerate(id: string) {
+    setToolId(id);
     switch (id) {
       case "GENERATE_CLASS_DIAGRAM":
         if (linkedRepo) {
@@ -191,6 +194,7 @@ export function ToolModal({
               <div className="w-full text-center">
                 <p className="text-start text-sm mt-4">Upload Log File Here</p>
                 <FileUpload
+                  file={crashLogFile}
                   setFile={setCrashLogFile}
                   fileInfo="Upload .txt or .log file"
                   allowedExtensions={["log", "txt"]}

@@ -30,7 +30,7 @@ import { WorkspaceSelect } from "#/components/features/documents/_components/Wor
 import { SimulationProvider } from "#/fake_scripts/simulation_context";
 import { MaintenanceBanner } from "#/components/features/maintenance/maintenance-banner";
 import { useMigrateUserConsent } from "#/hooks/use-migrate-user-consent";
-import { AnalyticsConsentFormModal } from "#/components/features/analytics/analytics-consent-form-modal";
+// import { AnalyticsConsentFormModal } from "#/components/features/analytics/analytics-consent-form-modal";
 
 export function ErrorBoundary() {
   const error = useRouteError();

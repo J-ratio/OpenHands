@@ -13,6 +13,48 @@ export const DEBUG_CRASH_LOGS_MESSAGES: Array<FakeMessage> = [
     delay: 2000,
   },
   {
+    type: "environment",
+    message: "Reading specifications: ",
+    delay: 400,
+  },
+  {
+    type: "environment",
+    message: "- Read 8-1 Power On Sequence",
+    delay: 200,
+  },
+  {
+    type: "environment",
+    message:
+      "- Read Fig 38 Power-on Sequence in 2-wire Serial Communication Mode",
+    delay: 200,
+  },
+  {
+    type: "environment",
+    message:
+      "- Read Table 36 Operation Specifications 2-wire Serial Communication Mode",
+    delay: 200,
+  },
+  {
+    type: "environment",
+    message: "- Read Start streaming sequence with 2-wire serial communication",
+    delay: 200,
+  },
+  {
+    type: "environment",
+    message: "- Read 8-2 Power off sequence",
+    delay: 200,
+  },
+  {
+    type: "environment",
+    message: "- Read Fig. 41 Software Standby Operation Pattern 1",
+    delay: 200,
+  },
+  {
+    type: "environment",
+    message: "- Read Fig. 42 Software Standby Operation Pattern 2",
+    delay: 200,
+  },
+  {
     type: "agent",
     message: "I can see the issue from provided crash logs!",
     delay: 1000,
@@ -27,6 +69,6 @@ export const DEBUG_CRASH_LOGS_MESSAGES: Array<FakeMessage> = [
     type: "agent",
     message:
       "Here's the corrected Driver code:\n\n```c\nstatic int imx219_power_on(struct device *dev)\n{\n\tstruct v4l2_subdev *sd = dev_get_drvdata(dev);\n\tstruct imx219 *imx219 = to_imx219(sd);\n\tint ret;\n\n\t/* Enable supplies in correct datasheet order: VDDL -> VANA -> VDIG */\n\tret = regulator_enable(imx219->supplies[IMX219_VDDL].consumer);\n\tif (ret)\n\t\tgoto err_vddl;\n\tusleep_range(2000, 2500); /* allow rail to settle */\n\n\tret = regulator_enable(imx219->supplies[IMX219_VANA].consumer);\n\tif (ret)\n\t\tgoto err_vana;\n\tusleep_range(2000, 2500);\n\n\tret = regulator_enable(imx219->supplies[IMX219_VDIG].consumer);\n\tif (ret)\n\t\tgoto err_vdig;\n\tusleep_range(5000, 6000);\n\n\t/* Enable external clock */\n\tret = clk_prepare_enable(imx219->xclk);\n\tif (ret)\n\t\tgoto err_clk;\n\n\t/* Assert reset only after rails + clk stable (t3 ≥ 0.5 µs) */\n\tusleep_range(1000, 1500);\n\tgpiod_set_value_cansleep(imx219->reset_gpio, 1);\n\n\t/* Wait t5 ≥ 6ms before sensor ready */\n\tmsleep(6);\n\n\treturn 0;\n\nerr_clk:\n\tregulator_disable(imx219->supplies[IMX219_VDIG].consumer);\nerr_vdig:\n\tregulator_disable(imx219->supplies[IMX219_VANA].consumer);\nerr_vana:\n\tregulator_disable(imx219->supplies[IMX219_VDDL].consumer);\nerr_vddl:\n\treturn ret;\n}\n\nstatic int imx219_power_off(struct device *dev)\n{\n\tstruct v4l2_subdev *sd = dev_get_drvdata(dev);\n\tstruct imx219 *imx219 = to_imx219(sd);\n\n\t/* Deassert reset first */\n\tgpiod_set_value_cansleep(imx219->reset_gpio, 0);\n\n\t/* Disable supplies in reverse order (VDIG → VANA → VDDL) */\n\tregulator_disable(imx219->supplies[IMX219_VDIG].consumer);\n\tregulator_disable(imx219->supplies[IMX219_VANA].consumer);\n\tregulator_disable(imx219->supplies[IMX219_VDDL].consumer);\n\n\tclk_disable_unprepare(imx219->xclk);\n\n\treturn 0;\n}\n```",
-    delay: 5000,
+    delay: 4000,
   },
 ];

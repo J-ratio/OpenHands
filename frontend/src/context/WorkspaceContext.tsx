@@ -66,7 +66,6 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const activeWorkspaceId = settings?.ACTIVE_WORKSPACE_ID;
     if (activeWorkspaceId) {
-      setSelectedWorkspaceId(activeWorkspaceId);
       if (location.pathname === "/") {
         fetchLinkedRepo(activeWorkspaceId);
       }
@@ -92,6 +91,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (settings?.ACTIVE_WORKSPACE_ID) return;
     if (!selectedWorkspaceId || !settings?.LLM_MODEL) return;
+    setSelectedWorkspaceId(selectedWorkspaceId);
     saveUserSettings({ ACTIVE_WORKSPACE_ID: selectedWorkspaceId?.toString() });
   }, [settings, selectedWorkspaceId]);
 

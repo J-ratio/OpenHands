@@ -35,6 +35,7 @@ function FileManagerPage() {
   // const [workspacesUi, setWorkspacesUi] = useState(workspaces);
 
   async function fetchData() {
+    if (!selectedWorkspaceId) return;
     setLoading(true);
     const res = await getAllDataSourcesByWorkspaceId(selectedWorkspaceId);
     if (res.success) {
@@ -83,6 +84,10 @@ function FileManagerPage() {
       item.type === "FILE" &&
       item.name?.toLowerCase().includes(search.toLowerCase()),
   );
+
+  if (!selectedWorkspaceId) {
+    return <div></div>;
+  }
 
   return (
     <div className="p-4 md:p-10 rounded-tl-2xl border border-neutral-200 dark:border-neutral-700 bg-neutral-800 dark:bg-neutral-900 flex flex-col gap-2 flex-1 w-full h-full py-12">

@@ -4,6 +4,8 @@ interface SimulationContextType {
   isSimulationMode: boolean;
   enableSimulation: () => void;
   disableSimulation: () => void;
+  toolId: string | undefined;
+  setToolId: React.Dispatch<React.SetStateAction<string | undefined>>;
 }
 
 const SimulationContext = createContext<SimulationContextType | undefined>(
@@ -18,6 +20,7 @@ export const SimulationProvider: React.FC<SimulationProviderProps> = ({
   children,
 }) => {
   const [isSimulationMode, setIsSimulationMode] = useState(false);
+  const [toolId, setToolId] = useState<string>();
 
   const enableSimulation = () => {
     setIsSimulationMode(true);
@@ -33,6 +36,8 @@ export const SimulationProvider: React.FC<SimulationProviderProps> = ({
         isSimulationMode,
         enableSimulation,
         disableSimulation,
+        toolId,
+        setToolId,
       }}
     >
       {children}

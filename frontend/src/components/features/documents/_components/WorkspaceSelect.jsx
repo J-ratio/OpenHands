@@ -11,6 +11,8 @@ import { getAllWorkspaces } from "../../../../api/workspaces";
 import { useEffect, useState } from "react";
 import CreateWorkspaceButton from "../../../features/workspaces/components/create-workspace-button";
 import { getWorkspaceNameFromId } from "../../../../utils/workspace-utils";
+import { getColorFromName } from "../../../../utils/basic-utils";
+import { useSettings } from "../../../../hooks/query/use-settings";
 
 export const WorkspaceSelect = ({
   workspaces,
@@ -24,6 +26,7 @@ export const WorkspaceSelect = ({
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { data: settings } = useSettings();
 
   async function getData() {
     setLoading(true);
@@ -32,12 +35,12 @@ export const WorkspaceSelect = ({
       setData(response.data);
       if (workspaces) workspaces = response.data;
       if (setWorkspaces) setWorkspaces(response.data);
-      if (!selectedWorkspace && workspaces) {
-        setSelectedWorkspace(workspaces[0].id.toString());
-        if (setSelectedWorkspace) {
-          setSelectedWorkspaceName(workspaces[0].name);
-        }
-      }
+      // if (!selectedWorkspace && workspaces) {
+      //   setSelectedWorkspace(workspaces[0].id.toString());
+      //   if (setSelectedWorkspace) {
+      //     setSelectedWorkspaceName(workspaces[0].name);
+      //   }
+      // }
     } else {
       setError(response.errorMessage);
     }
@@ -47,6 +50,13 @@ export const WorkspaceSelect = ({
   useEffect(() => {
     getData();
   }, []);
+
+  useEffect(() => {
+    if (!selectedWorkspace && workspaces) {
+      const activeWorkspaceId = settings?.ACTIVE_WORKSPACE_ID;
+      setSelectedWorkspace(activeWorkspaceId);
+    }
+  }, [settings]);
 
   if (loading) return <div className="text-neutral-400"></div>;
   if (error) {
@@ -87,11 +97,19 @@ export const WorkspaceSelect = ({
                   setSelectedWorkspaceName(workspace.name);
                 }
               }}
-              className="hover:bg-neutral-800 focus:bg-neutral-800 text-neutral-100 cursor-pointer transition-colors duration-100 rounded"
+              className="hover:bg-neutral-800 focus:bg-neutral-800 text-neutral-100 cursor-pointer transition-colors duration-100 rounded flex items-center"
             >
-              {workspace.name.length < 30
-                ? workspace.name
-                : `${workspace.name.substring(0, 30)}...`}
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: getColorFromName(workspace.name) }}
+                ></div>
+                <span>
+                  {workspace.name.length < 30
+                    ? workspace.name
+                    : `${workspace.name.substring(0, 30)}...`}
+                </span>
+              </div>
             </SelectItem>
           ))}
           <div className="my-2 text-center">

@@ -291,3 +291,12 @@ export function convertAIChatToCodeBlock(blocks) {
     return block;
   });
 }
+
+export const getColorFromName = (name) => {
+  let hash = 5381;
+  for (let i = 0; i < name.length; i++) {
+    hash = (hash << 5) + hash + name.charCodeAt(i);
+  }
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue}, 70%, 50%)`;
+};

@@ -1,9 +1,10 @@
-import { CloudUploadIcon } from "lucide-react";
-import React, { useState } from "react";
+import { CloudUploadIcon, XIcon, FileTextIcon } from "lucide-react";
+import { useState } from "react";
 
 const MAX_SIZE = 40 * 1024 * 1024; // 40MB
 
 const FileUpload = ({
+  file,
   setFile,
   fileInfo = `PDF - Max ${MAX_SIZE / 1024 / 1024} MB`,
   allowedExtensions = ["pdf"],
@@ -48,13 +49,14 @@ const FileUpload = ({
     event.preventDefault();
   };
 
-  return (
-    <div className="flex w-full max-w-xl flex-col gap-1 text-center mt-2">
-      <div
-        className="flex w-full flex-col items-center justify-center gap-2 rounded-md border border-dashed border-neutral-300 p-8 text-neutral-600 dark:border-neutral-700 dark:text-neutral-300"
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-      >
+  const handleRemoveFile = () => {
+    setFile(null);
+    setError("");
+  };
+
+  const FileUploadInput = () => {
+    return (
+      <>
         <CloudUploadIcon />
         <div className="group">
           <label
@@ -64,7 +66,7 @@ const FileUpload = ({
             <input
               id="fileInput"
               type="file"
-              accept="application/pdf"
+              accept={allowedExtensions.map((ext) => `.${ext}`).join(",")}
               className="sr-only"
               onChange={handleFileChange}
             />
@@ -73,6 +75,39 @@ const FileUpload = ({
           &nbsp;or drag and drop here
         </div>
         <small className="text-neutral-500">{fileInfo}</small>
+      </>
+    );
+  };
+
+  const FileUploadedInfo = () => {
+    return (
+      <div className="flex items-center justify-between w-full bg-neutral-800 p-3 rounded-md border border-neutral-700">
+        <div className="flex items-center gap-3">
+          <FileTextIcon className="w-5 h-5 text-white" />
+          <div className="flex flex-col items-start">
+            <span className="text-xs text-neutral-400">File uploaded</span>
+            <span className="text-sm font-medium text-white">{file.name}</span>
+          </div>
+        </div>
+        <button
+          onClick={handleRemoveFile}
+          className="p-1 rounded hover:bg-neutral-700 transition-colors cursor-pointer"
+          aria-label="Remove file"
+        >
+          <XIcon className="w-4 h-4 text-neutral-400 hover:text-white" />
+        </button>
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex w-full max-w-xl flex-col gap-1 text-center mt-2">
+      <div
+        className="flex w-full flex-col items-center justify-center gap-2 rounded-md border border-dashed border-neutral-300 p-8 text-neutral-600 dark:border-neutral-700 dark:text-neutral-300"
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+      >
+        {!file ? <FileUploadInput /> : <FileUploadedInfo />}
       </div>
 
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
