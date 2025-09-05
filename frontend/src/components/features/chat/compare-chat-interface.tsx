@@ -46,7 +46,7 @@ import {
   SelectValue,
 } from "#/components/ui/select";
 import { PiInfinityLight } from "react-icons/pi";
-import { UserQuerySuggestions } from "./user-query-suggestions";
+import { UserQuerySuggestions, UserSuggestion } from "./user-query-suggestions";
 import { OpenHandsAction } from "#/types/core/actions";
 import { OpenHandsObservation } from "#/types/core/observations";
 import { CompareChatMessage } from "./compare-chat-message";
@@ -64,7 +64,7 @@ function getEntryPoint(
   return "direct";
 }
 
-const llmModels = ["h2loop", "gpt-4o", "Claude", "Grok-4"];
+const llmModels = ["h2loop", "gpt-4o", "claude-sonnet-4-20250514", "grok-3"];
 
 export function CompareChatInterface() {
   const { getErrorMessage } = useWSErrorMessage();
@@ -84,6 +84,15 @@ export function CompareChatInterface() {
   const { data: config } = useConfig();
 
   const { curAgentState } = useSelector((state: RootState) => state.agent);
+
+  const [userSuggestion, setUserSuggestion] = React.useState<UserSuggestion>();
+  const [isStaticResponseMode, setIsStaticResponseMode] = React.useState(false);
+  const [staticModelOneResponse, setStaticModelOneResponse] =
+    React.useState<string>("");
+  const [staticModelTwoResponse, setStaticModelTwoResponse] =
+    React.useState<string>("");
+
+  const requiresStaticResponse = userSuggestion && userSuggestion?.isStatic;
 
   const [modelOne, setModelOne] = React.useState<string>(llmModels[0]);
   const [modelTwo, setModelTwo] = React.useState<string>(llmModels[1]);
@@ -112,7 +121,10 @@ export function CompareChatInterface() {
   const optimisticUserMessage = getOptimisticUserMessage();
   const errorMessage = getErrorMessage();
 
-  const events = parsedEvents.filter(shouldRenderEvent);
+  const [localEvents, setLocalEvents] = React.useState<
+    (OpenHandsAction | OpenHandsObservation)[]
+  >([]);
+  let events = [...parsedEvents.filter(shouldRenderEvent), ...localEvents];
 
   const { curStatusMessage } = useSelector((state: RootState) => state.status);
   const { webSocketStatus } = useWsClient();
@@ -179,47 +191,82 @@ export function CompareChatInterface() {
 
     setOptimisticUserMessage(content);
 
-    try {
-      if (modelOne === "h2loop" || modelTwo === "h2loop") {
-        send(
-          createChatMessage(
-            prompt,
-            imageUrls,
-            uploadedFiles,
-            attachedFiles,
-            attachedCodeBlocks,
-            timestamp,
-          ),
-        );
+    if (!requiresStaticResponse) {
+      // Clear static response mode for regular messages
+      setIsStaticResponseMode(false);
+      setStaticModelOneResponse("");
+      setStaticModelTwoResponse("");
+      // Clear local events for regular messages to avoid conflicts
+      setLocalEvents([]);
+      try {
+        if (modelOne === "h2loop" || modelTwo === "h2loop") {
+          send(
+            createChatMessage(
+              prompt,
+              imageUrls,
+              uploadedFiles,
+              attachedFiles,
+              attachedCodeBlocks,
+              timestamp,
+            ),
+          );
 
-        const openAiResponse = await openai.chat.completions.create({
-          model: modelOne === "h2loop" ? modelTwo : modelOne,
-          messages: [{ role: "user", content: prompt }],
-        });
-        if (modelOne === "h2loop") {
-          setModelTwoResponse(openAiResponse.choices[0].message.content || "");
+          const openAiResponse = await openai.chat.completions.create({
+            model: modelOne === "h2loop" ? modelTwo : modelOne,
+            messages: [{ role: "user", content: prompt }],
+          });
+          if (modelOne === "h2loop") {
+            setModelTwoResponse(
+              openAiResponse.choices[0].message.content || "",
+            );
+          } else {
+            setModelOneResponse(
+              openAiResponse.choices[0].message.content || "",
+            );
+          }
         } else {
-          setModelOneResponse(openAiResponse.choices[0].message.content || "");
-        }
-      } else {
-        const responseOne = await openai.chat.completions.create({
-          model: modelOne,
-          messages: [{ role: "user", content: prompt }],
-        });
-        setModelOneResponse(responseOne.choices[0].message.content || "");
+          const responseOne = await openai.chat.completions.create({
+            model: modelOne,
+            messages: [{ role: "user", content: prompt }],
+          });
+          setModelOneResponse(responseOne.choices[0].message.content || "");
 
-        const responseTwo = await openai.chat.completions.create({
-          model: modelTwo,
-          messages: [{ role: "user", content: prompt }],
-        });
-        setModelTwoResponse(responseTwo.choices[0].message.content || "");
+          const responseTwo = await openai.chat.completions.create({
+            model: modelTwo,
+            messages: [{ role: "user", content: prompt }],
+          });
+          setModelTwoResponse(responseTwo.choices[0].message.content || "");
+        }
+      } catch (error) {
+        console.error("Error calling OpenAI:", error);
+        displayErrorToast("Failed to get response from model");
       }
-    } catch (error) {
-      console.error("Error calling OpenAI:", error);
-      displayErrorToast("Failed to get response from model");
     }
 
     setMessageToSend(null);
+
+    if (requiresStaticResponse && userSuggestion) {
+      const userMessage: OpenHandsAction = {
+        id: Date.now(),
+        source: "user",
+        message: userSuggestion.question,
+        timestamp: new Date().toISOString(),
+        action: "message",
+        args: {
+          content: userSuggestion.question,
+          image_urls: [],
+          file_urls: [],
+          attached_files: [],
+          attached_codeblocks: [],
+        },
+      };
+
+      setLocalEvents((prev) => [...prev, userMessage]);
+      setStaticModelOneResponse(userSuggestion.modelOneResponse || "");
+      setStaticModelTwoResponse(userSuggestion.modelTwoResponse || "");
+      setIsStaticResponseMode(true);
+      setUserSuggestion(undefined);
+    }
     // console.log(events);
   };
 
@@ -364,6 +411,7 @@ export function CompareChatInterface() {
 
           {!isSimulationMode &&
             !isLoadingMessages &&
+            !isStaticResponseMode &&
             (events.length > 0 || modelOneResponse || modelTwoResponse) && (
               <div>
                 <CompareMessages
@@ -425,6 +473,20 @@ export function CompareChatInterface() {
               </div>
             )}
 
+          {!isSimulationMode && !isLoadingMessages && isStaticResponseMode && (
+            <CompareMessages
+              messages={events}
+              isAwaitingUserConfirmation={
+                curAgentState === AgentState.AWAITING_USER_CONFIRMATION
+              }
+              modelOne={modelOne}
+              modelTwo={modelTwo}
+              modelOneResponse={staticModelOneResponse}
+              modelTwoResponse={staticModelTwoResponse}
+              modelHistory={modelHistory}
+            />
+          )}
+
           {!isSimulationMode && !isLoadingMessages && (
             // userMessages.map((message) => (
             <div>
@@ -480,7 +542,12 @@ export function CompareChatInterface() {
                   <span className="font-bold">{modelTwo}</span>
                 </p>
               </div>
-              <UserQuerySuggestions onSelect={setMessageToSend} />
+              <UserQuerySuggestions
+                onSelect={(suggestion) => {
+                  setUserSuggestion(suggestion);
+                  setMessageToSend(suggestion.question);
+                }}
+              />
             </div>
           )}
           <InteractiveChatBox

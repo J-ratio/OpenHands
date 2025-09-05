@@ -12,7 +12,7 @@ import { CompareChatMessage } from "./compare-chat-message";
 import { CompareEventMessage } from "./compare-event-message";
 import { parseMessageFromEvent } from "./event-content-helpers/parse-message-from-event";
 
-interface MessagesProps {
+interface CompareMessagesProps {
   messages: (OpenHandsAction | OpenHandsObservation)[];
   isAwaitingUserConfirmation: boolean;
   sideBySideResponse?: React.ReactNode;
@@ -23,7 +23,7 @@ interface MessagesProps {
   modelHistory: { [content: string]: { modelOne: string; modelTwo: string } };
 }
 
-export const CompareMessages: React.FC<MessagesProps> = React.memo(
+export const CompareMessages: React.FC<CompareMessagesProps> = React.memo(
   ({
     messages,
     isAwaitingUserConfirmation,

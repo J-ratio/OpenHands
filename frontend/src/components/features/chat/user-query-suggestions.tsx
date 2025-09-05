@@ -2,13 +2,12 @@ import React from "react";
 import { TbMessage2Question } from "react-icons/tb";
 import { cn } from "#/utils/utils";
 
-const suggestions = [
-  "Fix MISRA coding guidelines violations in the following code.",
-  "Explain this register map in simple terms.",
-  "Suggest test cases for this communication protocol.",
-  "Find integration issues in this system design document.",
-  "Translate this hardware spec into configuration code.",
-];
+export interface UserSuggestion {
+  question: string;
+  isStatic?: boolean | undefined;
+  modelOneResponse?: string | undefined;
+  modelTwoResponse?: string | undefined;
+}
 
 const initialCodeSnippet = `\n\`\`\`c
 #include <stdint.h>
@@ -43,8 +42,109 @@ static int32_t adc_read_channel(struct adc * const a, int32_t ch, uint16_t * con
 \`\`\`
 Only provide C code and nothing else.`;
 
+const suggestions: Array<UserSuggestion> = [
+  {
+    question: "Fix MISRA coding guidelines violations in the following code.",
+    isStatic: true,
+    modelOneResponse: `
+\`\`\`c
+#include <stdint.h>
+#include <stddef.h>
+
+
+static int adc_read_channel(struct adc * const a, int ch, uint16_t * const val) {
+    if (a == NULL || val == NULL) {
+        return -1;
+    }
+
+    if (a->ops.start(ch) < 0) {
+        return -1;
+    }
+
+    a->ops.delay_ms((unsigned int)1);
+
+    if (a->ops.read(ch, val) < 0) {
+        return -1;
+    }
+
+    return 0;
+}
+\`\`\`
+`,
+
+    modelTwoResponse: `
+\`\`\`c
+#include <stdint.h>
+#include <stddef.h>
+
+/* Forward declaration of the ADC device structure. */
+struct adc;
+
+/* Forward declaration of the operations structure, used by the ADC device. */
+struct adc_ops;
+
+/* Externally declared ADC operations structure, assumed to be defined elsewhere. */
+extern struct adc_ops ops;
+
+/* ADC device structure expected to contain an operations pointer. */
+struct adc {
+    struct adc_ops *ops;
+};
+
+/* Operations functions, assumed to be defined elsewhere. */
+struct adc_ops {
+    int (*start)(int);
+    void (*delay_ms)(unsigned int);
+    int (*read)(int, uint16_t *);
+};
+
+/*
+ * Read a single ADC channel value.
+ *
+ * @param a  Pointer to the ADC device (cannot be NULL).
+ * @param ch ADC channel number (non-negative value assumed).
+ * @param val Pointer to a uint16_t variable where the result is stored (cannot be NULL).
+ * @return 0 on success, -1 on error.
+ */
+static int adc_read_channel(struct adc * const a, int ch, uint16_t * const val)
+{
+    /* Check for NULL pointers. */
+    if ((a == NULL) || (val == NULL)) {
+        return -1;
+    }
+
+    /* Validate channel number range: ADC channels are assumed to be >= 0. */
+    if (ch < 0) {
+        return -1;
+    }
+
+    /* Start conversion. */
+    if ((a->ops->start)(ch) < 0) {
+        return -1;
+    }
+
+    /* Delay for at least 1 ms. */
+    (a->ops->delay_ms)((unsigned int)1U);
+
+    /* Read conversion result. */
+    if ((a->ops->read)(ch, val) < 0) {
+        return -1;
+    }
+
+    return 0;
+}
+\`\`\``,
+  },
+  {
+    question: "Explain this register map in simple terms.",
+  },
+  { question: "Suggest test cases for this communication protocol." },
+  { question: "Find integration issues in this system design document." },
+  { question: "Translate this hardware spec into configuration code." },
+];
+
 interface UserQuerySuggestionsProps {
-  onSelect: (query: string) => void;
+  onSelect: (suggestion: UserSuggestion) => void;
 }
 
 export function UserQuerySuggestions({ onSelect }: UserQuerySuggestionsProps) {
@@ -95,13 +195,18 @@ export function UserQuerySuggestions({ onSelect }: UserQuerySuggestionsProps) {
                 key={idx}
                 onClick={() => {
                   onSelect(
-                    `${suggestion}${idx === 0 ? initialCodeSnippet : ""}`,
+                    idx === 0
+                      ? {
+                          ...suggestion,
+                          question: `${suggestion.question} ${initialCodeSnippet}`,
+                        }
+                      : suggestion,
                   );
                   setOpen(false);
                 }}
                 className="px-3 py-2 cursor-pointer text-neutral-200 hover:bg-neutral-600 hover:text-white"
               >
-                {suggestion}
+                {suggestion.question}
               </li>
             ))}
           </ul>
