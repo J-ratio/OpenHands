@@ -65,7 +65,7 @@ export function ChatInput({
   disabled,
   showButton = true,
   value,
-  maxRows = 8,
+  maxRows = 35,
   onSubmit,
   onStop,
   onChange,
