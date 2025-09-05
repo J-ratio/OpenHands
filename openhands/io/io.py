@@ -27,7 +27,9 @@ def read_task(args: argparse.Namespace, cli_multiline_input: bool) -> str:
     """Read the task from the CLI args, file, or stdin."""
     # Determine the task
     task_str = ''
-    if args.file:
+    if hasattr(args, 'prompt') and args.prompt:
+        task_str = args.prompt
+    elif args.file:
         task_str = read_task_from_file(args.file)
     elif args.task:
         task_str = args.task
