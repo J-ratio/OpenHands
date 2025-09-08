@@ -355,6 +355,7 @@ export function CompareChatInterface() {
                     value={model}
                     key={"version-" + model + "-" + _idx}
                     className="hover:bg-neutral-800 focus:bg-neutral-800 text-neutral-100 cursor-pointer transition-colors duration-100 rounded"
+                    disabled={model === modelTwo}
                   >
                     {model}
                   </SelectItem>
@@ -379,6 +380,7 @@ export function CompareChatInterface() {
                     value={model}
                     key={"version-" + model + "-" + _idx}
                     className="hover:bg-neutral-800 focus:bg-neutral-800 text-neutral-100 cursor-pointer transition-colors duration-100 rounded"
+                    disabled={model === modelOne}
                   >
                     {model}
                   </SelectItem>
