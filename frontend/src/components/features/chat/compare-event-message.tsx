@@ -32,6 +32,7 @@ import { useConfig } from "#/hooks/query/use-config";
 import { useFeedbackExists } from "#/hooks/query/use-feedback-exists";
 import { CiAt } from "react-icons/ci";
 import { PiCode } from "react-icons/pi";
+import { CompareChatMessage } from "./compare-chat-message";
 
 const hasThoughtProperty = (
   obj: Record<string, unknown>,
@@ -122,7 +123,7 @@ export function CompareEventMessage({
     if (hasThoughtProperty(event.args) && event.action !== "think") {
       return (
         <div>
-          <ChatMessage
+          <CompareChatMessage
             type="agent"
             message={event.args.thought}
             actions={actions}
@@ -149,7 +150,7 @@ export function CompareEventMessage({
   if (isFinishAction(event)) {
     return (
       <>
-        <ChatMessage
+        <CompareChatMessage
           type="agent"
           message={getEventContent(event).details}
           actions={actions}
@@ -171,7 +172,11 @@ export function CompareEventMessage({
 
     return (
       <>
-        <ChatMessage type={event.source} message={message} actions={actions}>
+        <CompareChatMessage
+          type={event.source}
+          message={message}
+          actions={actions}
+        >
           {event.args.image_urls && event.args.image_urls.length > 0 && (
             <ImageCarousel size="small" images={event.args.image_urls} />
           )}
@@ -179,7 +184,7 @@ export function CompareEventMessage({
             <FileList files={event.args.file_urls} />
           )}
           {shouldShowConfirmationButtons && <ConfirmationButtons />}
-        </ChatMessage>
+        </CompareChatMessage>
         {microagentStatus && actions && (
           <MicroagentStatusIndicator
             status={microagentStatus}
@@ -221,7 +226,7 @@ export function CompareEventMessage({
   if (isRejectObservation(event)) {
     return (
       <div>
-        <ChatMessage type="agent" message={event.content} />
+        <CompareChatMessage type="agent" message={event.content} />
       </div>
     );
   }
@@ -272,7 +277,7 @@ export function CompareEventMessage({
       {isOpenHandsAction(event) &&
         hasThoughtProperty(event.args) &&
         event.action !== "think" && (
-          <ChatMessage type="agent" message={event.args.thought} />
+          <CompareChatMessage type="agent" message={event.args.thought} />
         )}
 
       <GenericEventMessage
