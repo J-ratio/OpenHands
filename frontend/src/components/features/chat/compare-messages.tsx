@@ -87,7 +87,7 @@ export const CompareMessages: React.FC<CompareMessagesProps> = React.memo(
               />
             </div>
 
-            <div className="flex gap-16 px-16 py-8 max-w-8xl mx-auto">
+            <div className="flex gap-16 px-16 py-8 mx-auto justify-center">
               <div className="flex-1 bg-base-secondary rounded-xl p-6 border border-tertiary-light/20 shadow-lg hover:shadow-xl transition-shadow">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
@@ -98,7 +98,7 @@ export const CompareMessages: React.FC<CompareMessagesProps> = React.memo(
                   </h3>
                 </div>
                 {groupIndex === groups.length - 1 && modelOneResponse ? (
-                  <div className="prose prose-invert prose-sm max-w-none">
+                  <div className="prose prose-invert prose-sm max-w-[35vw] ml-auto mr-auto">
                     <CompareChatMessage
                       type="agent"
                       message={modelOneResponse}
@@ -131,7 +131,7 @@ export const CompareMessages: React.FC<CompareMessagesProps> = React.memo(
                   </h3>
                 </div>
                 {groupIndex === groups.length - 1 && modelTwoResponse ? (
-                  <div className="prose prose-invert prose-sm max-w-none">
+                  <div className="prose prose-invert prose-sm max-w-[35vw] ml-auto mr-auto">
                     <CompareChatMessage
                       type="agent"
                       message={modelTwoResponse}
