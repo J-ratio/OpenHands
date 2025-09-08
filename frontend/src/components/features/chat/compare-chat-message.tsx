@@ -47,7 +47,7 @@ export function CompareChatMessage({
     let currentIndex = 0;
     const timer = setInterval(() => {
       if (currentIndex < message.length) {
-        setDisplayedMessage(message.slice(0, currentIndex + 1));
+        setDisplayedMessage(message.slice(0, currentIndex + 3));
         currentIndex++;
       } else {
         setIsTypingComplete(true);
