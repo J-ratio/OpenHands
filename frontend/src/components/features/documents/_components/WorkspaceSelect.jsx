@@ -14,6 +14,7 @@ import { getWorkspaceNameFromId } from "../../../../utils/workspace-utils";
 import { getColorFromName } from "../../../../utils/basic-utils";
 import { useSettings } from "../../../../hooks/query/use-settings";
 import { HorizontalDotsLoader } from "../../../shared/horizontal-dots-loader";
+import { useSaveSettings } from "../../../../hooks/mutation/use-save-settings";
 
 export const WorkspaceSelect = ({
   workspaces,
@@ -28,6 +29,7 @@ export const WorkspaceSelect = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { data: settings, isLoading: isSettingsLoading } = useSettings();
+  const { mutate: saveUserSettings } = useSaveSettings();
 
   async function getData() {
     setLoading(true);
@@ -53,9 +55,15 @@ export const WorkspaceSelect = ({
   }, []);
 
   useEffect(() => {
-    if (!selectedWorkspace && workspaces) {
+    if (!selectedWorkspace && workspaces.length > 0) {
       const activeWorkspaceId = settings?.ACTIVE_WORKSPACE_ID;
-      setSelectedWorkspace(activeWorkspaceId);
+      if (activeWorkspaceId) {
+        setSelectedWorkspace(activeWorkspaceId);
+      } else {
+        saveUserSettings({
+          ACTIVE_WORKSPACE_ID: workspaces[0].id.toString(),
+        });
+      }
     }
   }, [settings]);
 
@@ -70,6 +78,9 @@ export const WorkspaceSelect = ({
       value={selectedWorkspace}
       onValueChange={(value) => {
         setSelectedWorkspace(value.toString());
+        saveUserSettings({
+          ACTIVE_WORKSPACE_ID: value.toString(),
+        });
         if (setSelectedWorkspaceName) {
           setSelectedWorkspaceName(
             getWorkspaceNameFromId(workspaces || data, value),
