@@ -144,11 +144,14 @@ class VSCodePlugin(Plugin):
 
         try:
             if extensions_src.exists():
+                print(f"copytree function starting..")
                 shutil.copytree(
                     extensions_src,
                     extensions_dest,
                     dirs_exist_ok=True
                 )
+                print(f"copytree function completed..")
+
         except:
             print(f"error on copying extension")
 
