@@ -5,7 +5,7 @@
   "secrets_store": {
     "provider_tokens": {
       "github": {
-        "token": "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"
+        "token": "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"
       }
     }
   }
