@@ -1,6 +1,6 @@
 {
-  "name": "h2loop-chat-integration",
-  "displayName": "OpenVscode Chat Integration",
+  "name": "openhands-add-to-chat",
+  "displayName": "OpenHands Add to Chat",
   "description": "Add selected code to H2Loop chat",
   "version": "1.0.0",
   "engines": {
@@ -12,7 +12,7 @@
   "activationEvents": [
     "onCommand:h2loop.addToChat"
   ],
-  "main": "./out/extension.js",
+  "main": "./extension.js",
   "contributes": {
     "commands": [
       {

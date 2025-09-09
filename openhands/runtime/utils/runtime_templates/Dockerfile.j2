@@ -163,7 +163,6 @@ RUN mkdir -p ${OPENVSCODE_SERVER_ROOT}/extensions/openhands-memory-monitor && \
 
 RUN mkdir -p ${OPENVSCODE_SERVER_ROOT}/extensions/openhands-add-to-chat && \
     cp -r /openhands/code/openhands/runtime/utils/vscode-extensions/add-to-chat/* ${OPENVSCODE_SERVER_ROOT}/extensions/openhands-add-to-chat/
-
 # Some extension dirs are removed because they trigger false positives in vulnerability scans.
 RUN rm -rf ${OPENVSCODE_SERVER_ROOT}/extensions/{handlebars,pug,json,diff,grunt,ini,npm}
 {% endmacro %}
