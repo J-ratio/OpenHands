@@ -10,6 +10,7 @@ import ChevronUp from "#/icons/chveron-up.svg?react";
 import { useGitDiff } from "#/hooks/query/use-get-diff";
 import { useNavigate } from "react-router";
 import { useConversationId } from "#/hooks/use-conversation-id";
+import { useSimulationMode } from "#/fake_scripts/simulation_context";
 
 interface LoadingSpinnerProps {
   className?: string;
@@ -71,6 +72,8 @@ export function FileDiffViewer({ path, type }: FileDiffViewerProps) {
     type,
     enabled: true,
   });
+
+  const { isSimulationMode, toolId } = useSimulationMode();
 
   // Function to update editor height based on content
   const updateEditorHeight = React.useCallback(() => {
@@ -220,7 +223,7 @@ export function FileDiffViewer({ path, type }: FileDiffViewerProps) {
           </button>
         </span>
       </div>
-      {!isCollapsed && (
+      {isSuccess && !isCollapsed && (
         <div
           className="w-full border border-neutral-600 overflow-hidden"
           style={{ height: `${editorHeight}px` }}
@@ -229,10 +232,22 @@ export function FileDiffViewer({ path, type }: FileDiffViewerProps) {
             data-testid="file-diff-viewer"
             className="w-full h-full"
             language={getLanguageFromPath(filePath)}
-            // original={isAdded ? "" : diff.original}
-            // modified={isDeleted ? "" : diff.modified}
-            original={originalCode}
-            modified={modifiedCode}
+            original={
+              isSimulationMode && toolId === "DEBUG_USING_CRASHLOGS"
+                ? originalCode
+                : isAdded
+                  ? ""
+                  : diff.original
+            }
+            modified={
+              isSimulationMode && toolId === "DEBUG_USING_CRASHLOGS"
+                ? modifiedCode
+                : isDeleted
+                  ? ""
+                  : diff.modified
+            }
+            // original={originalCode}
+            // modified={modifiedCode}
             theme="custom-diff-theme"
             onMount={handleEditorDidMount}
             beforeMount={beforeMount}
