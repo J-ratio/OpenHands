@@ -118,6 +118,7 @@ class VSCodePlugin(Plugin):
         """Set up VSCode settings by creating the .vscode directory in the workspace
         and copying the settings.json file there.
         """
+        logger.info("setup vscode settings")
         # Get the path to the settings.json file in the plugin directory
         current_dir = Path(__file__).parent
         settings_path = current_dir / 'settings.json'
@@ -153,7 +154,7 @@ class VSCodePlugin(Plugin):
                 print(f"copytree function completed..")
 
         except:
-            print(f"error on copying extension")
+            logger.error(f"error on copying extension")
 
         print(f'VSCode settings and extensions synced to {extensions_dest}')
         logger.info(f'VSCode settings and extensions synced to {extensions_dest}')

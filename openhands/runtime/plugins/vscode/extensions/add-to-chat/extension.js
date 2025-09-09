@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
 import * as path from "path";
 
-let bridgePanel: vscode.WebviewPanel | undefined;
+let bridgePanel;
 
-export function activate(context: vscode.ExtensionContext) {
+export function activate(context) {
   const addToChat = vscode.commands.registerCommand("h2loop.addToChat", () => {
     const editor = vscode.window.activeTextEditor;
     if (!editor) return;
@@ -29,9 +29,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(addToChat);
 }
 
-function getOrCreateBridgePanel(
-  context: vscode.ExtensionContext
-): vscode.WebviewPanel {
+function getOrCreateBridgePanel(context) {
   if (bridgePanel) {
     return bridgePanel;
   }
