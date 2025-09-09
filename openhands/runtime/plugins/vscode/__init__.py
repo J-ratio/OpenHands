@@ -86,8 +86,8 @@ class VSCodePlugin(Plugin):
         cmd = (
             f"su - {username} -s /bin/bash << 'EOF'\n"
             f'sudo chown -R {username}:{username} /openhands/.openvscode-server\n'
-            'cd /workspace\n'
-            f'exec /openhands/.openvscode-server/bin/openvscode-server --host 0.0.0.0 --connection-token {self.vscode_connection_token} --port {self.vscode_port} --disable-workspace-trust --extensions-dir /openhands/.openvscode-server/extensions\n'
+            f'cd {workspace_path}\n'
+            f'exec /openhands/.openvscode-server/bin/openvscode-server --host 0.0.0.0 --connection-token {self.vscode_connection_token} --port {self.vscode_port} --disable-workspace-trust{base_path_flag}\n'
             'EOF'
         )
 
@@ -137,56 +137,12 @@ class VSCodePlugin(Plugin):
         extensions_src = current_dir / "extensions"
         extensions_dest = Path("/openhands/.openvscode-server/extensions")
 
-        if extensions_src.exists() and extensions_dest.exists():
-            # Only copy if extensions haven't been compiled yet
-            compiled_extensions_exist = False
-            for ext_dir in extensions_src.iterdir():
-                if ext_dir.is_dir() and (ext_dir / 'out').exists():
-                    compiled_extensions_exist = True
-                    break
-
-            if not compiled_extensions_exist:
-                logger.debug('Compiling extensions at runtime...')
-                # Compile extensions if not already compiled
-                import subprocess
-                for ext_dir in extensions_src.iterdir():
-                    if ext_dir.is_dir() and (ext_dir / 'package.json').exists():
-                        logger.debug(f'Compiling extension: {ext_dir.name}')
-                        try:
-                            # Install dependencies if needed
-                            if not (ext_dir / 'node_modules').exists():
-                                subprocess.run(['npm', 'install'], cwd=ext_dir, check=True,
-                                             capture_output=True, text=True)
-
-                            # Compile TypeScript
-                            subprocess.run(['npm', 'run', 'compile'], cwd=ext_dir, check=True,
-                                         capture_output=True, text=True)
-
-                            logger.debug(f'Successfully compiled extension: {ext_dir.name}')
-                        except (subprocess.CalledProcessError, FileNotFoundError) as e:
-                            logger.error(f'Failed to compile extension {ext_dir.name}: {e}')
-
-            # Copy extensions
+        if extensions_src.exists():
             shutil.copytree(
                 extensions_src,
                 extensions_dest,
                 dirs_exist_ok=True
             )
-
-            # Verify extension was copied and compiled
-            for ext_dir in extensions_src.iterdir():
-                if ext_dir.is_dir() and (ext_dir / 'package.json').exists():
-                    dest_ext_dir = extensions_dest / ext_dir.name
-                    compiled_js = dest_ext_dir / 'out' / 'extension.js'
-                    if compiled_js.exists():
-                        logger.debug(f'Extension {ext_dir.name} compiled successfully: {compiled_js}')
-                    else:
-                        logger.error(f'Extension {ext_dir.name} not compiled: {compiled_js} not found')
-
-        elif not extensions_dest.exists():
-            logger.warning(f'VSCode server extensions directory not found: {extensions_dest}')
-        else:
-            logger.debug(f'Extensions source directory not found: {extensions_src}')
 
         logger.debug(f'VSCode settings and extensions synced to {extensions_dest}')
 

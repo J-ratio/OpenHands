@@ -50,17 +50,8 @@ RUN mkdir -p $FILE_STORE_PATH
 RUN mkdir -p $WORKSPACE_BASE
 
 RUN apt-get update -y \
-    && apt-get install -y curl ssh sudo wget \
+    && apt-get install -y curl ssh sudo \
     && rm -rf /var/lib/apt/lists/*
-
-# Install VSCode server
-RUN mkdir -p /openhands/.openvscode-server \
-    && cd /openhands/.openvscode-server \
-    && wget -O vscode-server.tar.gz https://github.com/gitpod-io/openvscode-server/releases/download/openvscode-server-v1.85.1/openvscode-server-v1.85.1-linux-x64.tar.gz \
-    && tar -xzf vscode-server.tar.gz --strip-components=1 \
-    && rm vscode-server.tar.gz \
-    && mkdir -p extensions \
-    && chown -R openhands:app /openhands/.openvscode-server
 
 # Default is 1000, but OSX is often 501
 RUN sed -i 's/^UID_MIN.*/UID_MIN 499/' /etc/login.defs
