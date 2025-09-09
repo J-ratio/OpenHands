@@ -492,6 +492,7 @@ class DockerRuntime(ActionExecutionClient):
 
         command = self.get_action_execution_server_startup_command()
         self.log('info', f'Starting server with command: {command}')
+        self.log('info', f'Plugins in runtime: {[plugin.name for plugin in self.plugins]}')
 
         if self.config.sandbox.enable_gpu:
             gpu_ids = self.config.sandbox.cuda_visible_devices

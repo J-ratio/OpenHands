@@ -681,11 +681,15 @@ if __name__ == '__main__':
     logger.info(f'File viewer server started at {server_url}')
 
     plugins_to_load: list[Plugin] = []
+    logger.info(f'Plugins received from command line: {args.plugins}')
     if args.plugins:
         for plugin in args.plugins:
+            logger.info(f'Loading plugin: {plugin}')
             if plugin not in ALL_PLUGINS:
                 raise ValueError(f'Plugin {plugin} not found')
             plugins_to_load.append(ALL_PLUGINS[plugin]())  # type: ignore
+    else:
+        logger.info('No plugins specified in command line arguments')
 
     client: ActionExecutor | None = None
     mcp_proxy_manager: MCPProxyManager | None = None

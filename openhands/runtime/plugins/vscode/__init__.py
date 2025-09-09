@@ -29,6 +29,7 @@ class VSCodePlugin(Plugin):
 
     async def initialize(self, username: str, runtime_id: str | None = None) -> None:
         logger.info("Initialize VSCode plugin")
+        logger.info(f"VSCode plugin initialize called with username={username}, runtime_id={runtime_id}")
         # Check if we're on Windows - VSCode plugin is not supported on Windows
         if os.name == 'nt' or sys.platform == 'win32':
             self.vscode_port = None
@@ -119,45 +120,94 @@ class VSCodePlugin(Plugin):
         """Set up VSCode settings by creating the .vscode directory in the workspace
         and copying the settings.json file there.
         """
-        logger.info("setup vscode settings")
-        # Get the path to the settings.json file in the plugin directory
-        current_dir = Path(__file__).parent
-        settings_path = current_dir / 'settings.json'
+        logger.info("Setting up VSCode settings")
+        try:
+            # Get the path to the settings.json file in the plugin directory
+            current_dir = Path(__file__).parent
+            settings_path = current_dir / 'settings.json'
 
-        # Create the .vscode directory in the workspace if it doesn't exist
-        workspace_dir = Path(os.getenv('WORKSPACE_BASE', '/workspace'))
-        vscode_dir = workspace_dir / '.vscode'
-        vscode_dir.mkdir(parents=True, exist_ok=True)
+            # Create the .vscode directory in the workspace if it doesn't exist
+            workspace_dir = Path(os.getenv('WORKSPACE_BASE', '/workspace'))
+            vscode_dir = workspace_dir / '.vscode'
+            vscode_dir.mkdir(parents=True, exist_ok=True)
+            logger.debug(f"Created VSCode directory: {vscode_dir}")
 
-        # Copy the settings.json file to the .vscode directory
-        target_path = vscode_dir / 'settings.json'
-        shutil.copy(settings_path, target_path)
+            # Copy the settings.json file to the .vscode directory
+            target_path = vscode_dir / 'settings.json'
+            if settings_path.exists():
+                shutil.copy(settings_path, target_path)
+                # Make sure the settings file is readable and writable by all users
+                os.chmod(target_path, 0o666)
+                logger.debug(f"Copied settings.json to {target_path}")
+            else:
+                logger.warning(f"settings.json not found at {settings_path}")
 
-        # Make sure the settings file is readable and writable by all users
-        os.chmod(target_path, 0o666)
+            # Handle extensions setup
+            self._setup_vscode_extensions(current_dir)
 
+        except Exception as e:
+            logger.error(f"Failed to setup VSCode settings: {e}", exc_info=True)
+
+    def _setup_vscode_extensions(self, current_dir: Path) -> None:
+        """Set up VSCode extensions by copying them to the server extensions directory."""
         extensions_src = current_dir / "extensions"
         extensions_dest = Path("/openhands/.openvscode-server/extensions")
 
-        print(f"Extension source: {extensions_src}")
-        print(f"Extensions src exists: {extensions_src.exists()}")
-        print(f"Extension destination: {extensions_dest}")
+        logger.info(f"Setting up VSCode extensions")
+        logger.debug(f"Extension source: {extensions_src}")
+        logger.debug(f"Extension destination: {extensions_dest}")
 
+        # Check if source exists
+        if not extensions_src.exists():
+            logger.warning(f"Extensions source directory does not exist: {extensions_src}")
+            return
+
+        # Check if destination exists and create if needed
         try:
-            if extensions_src.exists():
-                print(f"copytree function starting..")
+            extensions_dest.mkdir(parents=True, exist_ok=True)
+            logger.debug(f"Ensured extensions destination exists: {extensions_dest}")
+        except PermissionError as e:
+            logger.error(f"Permission denied creating extensions destination: {e}")
+            return
+        except Exception as e:
+            logger.error(f"Failed to create extensions destination: {e}")
+            return
+
+        # Check if extensions are already present (from Docker build)
+        dest_add_to_chat = extensions_dest / "add-to-chat"
+        if dest_add_to_chat.exists():
+            logger.info("Extensions already present from Docker build, skipping copy")
+            # Verify the extension is properly installed
+            package_json = dest_add_to_chat / "package.json"
+            if package_json.exists():
+                logger.debug("add-to-chat extension verified at destination")
+            else:
+                logger.warning("add-to-chat extension directory exists but package.json missing")
+        else:
+            # Copy extensions if not already present
+            try:
+                logger.info("Copying extensions to VSCode server")
                 shutil.copytree(
                     extensions_src,
                     extensions_dest,
                     dirs_exist_ok=True
                 )
-                print(f"copytree function completed..")
+                logger.info("Successfully copied extensions to VSCode server")
 
-        except:
-            logger.error(f"error on copying extension")
+                # Verify the copy was successful
+                if (extensions_dest / "add-to-chat").exists():
+                    logger.debug("add-to-chat extension copy verified")
+                else:
+                    logger.error("add-to-chat extension copy failed - destination not found after copy")
 
-        print(f'VSCode settings and extensions synced to {extensions_dest}')
-        logger.info(f'VSCode settings and extensions synced to {extensions_dest}')
+            except PermissionError as e:
+                logger.error(f"Permission denied copying extensions: {e}")
+            except shutil.Error as e:
+                logger.error(f"Error copying extensions: {e}")
+            except Exception as e:
+                logger.error(f"Unexpected error copying extensions: {e}", exc_info=True)
+
+        logger.info(f'VSCode settings and extensions setup completed')
 
     async def run(self, action: Action) -> Observation:
         """Run the plugin for a given action."""

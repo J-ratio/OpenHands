@@ -27,7 +27,12 @@ def get_action_execution_server_startup_command(
     # Plugin args
     plugin_args = []
     if plugins is not None and len(plugins) > 0:
-        plugin_args = ['--plugins'] + [plugin.name for plugin in plugins]
+        plugin_names = [plugin.name for plugin in plugins]
+        plugin_args = ['--plugins'] + plugin_names
+        print(f"DEBUG: Plugin args generated: {plugin_args}")
+        print(f"DEBUG: Plugin names: {plugin_names}")
+    else:
+        print("DEBUG: No plugins to load")
 
     # Browsergym stuffs
     browsergym_args = []
