@@ -137,14 +137,23 @@ class VSCodePlugin(Plugin):
         extensions_src = current_dir / "extensions"
         extensions_dest = Path("/openhands/.openvscode-server/extensions")
 
-        if extensions_src.exists():
-            shutil.copytree(
-                extensions_src,
-                extensions_dest,
-                dirs_exist_ok=True
-            )
+        print(f"Extension source: {extensions_src}")
+        print(f"Extensions src exists: {extensions_src.exists()}")
+        print(f"Extension destination: {extensions_dest}")
 
-        logger.debug(f'VSCode settings and extensions synced to {extensions_dest}')
+
+        try:
+            if extensions_src.exists():
+                shutil.copytree(
+                    extensions_src,
+                    extensions_dest,
+                    dirs_exist_ok=True
+                )
+        except:
+            print(f"error on copying extension")
+
+        print(f'VSCode settings and extensions synced to {extensions_dest}')
+        logger.info(f'VSCode settings and extensions synced to {extensions_dest}')
 
     async def run(self, action: Action) -> Observation:
         """Run the plugin for a given action."""
