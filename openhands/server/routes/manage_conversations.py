@@ -93,6 +93,7 @@ class InitSessionRequest(BaseModel):
     create_microagent: CreateMicroagent | None = None
     conversation_instructions: str | None = None
     mcp_config: MCPConfig | None = None
+    use_h2loop_model: bool | None = None
     # Only nested runtimes require the ability to specify a conversation id, and it could be a security risk
     if os.getenv('ALLOW_SET_CONVERSATION_ID', '0') == '1':
         conversation_id: str = Field(default_factory=lambda: uuid.uuid4().hex)
@@ -135,6 +136,7 @@ async def new_conversation(
     create_microagent = data.create_microagent
     git_provider = data.git_provider
     conversation_instructions = data.conversation_instructions
+    use_h2loop_model = data.use_h2loop_model
 
     conversation_trigger = ConversationTrigger.GUI
 
@@ -193,6 +195,7 @@ async def new_conversation(
             git_provider=git_provider,
             conversation_id=conversation_id,
             mcp_config=data.mcp_config,
+            use_h2loop_model=use_h2loop_model,
         )
 
         asyncio.create_task(trigger_default_llm_model(settings))
@@ -489,6 +492,7 @@ async def start_conversation(
             )
 
         # Set up conversation init data with provider information
+        # For conversation restarts, we preserve the original configuration
         conversation_init_data = await setup_init_conversation_settings(
             user_id, conversation_id, providers_set.providers_set or []
         )

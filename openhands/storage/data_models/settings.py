@@ -17,6 +17,22 @@ from openhands.core.config.mcp_config import MCPConfig
 from openhands.core.config.utils import load_openhands_config
 from openhands.storage.data_models.user_secrets import UserSecrets
 
+import json
+import os
+from typing import Any
+
+
+def expand_env_vars(data: Any) -> Any:
+    """Recursively expand environment variables in dicts and strings."""
+    if isinstance(data, str):
+        return os.path.expandvars(data)
+    elif isinstance(data, dict):
+        return {key: expand_env_vars(value) for key, value in data.items()}
+    elif isinstance(data, list):
+        return [expand_env_vars(item) for item in data]
+    else:
+        return data
+
 
 class Settings(BaseModel):
     """Persisted settings for OpenHands sessions"""
@@ -180,3 +196,16 @@ class Settings(BaseModel):
         # Create new settings with merged MCP config
         self.mcp_config = merged_mcp
         return self
+
+    @staticmethod
+    def from_file() -> Settings:
+        file_path = os.path.join(os.path.dirname(__file__), 'settings.json')
+        with open(file_path, 'r') as f:
+            data = json.load(f)
+        data = expand_env_vars(data)
+        return Settings(
+            llm_model=data.get('llm_model', ''),
+            llm_base_url=data.get('llm_base_url', ''),
+            llm_api_key=data.get('llm_api_key', ''),
+            secrets_store=data.get('secrets_store')
+        )

@@ -56,7 +56,7 @@ export function ChatMessage({
       className={cn(
         "rounded-xl relative w-fit max-w-full",
         "flex flex-col gap-2",
-        type === "user" && "max-w-[700px] p-4 bg-tertiary ml-auto mr-auto",
+        type === "user" && "max-w-[350px] p-4 bg-tertiary self-end",
         type === "agent" && "mt-6 max-w-full bg-transparent",
       )}
     >

@@ -36,7 +36,7 @@ export function Sidebar() {
   } = useSettings();
   const { logout } = useLogoutToken();
 
-  const [settingsModalIsOpen, setSettingsModalIsOpen] = React.useState(false);
+  // const [settingsModalIsOpen, setSettingsModalIsOpen] = React.useState(false);
 
   const [conversationPanelIsOpen, setConversationPanelIsOpen] =
     React.useState(false);
@@ -53,32 +53,32 @@ export function Sidebar() {
   const shouldHideMicroagentManagement =
     config?.FEATURE_FLAGS.HIDE_MICROAGENT_MANAGEMENT;
 
-  React.useEffect(() => {
-    if (shouldHideLlmSettings) return;
+  // React.useEffect(() => {
+  //   if (shouldHideLlmSettings) return;
 
-    if (location.pathname === "/settings") {
-      setSettingsModalIsOpen(false);
-    } else if (
-      !isFetchingSettings &&
-      settingsIsError &&
-      settingsError?.status !== 404
-    ) {
-      // We don't show toast errors for settings in the global error handler
-      // because we have a special case for 404 errors
-      if (location.pathname === "/settings") {
-        displayErrorToast(
-          "Something went wrong while fetching settings. Please reload the page.",
-        );
-      }
-    } else if (config?.APP_MODE === "oss" && settingsError?.status === 404) {
-      setSettingsModalIsOpen(true);
-    }
-  }, [
-    settingsError?.status,
-    settingsError,
-    isFetchingSettings,
-    location.pathname,
-  ]);
+  //   if (location.pathname === "/settings") {
+  //     setSettingsModalIsOpen(false);
+  //   } else if (
+  //     !isFetchingSettings &&
+  //     settingsIsError &&
+  //     settingsError?.status !== 404
+  //   ) {
+  //     // We don't show toast errors for settings in the global error handler
+  //     // because we have a special case for 404 errors
+  //     if (location.pathname === "/settings") {
+  //       displayErrorToast(
+  //         "Something went wrong while fetching settings. Please reload the page.",
+  //       );
+  //     }
+  //   } else if (config?.APP_MODE === "oss" && settingsError?.status === 404) {
+  //     setSettingsModalIsOpen(true);
+  //   }
+  // }, [
+  //   settingsError?.status,
+  //   settingsError,
+  //   isFetchingSettings,
+  //   location.pathname,
+  // ]);
 
   return (
     <>
@@ -152,6 +152,7 @@ export function Sidebar() {
                 settings?.EMAIL_VERIFIED === false || isCreatingConversation
               }
               comparision={true}
+              useH2LoopModel={true}
             />
             {!shouldHideMicroagentManagement && (
               <MicroagentManagementButton
@@ -182,12 +183,12 @@ export function Sidebar() {
         )}
       </aside>
 
-      {settingsModalIsOpen && (
+      {/* {settingsModalIsOpen && (
         <SettingsModal
           settings={settings}
           onClose={() => setSettingsModalIsOpen(false)}
         />
-      )}
+      )} */}
     </>
   );
 }

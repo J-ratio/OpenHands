@@ -76,6 +76,12 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     } else {
       setLinkedRepo(undefined);
     }
+
+    if (activeWorkspaceId === null) {
+      saveUserSettings({
+        ACTIVE_WORKSPACE_ID: selectedWorkspaceId?.toString(),
+      });
+    }
   }, [settings?.ACTIVE_WORKSPACE_ID]);
 
   useEffect(() => {
@@ -83,10 +89,11 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   }, [refreshKey]);
 
   useEffect(() => {
+    if (settings?.ACTIVE_WORKSPACE_ID) return;
     if (!selectedWorkspaceId || !settings?.LLM_MODEL) return;
     setSelectedWorkspaceId(selectedWorkspaceId);
     saveUserSettings({ ACTIVE_WORKSPACE_ID: selectedWorkspaceId?.toString() });
-  }, [selectedWorkspaceId]);
+  }, [settings, selectedWorkspaceId]);
 
   return (
     <WorkspaceContext.Provider

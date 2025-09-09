@@ -19,6 +19,7 @@ interface CreateConversationVariables {
   suggestedTask?: SuggestedTask;
   conversationInstructions?: string;
   createMicroagent?: CreateMicroagent;
+  use_h2loop_model?: boolean;
 }
 
 export const useCreateConversation = (comparision: boolean = false) => {
@@ -38,6 +39,7 @@ export const useCreateConversation = (comparision: boolean = false) => {
         suggestedTask,
         conversationInstructions,
         createMicroagent,
+        use_h2loop_model,
       } = variables;
 
       if (variables.simulationMode) {
@@ -56,6 +58,7 @@ export const useCreateConversation = (comparision: boolean = false) => {
         repository?.branch,
         conversationInstructions,
         createMicroagent,
+        use_h2loop_model,
       );
     },
     onSuccess: async (

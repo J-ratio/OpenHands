@@ -46,12 +46,14 @@ import {
   SelectValue,
 } from "#/components/ui/select";
 import { PiInfinityLight } from "react-icons/pi";
-import { UserQuerySuggestions } from "./user-query-suggestions";
+import { UserQuerySuggestions, UserSuggestion } from "./user-query-suggestions";
 import { OpenHandsAction } from "#/types/core/actions";
 import { OpenHandsObservation } from "#/types/core/observations";
 import { CompareChatMessage } from "./compare-chat-message";
 import { CompareMessages } from "./compare-messages";
 import { CompareChatSuggestions } from "./compare-chat-suggestions";
+import { AttachedCodeBlock, AttachedFile } from "./chat-input";
+import { OpenAI } from "openai";
 
 function getEntryPoint(
   hasRepository: boolean | null,
@@ -62,95 +64,7 @@ function getEntryPoint(
   return "direct";
 }
 
-const llmModels = ["h2loop", "gpt-4o", "Claude", "Grok-4"];
-
-const modelOneResponse: string = `
-\`\`\`c
-#include <stdint.h>
-
-static int adc_read_channel(struct adc * const a, int ch, uint16_t * const val) {
-    if (a == NULL || val == NULL) {
-        return -1;
-    }
-
-    if (a->ops.start(ch) < 0) {
-        return -1;
-    }
-
-    a->ops.delay_ms(1U);
-
-    if (a->ops.read(ch, val) < 0) {
-        return -1;
-    }
-
-    return 0;
-}
-\`\`\`
-`;
-
-const modelTwoResponse: string = `
-\`\`\`c
-#include <stdint.h>
-#include <stddef.h>
-
-/* Forward declaration of the ADC device structure. */
-struct adc;
-
-/* Forward declaration of the operations structure, used by the ADC device. */
-struct adc_ops;
-
-/* Externally declared ADC operations structure, assumed to be defined elsewhere. */
-extern struct adc_ops ops;
-
-/* ADC device structure expected to contain an operations pointer. */
-struct adc {
-    struct adc_ops *ops;
-};
-
-/* Operations functions, assumed to be defined elsewhere. */
-struct adc_ops {
-    int (*start)(int);
-    void (*delay_ms)(unsigned int);
-    int (*read)(int, uint16_t *);
-};
-
-/*
- * Read a single ADC channel value.
- *
- * @param a  Pointer to the ADC device (cannot be NULL).
- * @param ch ADC channel number (non-negative value assumed).
- * @param val Pointer to a uint16_t variable where the result is stored (cannot be NULL).
- * @return 0 on success, -1 on error.
- */
-static int adc_read_channel(struct adc * const a, int ch, uint16_t * const val)
-{
-    /* Check for NULL pointers. */
-    if ((a == NULL) || (val == NULL)) {
-        return -1;
-    }
-
-    /* Validate channel number range: ADC channels are assumed to be >= 0. */
-    if (ch < 0) {
-        return -1;
-    }
-
-    /* Start conversion. */
-    if ((a->ops->start)(ch) < 0) {
-        return -1;
-    }
-
-    /* Delay for at least 1 ms. */
-    (a->ops->delay_ms)((unsigned int)1U);
-
-    /* Read conversion result. */
-    if ((a->ops->read)(ch, val) < 0) {
-        return -1;
-    }
-
-    return 0;
-}
-\`\`\`
-`;
+const llmModels = ["h2loop", "gpt-4o", "claude-sonnet-4-20250514", "grok-3"];
 
 export function CompareChatInterface() {
   const { getErrorMessage } = useWSErrorMessage();
@@ -171,12 +85,26 @@ export function CompareChatInterface() {
 
   const { curAgentState } = useSelector((state: RootState) => state.agent);
 
+  const [userSuggestion, setUserSuggestion] = React.useState<UserSuggestion>();
+  const [isStaticResponseMode, setIsStaticResponseMode] = React.useState(false);
+  const [staticModelOneResponse, setStaticModelOneResponse] =
+    React.useState<string>("");
+  const [staticModelTwoResponse, setStaticModelTwoResponse] =
+    React.useState<string>("");
+
+  const requiresStaticResponse = userSuggestion && userSuggestion?.isStatic;
+
   const [modelOne, setModelOne] = React.useState<string>(llmModels[0]);
   const [modelTwo, setModelTwo] = React.useState<string>(llmModels[1]);
+  const [modelOneResponse, setModelOneResponse] = React.useState<string>("");
+  const [modelTwoResponse, setModelTwoResponse] = React.useState<string>("");
+  const [modelHistory, setModelHistory] = React.useState<{
+    [messageId: string]: { modelOne: string; modelTwo: string };
+  }>({});
 
-  const [events, setEvents] = React.useState<
-    Array<OpenHandsAction | OpenHandsObservation>
-  >([]);
+  // const [events, setEvents] = React.useState<
+  //   Array<OpenHandsAction | OpenHandsObservation>
+  // >([]);
 
   const [feedbackPolarity, setFeedbackPolarity] = React.useState<
     "positive" | "negative"
@@ -193,13 +121,21 @@ export function CompareChatInterface() {
   const optimisticUserMessage = getOptimisticUserMessage();
   const errorMessage = getErrorMessage();
 
-  // const events = parsedEvents.filter(shouldRenderEvent);
+  const [localEvents, setLocalEvents] = React.useState<
+    (OpenHandsAction | OpenHandsObservation)[]
+  >([]);
+  let events = [...parsedEvents.filter(shouldRenderEvent), ...localEvents];
 
   const { curStatusMessage } = useSelector((state: RootState) => state.status);
   const { webSocketStatus } = useWsClient();
   const { data: conversation } = useActiveConversation();
 
   const { isSimulationMode } = useSimulationMode();
+
+  const openai = new OpenAI({
+    apiKey: import.meta.env.VITE_OPENAI_API_KEY,
+    dangerouslyAllowBrowser: true,
+  });
 
   const statusCode = getStatusCode(
     curStatusMessage,
@@ -213,6 +149,8 @@ export function CompareChatInterface() {
     content: string,
     images: File[],
     files: File[],
+    attachedFiles: AttachedFile[],
+    attachedCodeBlocks: AttachedCodeBlock[],
   ) => {
     if (events.length === 0) {
       posthog.capture("initial_query_submitted", {
@@ -234,6 +172,12 @@ export function CompareChatInterface() {
 
     const timestamp = new Date().toISOString();
 
+    // Store the current models for this message using content as key
+    setModelHistory((prev) => ({
+      ...prev,
+      [content]: { modelOne, modelTwo },
+    }));
+
     const { skipped_files: skippedFiles, uploaded_files: uploadedFiles } =
       files.length > 0
         ? await uploadFiles({ conversationId: params.conversationId!, files })
@@ -245,29 +189,85 @@ export function CompareChatInterface() {
     const prompt =
       uploadedFiles.length > 0 ? `${content}\n\n${filePrompt}` : content;
 
-    // send(createChatMessage(prompt, imageUrls, uploadedFiles, timestamp));
     setOptimisticUserMessage(content);
-    setEvents((prev) => [
-      ...prev,
-      {
-        id: 4,
-        timestamp: "2025-08-26T08:26:20.878137",
+
+    if (!requiresStaticResponse) {
+      // Clear static response mode for regular messages
+      setIsStaticResponseMode(false);
+      setStaticModelOneResponse("");
+      setStaticModelTwoResponse("");
+      // Clear local events for regular messages to avoid conflicts
+      setLocalEvents([]);
+      try {
+        if (modelOne === "h2loop" || modelTwo === "h2loop") {
+          send(
+            createChatMessage(
+              prompt,
+              imageUrls,
+              uploadedFiles,
+              attachedFiles,
+              attachedCodeBlocks,
+              timestamp,
+            ),
+          );
+
+          const openAiResponse = await openai.chat.completions.create({
+            model: modelOne === "h2loop" ? modelTwo : modelOne,
+            messages: [{ role: "user", content: prompt }],
+          });
+          if (modelOne === "h2loop") {
+            setModelTwoResponse(
+              openAiResponse.choices[0].message.content || "",
+            );
+          } else {
+            setModelOneResponse(
+              openAiResponse.choices[0].message.content || "",
+            );
+          }
+        } else {
+          const responseOne = await openai.chat.completions.create({
+            model: modelOne,
+            messages: [{ role: "user", content: prompt }],
+          });
+          setModelOneResponse(responseOne.choices[0].message.content || "");
+
+          const responseTwo = await openai.chat.completions.create({
+            model: modelTwo,
+            messages: [{ role: "user", content: prompt }],
+          });
+          setModelTwoResponse(responseTwo.choices[0].message.content || "");
+        }
+      } catch (error) {
+        console.error("Error calling OpenAI:", error);
+        displayErrorToast("Failed to get response from model");
+      }
+    }
+
+    setMessageToSend(null);
+
+    if (requiresStaticResponse && userSuggestion) {
+      const userMessage: OpenHandsAction = {
+        id: Date.now(),
         source: "user",
-        message: content,
+        message: userSuggestion.question,
+        timestamp: new Date().toISOString(),
         action: "message",
         args: {
-          content: content,
-          file_urls: [...files.map((file) => file.name)],
+          content: userSuggestion.question,
           image_urls: [],
-          wait_for_response: false,
+          file_urls: [],
           attached_files: [],
           attached_codeblocks: [],
         },
-        timeout: 120,
-      },
-    ]);
-    setMessageToSend(null);
-    console.log(events);
+      };
+
+      setLocalEvents((prev) => [...prev, userMessage]);
+      setStaticModelOneResponse(userSuggestion.modelOneResponse || "");
+      setStaticModelTwoResponse(userSuggestion.modelTwoResponse || "");
+      setIsStaticResponseMode(true);
+      setUserSuggestion(undefined);
+    }
+    // console.log(events);
   };
 
   const handleStop = () => {
@@ -355,6 +355,7 @@ export function CompareChatInterface() {
                     value={model}
                     key={"version-" + model + "-" + _idx}
                     className="hover:bg-neutral-800 focus:bg-neutral-800 text-neutral-100 cursor-pointer transition-colors duration-100 rounded"
+                    disabled={model === modelTwo}
                   >
                     {model}
                   </SelectItem>
@@ -379,6 +380,7 @@ export function CompareChatInterface() {
                     value={model}
                     key={"version-" + model + "-" + _idx}
                     className="hover:bg-neutral-800 focus:bg-neutral-800 text-neutral-100 cursor-pointer transition-colors duration-100 rounded"
+                    disabled={model === modelOne}
                   >
                     {model}
                   </SelectItem>
@@ -409,60 +411,82 @@ export function CompareChatInterface() {
             </div>
           )}
 
-          {!isSimulationMode && !isLoadingMessages && (
-            <div>
-              <CompareMessages
-                messages={events}
-                isAwaitingUserConfirmation={
-                  curAgentState === AgentState.AWAITING_USER_CONFIRMATION
-                }
-                sideBySideResponse={
-                  <div className="flex gap-16 px-16 py-8 max-w-8xl mx-auto">
-                    <div className="flex-1 bg-base-secondary rounded-xl p-6 border border-tertiary-light/20 shadow-lg hover:shadow-xl transition-shadow">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                          <span className="text-white text-sm font-medium">
-                            AI
-                          </span>
-                        </div>
-                        <h3 className="text-primary-text font-semibold">
-                          {modelOne} Response
-                        </h3>
-                      </div>
-                      <div className="prose prose-invert prose-sm max-w-none">
-                        <CompareChatMessage
-                          type="agent"
-                          message={modelOneResponse}
-                          enableTypewriter={true}
-                          isLatestMessage={true}
-                        />
-                      </div>
-                    </div>
+          {!isSimulationMode &&
+            !isLoadingMessages &&
+            !isStaticResponseMode &&
+            (events.length > 0 || modelOneResponse || modelTwoResponse) && (
+              <div>
+                <CompareMessages
+                  messages={events}
+                  isAwaitingUserConfirmation={
+                    curAgentState === AgentState.AWAITING_USER_CONFIRMATION
+                  }
+                  modelOne={modelOne}
+                  modelTwo={modelTwo}
+                  modelOneResponse={modelOneResponse}
+                  modelTwoResponse={modelTwoResponse}
+                  modelHistory={modelHistory}
+                  // sideBySideResponse={
+                  //   <div className="flex gap-16 px-16 py-8 max-w-8xl mx-auto">
+                  //     <div className="flex-1 bg-base-secondary rounded-xl p-6 border border-tertiary-light/20 shadow-lg hover:shadow-xl transition-shadow">
+                  //       <div className="flex items-center gap-3 mb-4">
+                  //         <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                  //           <span className="text-white text-sm font-medium">
+                  //             AI
+                  //           </span>
+                  //         </div>
+                  //         <h3 className="text-primary-text font-semibold">
+                  //           {modelOne} Response
+                  //         </h3>
+                  //       </div>
+                  //       <div className="prose prose-invert prose-sm max-w-none">
+                  //         <CompareChatMessage
+                  //           type="agent"
+                  //           message={modelOneResponse}
+                  //           enableTypewriter={true}
+                  //           isLatestMessage={true}
+                  //         />
+                  //       </div>
+                  //     </div>
 
-                    <div className="flex-1 bg-base-secondary rounded-xl p-6 border border-tertiary-light/20 shadow-lg hover:shadow-xl transition-shadow">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
-                          <span className="text-white text-sm font-medium">
-                            AI
-                          </span>
-                        </div>
-                        <h3 className="text-primary-text font-semibold">
-                          {modelTwo} Response
-                        </h3>
-                      </div>
-                      <div className="prose prose-invert prose-sm max-w-none">
-                        <CompareChatMessage
-                          type="agent"
-                          message={modelTwoResponse}
-                          enableTypewriter={true}
-                          isLatestMessage={true}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                }
-              />
-            </div>
+                  //     <div className="flex-1 bg-base-secondary rounded-xl p-6 border border-tertiary-light/20 shadow-lg hover:shadow-xl transition-shadow">
+                  //       <div className="flex items-center gap-3 mb-4">
+                  //         <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
+                  //           <span className="text-white text-sm font-medium">
+                  //             AI
+                  //           </span>
+                  //         </div>
+                  //         <h3 className="text-primary-text font-semibold">
+                  //           {modelTwo} Response
+                  //         </h3>
+                  //       </div>
+                  //       <div className="prose prose-invert prose-sm max-w-none">
+                  //         <CompareChatMessage
+                  //           type="agent"
+                  //           message={modelTwoResponse}
+                  //           enableTypewriter={true}
+                  //           isLatestMessage={true}
+                  //         />
+                  //       </div>
+                  //     </div>
+                  //   </div>
+                  // }
+                />
+              </div>
+            )}
+
+          {!isSimulationMode && !isLoadingMessages && isStaticResponseMode && (
+            <CompareMessages
+              messages={events}
+              isAwaitingUserConfirmation={
+                curAgentState === AgentState.AWAITING_USER_CONFIRMATION
+              }
+              modelOne={modelOne}
+              modelTwo={modelTwo}
+              modelOneResponse={staticModelOneResponse}
+              modelTwoResponse={staticModelTwoResponse}
+              modelHistory={modelHistory}
+            />
           )}
 
           {!isSimulationMode && !isLoadingMessages && (
@@ -482,7 +506,9 @@ export function CompareChatInterface() {
             events.length > 0 &&
             !optimisticUserMessage && (
               <ActionSuggestions
-                onSuggestionsClick={(value) => handleSendMessage(value, [], [])}
+                onSuggestionsClick={(value) =>
+                  handleSendMessage(value, [], [], [], [])
+                }
               />
             )}
         </div>
@@ -518,7 +544,12 @@ export function CompareChatInterface() {
                   <span className="font-bold">{modelTwo}</span>
                 </p>
               </div>
-              <UserQuerySuggestions onSelect={setMessageToSend} />
+              <UserQuerySuggestions
+                onSelect={(suggestion) => {
+                  setUserSuggestion(suggestion);
+                  setMessageToSend(suggestion.question);
+                }}
+              />
             </div>
           )}
           <InteractiveChatBox
