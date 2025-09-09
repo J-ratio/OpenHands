@@ -152,9 +152,8 @@ class Runtime(FileEditRuntimeMixin):
         self.plugins = (
             copy.deepcopy(plugins) if plugins is not None and len(plugins) > 0 else []
         )
-        # add VSCode plugin if not in headless mode
-        if not headless_mode:
-            self.plugins.append(VSCodeRequirement())
+
+        self.plugins.append(VSCodeRequirement())
 
         self.status_callback = status_callback
         self.attach_to_existing = attach_to_existing
