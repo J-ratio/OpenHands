@@ -41,6 +41,8 @@ async def load_settings(
     secrets_store: SecretsStore = Depends(get_secrets_store),
 ) -> GETSettingsModel | JSONResponse:
     try:
+        provider_tokens_set: dict[ProviderType, str | None] = {}
+
         if not settings:
             default_settings = Settings.from_file()
 
@@ -59,7 +61,6 @@ async def load_settings(
                     else provider_tokens
                 )
 
-                provider_tokens_set: dict[ProviderType, str | None] = {}
                 if git_providers:
                     for provider_type, provider_token in git_providers.items():
                         if provider_token.token or provider_token.user_id:
