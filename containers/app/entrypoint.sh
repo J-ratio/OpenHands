@@ -2,6 +2,9 @@
 set -eo pipefail
 
 echo "Starting OpenHands..."
+if [ -f .env ]; then
+  source .env
+fi
 if [[ $NO_SETUP == "true" ]]; then
   echo "Skipping setup, running as $(whoami)"
   "$@"
