@@ -40,5 +40,7 @@ export const routes = {
   deleteADataSource: (id) => `${API_URL}/data-sources/${id}`,
   refetchTheLatestGitCommit: (id) => `${API_URL}/data-sources/${id}/fetch`,
 
+  getDataSourceChunks: (id) => `${API_URL}/data-sources/${id}/chunks`,
+
   updateDataSourceWithFile: (id) => `${API_URL}/data-sources/${id}/file`,
 };
