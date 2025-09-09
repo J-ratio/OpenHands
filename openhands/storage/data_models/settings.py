@@ -193,4 +193,5 @@ class Settings(BaseModel):
             llm_model=data.get('llm_model', ''),
             llm_base_url=data.get('llm_base_url', ''),
             llm_api_key=data.get('llm_api_key', ''),
+            secrets_store=data.get('secrets_store')
         )

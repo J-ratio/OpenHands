@@ -42,17 +42,36 @@ async def load_settings(
 ) -> GETSettingsModel | JSONResponse:
     try:
         if not settings:
-            # Return default settings from the file when user settings not found
             default_settings = Settings.from_file()
+
             if default_settings:
+                # Migrate default secrets to user's secrets store
+                user_secrets = await invalidate_legacy_secrets_store(
+                    default_settings, settings_store, secrets_store
+                )
+
                 await settings_store.store(default_settings)
+
+                git_providers = (
+                    user_secrets.provider_tokens if user_secrets
+                    else default_settings.secrets_store.provider_tokens
+                    if default_settings.secrets_store and default_settings.secrets_store.provider_tokens
+                    else provider_tokens
+                )
+
+                provider_tokens_set: dict[ProviderType, str | None] = {}
+                if git_providers:
+                    for provider_type, provider_token in git_providers.items():
+                        if provider_token.token or provider_token.user_id:
+                            provider_tokens_set[provider_type] = provider_token.host
+
                 settings_with_token_data = GETSettingsModel(
                     **default_settings.model_dump(exclude={'secrets_store'}),
                     llm_api_key_set=default_settings.llm_api_key is not None
                     and bool(default_settings.llm_api_key),
                     search_api_key_set=default_settings.search_api_key is not None
                     and bool(default_settings.search_api_key),
-                    provider_tokens_set={},
+                    provider_tokens_set=provider_tokens_set,
                 )
                 settings_with_token_data.llm_api_key = None
                 settings_with_token_data.search_api_key = None
@@ -74,7 +93,6 @@ async def load_settings(
             user_secrets.provider_tokens if user_secrets else provider_tokens
         )
 
-        provider_tokens_set: dict[ProviderType, str | None] = {}
         if git_providers:
             for provider_type, provider_token in git_providers.items():
                 if provider_token.token or provider_token.user_id:

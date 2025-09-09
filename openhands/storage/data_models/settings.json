@@ -1,5 +1,12 @@
 {
   "llm_model": "hosted_vllm/Qwen/Qwen2.5-Coder-32B-Instruct-AWQ",
   "llm_base_url": "https://h2loop--qwen25-coder-32b-serve.modal.run/v1",
-  "llm_api_key": "super-secret-key"
+  "llm_api_key": "super-secret-key",
+  "secrets_store": {
+    "provider_tokens": {
+      "github": {
+        "token": "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"
+      }
+    }
+  }
 }
