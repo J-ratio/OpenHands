@@ -302,12 +302,12 @@ class ActionExecutor:
             (self._init_plugin(plugin) for plugin in self.plugins_to_load),
             timeout=int(os.environ.get('INIT_PLUGIN_TIMEOUT', '120')),
         )
-        logger.debug('All plugins initialized')
+        logger.info('All plugins initialized')
 
         # This is a temporary workaround
         # TODO: refactor AgentSkills to be part of JupyterPlugin
         # AFTER ServerRuntime is deprecated
-        logger.debug('Initializing AgentSkills')
+        logger.info('Initializing AgentSkills')
         if 'agent_skills' in self.plugins and 'jupyter' in self.plugins:
             obs = await self.run_ipython(
                 IPythonRunCellAction(
@@ -335,7 +335,7 @@ class ActionExecutor:
         else:
             await plugin.initialize(self.username)
         self.plugins[plugin.name] = plugin
-        logger.debug(f'Initializing plugin: {plugin.name}')
+        logger.info(f'Initializing plugin: {plugin.name}')
 
         if isinstance(plugin, JupyterPlugin):
             # Escape backslashes in Windows path
