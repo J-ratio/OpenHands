@@ -28,6 +28,7 @@ class VSCodePlugin(Plugin):
     gateway_process: asyncio.subprocess.Process
 
     async def initialize(self, username: str, runtime_id: str | None = None) -> None:
+        logger.info("Initialize VSCode plugin")
         # Check if we're on Windows - VSCode plugin is not supported on Windows
         if os.name == 'nt' or sys.platform == 'win32':
             self.vscode_port = None
@@ -141,7 +142,6 @@ class VSCodePlugin(Plugin):
         print(f"Extension source: {extensions_src}")
         print(f"Extensions src exists: {extensions_src.exists()}")
         print(f"Extension destination: {extensions_dest}")
-
 
         try:
             if extensions_src.exists():
