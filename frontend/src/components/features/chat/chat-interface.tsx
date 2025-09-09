@@ -38,7 +38,7 @@ import { ChatSimulator } from "./chat-simulator";
 import { useSimulationMode } from "#/fake_scripts/simulation_context";
 import { AttachedCodeBlock, AttachedFile } from "./chat-input";
 import _ from "lodash";
-import { AttachedFileService } from "#/api/attached-file-service.api";
+import { AttachedFileService, Chunk } from "#/api/attached-file-service.api";
 import { validateFiles } from "#/utils/file-validation";
 import { DEBUG_CRASH_LOGS_MESSAGES } from "#/fake_scripts/debug_crash_logs_data";
 
@@ -148,6 +148,9 @@ export function ChatInterface() {
       return; // Stop processing if validation fails
     }
 
+    setOptimisticUserMessage(content);
+    setMessageToSend(null);
+
     const promises = images.map((image) => convertImageToBase64(image));
     const imageUrls = await Promise.all(promises);
 
@@ -162,16 +165,23 @@ export function ChatInterface() {
 
     let groupedStrings: { fileName: string; text: string }[] = [];
     if (attachedFiles.length > 0) {
-      const chunkResponse = await AttachedFileService.getChunksFromFiles(
-        attachedFiles.map((file) => file.id),
-      );
+      const allChunks: Chunk[] = [];
+      for (const file of attachedFiles) {
+        const chunkResponse = await AttachedFileService.getChunksFromFiles(
+          file.id,
+          content,
+        );
+        if (chunkResponse?.chunks) {
+          allChunks.push(...chunkResponse.chunks);
+        }
+      }
 
-      if (chunkResponse?.chunks?.length) {
-        const grouped = _.groupBy(chunkResponse?.chunks, "file_name");
+      if (allChunks.length) {
+        const grouped = _.groupBy(allChunks, "file_name");
 
         groupedStrings = _.map(grouped, (chunks, fileName) => ({
           fileName,
-          text: chunks.map((c) => c.text).join(" "),
+          text: chunks.map((c) => c.full_text).join(" "),
         }));
       }
     }
@@ -211,8 +221,6 @@ export function ChatInterface() {
         timestamp,
       ),
     );
-    setOptimisticUserMessage(content);
-    setMessageToSend(null);
   };
 
   const handleStop = () => {
