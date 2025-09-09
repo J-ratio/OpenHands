@@ -73,9 +73,30 @@ ENV VIRTUAL_ENV=/app/.venv \
 
 COPY --chown=openhands:app --chmod=770 --from=backend-builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 
+# Copy plugins first to compile extensions
+COPY --chown=openhands:app --chmod=770 ./openhands/runtime/plugins ./openhands/runtime/plugins
+
+# Install Node.js and compile TypeScript extensions
+USER root
+RUN apt-get update && apt-get install -y nodejs npm
+USER openhands
+
+# Compile VSCode extensions
+RUN if [ -d "./openhands/runtime/plugins/vscode/extensions" ]; then \
+    cd ./openhands/runtime/plugins/vscode/extensions && \
+    for ext in */; do \
+    if [ -f "$ext/package.json" ]; then \
+    echo "Compiling extension: $ext" && \
+    cd "$ext" && \
+    npm install && \
+    npm run compile && \
+    cd ..; \
+    fi; \
+    done; \
+    fi
+
 COPY --chown=openhands:app --chmod=770 ./microagents ./microagents
 COPY --chown=openhands:app --chmod=770 ./openhands ./openhands
-COPY --chown=openhands:app --chmod=777 ./openhands/runtime/plugins ./openhands/runtime/plugins
 COPY --chown=openhands:app pyproject.toml poetry.lock README.md MANIFEST.in LICENSE ./
 
 # This is run as "openhands" user, and will create __pycache__ with openhands:openhands ownership
