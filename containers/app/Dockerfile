@@ -88,8 +88,16 @@ RUN if [ -d "./openhands/runtime/plugins/vscode/extensions" ]; then \
     if [ -f "$ext/package.json" ]; then \
     echo "Compiling extension: $ext" && \
     cd "$ext" && \
-    npm install && \
-    npm run compile && \
+    echo "Installing dependencies..." && \
+    npm install || (echo "npm install failed" && exit 1) && \
+    echo "Compiling TypeScript..." && \
+    npm run compile || (echo "npm run compile failed" && exit 1) && \
+    echo "Checking if out/extension.js exists..." && \
+    if [ -f "out/extension.js" ]; then \
+    echo "Compilation successful: out/extension.js found"; \
+    else \
+    echo "ERROR: out/extension.js not found after compilation" && exit 1; \
+    fi && \
     cd ..; \
     fi; \
     done; \

@@ -4,7 +4,10 @@ import * as path from "path";
 let bridgePanel: vscode.WebviewPanel | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
+  console.log("H2Loop Chat Integration extension activated");
+
   const addToChat = vscode.commands.registerCommand("h2loop.addToChat", () => {
+    console.log("H2Loop addToChat command executed");
     const editor = vscode.window.activeTextEditor;
     if (!editor) return;
 
