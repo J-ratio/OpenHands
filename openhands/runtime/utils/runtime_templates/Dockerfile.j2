@@ -161,6 +161,16 @@ RUN mkdir -p ${OPENVSCODE_SERVER_ROOT}/extensions/openhands-hello-world && \
 RUN mkdir -p ${OPENVSCODE_SERVER_ROOT}/extensions/openhands-memory-monitor && \
     cp -r /openhands/code/openhands/runtime/utils/vscode-extensions/memory-monitor/* ${OPENVSCODE_SERVER_ROOT}/extensions/openhands-memory-monitor/
 
+# Install Add to Chat extension
+RUN mkdir -p ${OPENVSCODE_SERVER_ROOT}/extensions/add-to-chat && \
+    cp -r /openhands/code/openhands/runtime/plugins/vscode/extensions/add-to-chat/* ${OPENVSCODE_SERVER_ROOT}/extensions/add-to-chat/ && \
+    # Compile the TypeScript extension if Node.js is available
+    if command -v npm >/dev/null 2>&1; then \
+    cd ${OPENVSCODE_SERVER_ROOT}/extensions/add-to-chat && \
+    npm install && \
+    npm run compile; \
+    fi
+
 # Some extension dirs are removed because they trigger false positives in vulnerability scans.
 RUN rm -rf ${OPENVSCODE_SERVER_ROOT}/extensions/{handlebars,pug,json,diff,grunt,ini,npm}
 {% endmacro %}
