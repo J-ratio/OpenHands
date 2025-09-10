@@ -49,7 +49,7 @@ class VSCodePlugin(Plugin):
             return
 
         # Set up VSCode settings.json
-        self._setup_vscode_settings()
+        self._setup_vscode_settings(username)
 
         try:
             self.vscode_port = int(os.environ['VSCODE_PORT'])
@@ -116,7 +116,7 @@ class VSCodePlugin(Plugin):
             f'VSCode server started at port {self.vscode_port}. Output: {output}'
         )
 
-    def _setup_vscode_settings(self) -> None:
+    def _setup_vscode_settings(self, username: str) -> None:
         """Set up VSCode settings by creating the .vscode directory in the workspace
         and copying the settings.json file there.
         """
@@ -143,15 +143,22 @@ class VSCodePlugin(Plugin):
                 logger.warning(f"settings.json not found at {settings_path}")
 
             # Handle extensions setup
-            self._setup_vscode_extensions(current_dir)
+            self._setup_vscode_extensions(current_dir, username)
 
         except Exception as e:
             logger.error(f"Failed to setup VSCode settings: {e}", exc_info=True)
 
-    def _setup_vscode_extensions(self, current_dir: Path) -> None:
+    def _setup_vscode_extensions(self, current_dir: Path, username: str) -> None:
         """Set up VSCode extensions by copying them to the server extensions directory."""
         extensions_src = current_dir / "extensions"
-        extensions_dest = Path("/openhands/.openvscode-server/extensions")
+
+        # Determine the correct extensions directory based on username
+        if username == 'root':
+            extensions_dest = Path("/root/.openvscode-server/extensions")
+        elif username == 'openhands':
+            extensions_dest = Path("/openhands/.openvscode-server/extensions")
+        else:
+            extensions_dest = Path(f"/home/{username}/.openvscode-server/extensions")
 
         logger.info(f"Setting up VSCode extensions")
         logger.debug(f"Extension source: {extensions_src}")
