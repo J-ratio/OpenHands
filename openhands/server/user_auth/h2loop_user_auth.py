@@ -12,6 +12,8 @@ from openhands.storage.data_models.user_secrets import UserSecrets
 from openhands.storage.secrets.secrets_store import SecretsStore
 from openhands.storage.settings.settings_store import SettingsStore
 
+_USER_TOKEN_CACHE: dict[str, SecretStr] = {}
+
 
 @dataclass
 class H2LoopUserAuth(UserAuth):
@@ -158,5 +160,13 @@ class H2LoopUserAuth(UserAuth):
         token = await instance._extract_token_from_request(request)
         if token:
             instance._access_token = SecretStr(token)
+            user_id = await instance.get_user_id()
+            if user_id:
+                _USER_TOKEN_CACHE[user_id] = instance._access_token
 
         return instance
+
+    @classmethod
+    def get_cached_access_token(cls, user_id: str) -> SecretStr | None:
+        """Get cached access token for a user"""
+        return _USER_TOKEN_CACHE.get(user_id)

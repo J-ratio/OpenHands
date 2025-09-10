@@ -563,6 +563,53 @@ class AgentController:
                 extra={'msg_type': 'ACTION', 'event_source': EventSource.USER},
             )
 
+            # Augment content with chunks from attached files
+            augmented_content = action.content
+            if action.attached_files:
+                from openhands.server.services.chunks_service import ChunksService
+
+                try:
+                    chunks_data = await ChunksService.get_chunks_from_files(
+                        action.attached_files, action.content, self.user_id
+                    )
+                    if chunks_data and 'chunks' in chunks_data:
+                        chunks = chunks_data['chunks']
+                        if chunks:
+                            from collections import defaultdict
+
+                            grouped_chunks = defaultdict(list)
+
+                            # Group chunks by filename
+                            for chunk in chunks:
+                                file_name = chunk.get('file_name', 'Unknown file')
+                                full_text = chunk.get(
+                                    'full_text', chunk.get('text', '')
+                                )
+                                if full_text.strip():
+                                    grouped_chunks[file_name].append(full_text)
+
+                            if grouped_chunks:
+                                chunk_text = '\n\nHere are the relevant chunks from the workspace files: '
+                                for file_name, chunk_texts in grouped_chunks.items():
+                                    merged_chunks = ' '.join(chunk_texts)
+                                    chunk_text += f'\n\nFile: {file_name} and its chunks are: {merged_chunks}'
+                                augmented_content += chunk_text
+                except Exception as e:
+                    self.log(
+                        'warning', f'Failed to get chunks from attached files: {e}'
+                    )
+
+            if action.attached_codeblocks:
+                codeblock_text = '\n\nHere are the attached codeblocks:'
+                for codeblock in action.attached_codeblocks:
+                    if isinstance(codeblock, dict):
+                        filename = codeblock.get('fileName', 'unknown')
+                        code = codeblock.get('selectedCode', '')
+                        codeblock_text += f'\n\nCodeblock from {filename}: {code}'
+                    else:
+                        codeblock_text += f'\n\n{codeblock}'
+                augmented_content += codeblock_text
+
             # if this is the first user message for this agent, matters for the microagent info type
             first_user_message = self._first_user_message()
             is_first_user_message = (
@@ -574,7 +621,9 @@ class AgentController:
                 else RecallType.KNOWLEDGE
             )
 
-            recall_action = RecallAction(query=action.content, recall_type=recall_type)
+            recall_action = RecallAction(
+                query=augmented_content, recall_type=recall_type
+            )
             self._pending_action = recall_action
             # this is source=USER because the user message is the trigger for the microagent retrieval
             self.event_stream.add_event(recall_action, EventSource.USER)

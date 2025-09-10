@@ -11,8 +11,8 @@ class MessageAction(Action):
     content: str
     file_urls: list[str] | None = None
     image_urls: list[str] | None = None
-    attached_files: list[str] | None = None
-    attached_codeblocks: list[str] | None = None
+    attached_files: list[Any] | None = None
+    attached_codeblocks: list[Any] | None = None
     wait_for_response: bool = False
     action: str = ActionType.MESSAGE
     security_risk: ActionSecurityRisk = ActionSecurityRisk.UNKNOWN
@@ -41,10 +41,16 @@ class MessageAction(Action):
                 ret += f'\nFILE_URL: {url}'
         if self.attached_files:
             for file in self.attached_files:
-                ret += f'\nATTACHED FILE NAME: {file}'
+                if isinstance(file, dict):
+                    ret += f'\nATTACHED FILE: {file.get("name", file)}'
+                else:
+                    ret += f'\nATTACHED FILE NAME: {file}'
         if self.attached_codeblocks:
                     for code in self.attached_codeblocks:
-                        ret += f'\nATTACHED CODE BLOCK: {code}'
+                        if isinstance(code, dict):
+                            ret += f'\nATTACHED CODE BLOCK: {code.get("fileName", "unknown")}'
+                        else:
+                            ret += f'\nATTACHED CODE BLOCK: {code}'
         return ret
 
 
