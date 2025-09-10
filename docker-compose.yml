@@ -5,12 +5,8 @@ services:
       dockerfile: ./containers/app/Dockerfile
     image: openhands:latest
     container_name: openhands-app-${DATE:-}
-    env_file:
-      - openhands/.env
     environment:
       - SANDBOX_RUNTIME_CONTAINER_IMAGE=${SANDBOX_RUNTIME_CONTAINER_IMAGE:-docker.all-hands.dev/all-hands-ai/runtime:0.54-nikolaik}
-      - DEFAULT_LLM_MODEL_SECRET_KEY=${DEFAULT_LLM_MODEL_SECRET_KEY}
-      - GITHUB_TOKEN=${GITHUB_TOKEN}
       #- SANDBOX_USER_ID=${SANDBOX_USER_ID:-1234} # enable this only if you want a specific non-root sandbox user but you will have to manually adjust permissions of ~/.openhands for this user
       # - WORKSPACE_MOUNT_PATH=${WORKSPACE_BASE:-${PWD}/workspace}
     ports:
