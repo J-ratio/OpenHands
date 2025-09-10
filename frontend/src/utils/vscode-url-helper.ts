@@ -18,8 +18,7 @@ export function transformVSCodeUrl(vsCodeUrl: string | null): string | null {
       url.hostname === "localhost" &&
       window.location.hostname !== "localhost"
     ) {
-      // Replace localhost with the current protocol and hostname
-      url.protocol = window.location.protocol;
+      // Replace localhost with the current hostname
       url.hostname = window.location.hostname;
       return url.toString();
     }
