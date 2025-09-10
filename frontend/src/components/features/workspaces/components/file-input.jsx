@@ -11,6 +11,7 @@ import { Tooltip, TooltipProvider } from "../../../ui/tooltip";
 
 const FileUpload = ({ workspace, canAdd }) => {
   const [file, setFile] = useState(null);
+  const [isFileAdding, setIsFileAdding] = useState(false);
   const [error, setError] = useState("");
 
   const handleFileChange = (event) => {
@@ -97,6 +98,7 @@ const FileUpload = ({ workspace, canAdd }) => {
     if (!file) {
       setError("Please select a file to upload.");
     }
+    setIsFileAdding(true);
     const response = await createEmptyDocumentFn();
 
     if (response.success) {
@@ -107,6 +109,7 @@ const FileUpload = ({ workspace, canAdd }) => {
         window.location.reload();
       }
     }
+    setIsFileAdding(false);
   };
 
   return (
@@ -141,8 +144,12 @@ const FileUpload = ({ workspace, canAdd }) => {
       {file && <FileDetails file={file} />}
 
       {canAdd ? (
-        <Button type="submit" onClick={handleSubmit} disabled={!file}>
-          Add Document
+        <Button
+          type="submit"
+          onClick={handleSubmit}
+          disabled={!file || isFileAdding}
+        >
+          {!isFileAdding ? "Add Document" : "Adding Document..."}
           <ArrowRight size={16} strokeWidth={2} className="ml-2" />
         </Button>
       ) : (
