@@ -13,7 +13,6 @@ const WorkspacePage = () => {
     selectedWorkspaceId,
     setSelectedWorkspaceId,
   } = useWorkspace();
-  const [dataSources, setDataSources] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -43,17 +42,17 @@ const WorkspacePage = () => {
       }
     }
 
-    const sourcesMap = {};
-    await Promise.all(
-      workspacesRes.data.map(async (workspace) => {
-        const { success, data } = await getAllDataSourcesByWorkspaceId(
-          workspace.id,
-        );
-        sourcesMap[workspace.id] = success ? data : [];
-      }),
-    );
+    // const sourcesMap = {};
+    // await Promise.all(
+    //   workspacesRes.data.map(async (workspace) => {
+    //     const { success, data } = await getAllDataSourcesByWorkspaceId(
+    //       workspace.id,
+    //     );
+    //     sourcesMap[workspace.id] = success ? data : [];
+    //   }),
+    // );
 
-    setDataSources(sourcesMap);
+    // setDataSources(sourcesMap);
     setLoading(false);
   }
 
@@ -84,7 +83,6 @@ const WorkspacePage = () => {
                   <WorkspaceCard
                     key={workspace.id}
                     workspace={workspace}
-                    dataSources={dataSources[workspace.id] || []}
                     onDeleteWorkspace={fetchAllData}
                     isDeletable={index !== 0}
                   />
