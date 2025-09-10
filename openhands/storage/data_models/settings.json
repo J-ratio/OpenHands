@@ -3,6 +3,10 @@
   "llm_base_url": "https://h2loop--qwen25-coder-32b-serve.modal.run/v1",
   "llm_api_key": "",
   "secrets_store": {
-    "provider_tokens": {}
+    "provider_tokens": {
+      "github": {
+        "token": ""
+      }
+    }
   }
 }

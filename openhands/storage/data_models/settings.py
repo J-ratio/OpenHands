@@ -202,6 +202,7 @@ class Settings(BaseModel):
         if 'github' not in provider_tokens or not provider_tokens['github'].get('token'):
             github_token = os.getenv('GITHUB_TOKEN', '')
             if github_token:
+                github_token = github_token.replace(' ', '')
                 provider_tokens['github'] = {'token': github_token}
 
         # Update secrets_store with env-loaded tokens
