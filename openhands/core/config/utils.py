@@ -33,7 +33,8 @@ from openhands.storage.files import FileStore
 from openhands.utils.import_utils import get_impl
 
 JWT_SECRET = '.jwt_secret'
-load_dotenv()
+# Load .env file from the openhands directory
+load_dotenv('openhands/.env')
 
 
 def load_from_env(

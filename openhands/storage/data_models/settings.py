@@ -188,9 +188,30 @@ class Settings(BaseModel):
         file_path = os.path.join(os.path.dirname(__file__), 'settings.json')
         with open(file_path, 'r') as f:
             data = json.load(f)
+
+        llm_api_key = data.get('llm_api_key', '')
+        if not llm_api_key:
+            env_key = os.getenv('DEFAULT_LLM_MODEL_SECRET_KEY', '')
+            if env_key:
+                llm_api_key = env_key
+
+        secrets_store = data.get('secrets_store', {})
+
+        # Load provider tokens from env vars
+        provider_tokens = secrets_store.get('provider_tokens', {})
+        if 'github' not in provider_tokens or not provider_tokens['github'].get('token'):
+            github_token = os.getenv('GITHUB_TOKEN', '')
+            if github_token:
+                github_token = github_token.replace(' ', '')
+                provider_tokens['github'] = {'token': github_token}
+
+        # Update secrets_store with env-loaded tokens
+        if provider_tokens:
+            secrets_store['provider_tokens'] = provider_tokens
+
         return Settings(
             llm_model=data.get('llm_model', ''),
             llm_base_url=data.get('llm_base_url', ''),
-            llm_api_key=data.get('llm_api_key', ''),
-            secrets_store=data.get('secrets_store')
+            llm_api_key=llm_api_key,
+            secrets_store=secrets_store
         )
