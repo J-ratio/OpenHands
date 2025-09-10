@@ -3,8 +3,9 @@
   "displayName": "OpenVscode Chat Integration",
   "description": "Add selected code to H2Loop chat",
   "version": "1.0.0",
+  "publisher": "h2loop",
   "engines": {
-    "vscode": "^1.74.0"
+    "vscode": "^1.98.2"
   },
   "categories": [
     "Other"

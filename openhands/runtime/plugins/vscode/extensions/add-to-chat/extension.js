@@ -1,9 +1,9 @@
-import * as vscode from "vscode";
-import * as path from "path";
+const vscode = require("vscode");
+const path = require("path");
 
 let bridgePanel;
 
-export function activate(context) {
+function activate(context) {
   const addToChat = vscode.commands.registerCommand("h2loop.addToChat", () => {
     const editor = vscode.window.activeTextEditor;
     if (!editor) return;
@@ -77,6 +77,8 @@ function getOrCreateBridgePanel(context) {
   return bridgePanel;
 }
 
-export function deactivate() {
+function deactivate() {
   bridgePanel?.dispose();
 }
+
+module.exports = { activate, deactivate };
