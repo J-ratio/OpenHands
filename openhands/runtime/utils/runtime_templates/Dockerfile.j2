@@ -352,11 +352,11 @@ RUN chmod a+rwx /openhands/code/openhands/__init__.py && \
 # ================================================================
 # END: Build from versioned image
 # ================================================================
-{% if build_from_versioned %}
+# {% if build_from_versioned %}
 {{ install_dependencies_user() }}
 {{ install_dependencies_root() }}
 {{ install_vscode_extensions() }}
-{% endif %}
+# {% endif %}
 
 # Install extra dependencies if specified (as openhands user)
 {% if extra_deps %}
