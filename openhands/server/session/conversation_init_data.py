@@ -16,6 +16,7 @@ class ConversationInitData(Settings):
     conversation_instructions: str | None = Field(default=None)
     git_provider: ProviderType | None = Field(default=None)
     use_h2loop_model: bool | None = Field(default=None)
+    linked_repository: str | None = Field(default=None)
 
     model_config = ConfigDict(
         arbitrary_types_allowed=True,

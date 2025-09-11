@@ -94,6 +94,7 @@ async def start_conversation(
     conversation_instructions: str | None,
     mcp_config: MCPConfig | None = None,
     use_h2loop_model: bool | None = None,
+    linked_repository: str | None = None,
 ) -> AgentLoopInfo:
     logger.info(
         'Creating conversation',
@@ -146,6 +147,8 @@ async def start_conversation(
     session_init_args['conversation_instructions'] = conversation_instructions
     if mcp_config:
         session_init_args['mcp_config'] = mcp_config
+    if linked_repository:
+        session_init_args['linked_repository'] = linked_repository
 
     conversation_init_data = ConversationInitData(**session_init_args)
 
@@ -195,6 +198,7 @@ async def create_new_conversation(
     conversation_id: str | None = None,
     mcp_config: MCPConfig | None = None,
     use_h2loop_model: bool | None = None,
+    linked_repository: str | None = None,
 ) -> AgentLoopInfo:
     conversation_metadata = await initialize_conversation(
         user_id,
@@ -220,6 +224,7 @@ async def create_new_conversation(
         conversation_instructions,
         mcp_config,
         use_h2loop_model,
+        linked_repository,
     )
 
 
