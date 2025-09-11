@@ -30,6 +30,7 @@ from openhands.runtime.base import Runtime
 from openhands.runtime.impl.remote.remote_runtime import RemoteRuntime
 from openhands.runtime.runtime_status import RuntimeStatus
 from openhands.server.services.conversation_stats import ConversationStats
+from openhands.server.token_context import get_current_access_token
 from openhands.storage.data_models.settings import Settings
 from openhands.storage.data_models.user_secrets import UserSecrets
 from openhands.storage.files import FileStore
@@ -326,8 +327,12 @@ class AgentSession:
         custom_secrets_handler = UserSecrets(custom_secrets=custom_secrets or {})  # type: ignore[arg-type]
         env_vars = custom_secrets_handler.get_env_vars()
 
+        access_token = get_current_access_token()
+        token_value = access_token.get_secret_value() if access_token else ""
+
         env_vars.update({
-            "H2LOOP_ACTIVE_WORKSPACE_ID": settings.active_workspace_id or "" if settings else ""
+            "H2LOOP_ACTIVE_WORKSPACE_ID": settings.active_workspace_id or "" if settings else "",
+            "H2LOOP_AUTH_ACCESS_TOKEN": token_value
         })
 
         if not selected_repository and linked_repository:
