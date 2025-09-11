@@ -258,6 +258,7 @@ class Session:
                 conversation_instructions=conversation_instructions,
                 replay_json=replay_json,
                 linked_repository=linked_repository,
+                settings=settings,
             )
         except MicroagentValidationError as e:
             self.logger.exception(f'Error creating agent_session: {e}')

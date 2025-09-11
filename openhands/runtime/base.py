@@ -519,6 +519,33 @@ class Runtime(FileEditRuntimeMixin):
         # Execute the action
         self.run_action(action)
 
+    def maybe_run_h2loop_script(self):
+        """Run .openhands/h2loop-script.sh if it exists in the workspace or repository."""
+        h2loop_script = 'openhands/scripts/h2loop-script.sh'
+        read_obs = self.read(FileReadAction(path=h2loop_script))
+        if isinstance(read_obs, ErrorObservation):
+            return
+
+        if self.status_callback:
+            self.status_callback(
+                'info', RuntimeStatus.SETTING_UP_WORKSPACE, 'Running h2loop script...'
+            )
+
+        # setup scripts time out after 10 minutes
+        action = CmdRunAction(
+            f'chmod +x {h2loop_script} && source {h2loop_script}',
+            blocking=True,
+            hidden=True,
+        )
+        action.set_hard_timeout(600)
+
+        # Add the action to the event stream as an ENVIRONMENT event
+        source = EventSource.ENVIRONMENT
+        self.event_stream.add_event(action, source)
+
+        # Execute the action
+        self.run_action(action)
+
     @property
     def workspace_root(self) -> Path:
         """Return the workspace root path."""

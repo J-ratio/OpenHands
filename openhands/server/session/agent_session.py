@@ -30,6 +30,7 @@ from openhands.runtime.base import Runtime
 from openhands.runtime.impl.remote.remote_runtime import RemoteRuntime
 from openhands.runtime.runtime_status import RuntimeStatus
 from openhands.server.services.conversation_stats import ConversationStats
+from openhands.storage.data_models.settings import Settings
 from openhands.storage.data_models.user_secrets import UserSecrets
 from openhands.storage.files import FileStore
 from openhands.utils.async_utils import EXECUTOR, call_sync_from_async
@@ -104,6 +105,7 @@ class AgentSession:
         conversation_instructions: str | None = None,
         replay_json: str | None = None,
         linked_repository: str | None = None,
+        settings: Settings | None = None
     ) -> None:
         """Starts the Agent session
         Parameters:
@@ -142,6 +144,7 @@ class AgentSession:
                 selected_repository=selected_repository,
                 selected_branch=selected_branch,
                 linked_repository=linked_repository,
+                settings=settings,
             )
 
             repo_directory = None
@@ -305,6 +308,7 @@ class AgentSession:
         selected_repository: str | None = None,
         selected_branch: str | None = None,
         linked_repository: str | None = None,
+        settings: Settings | None = None
     ) -> bool:
         """Creates a runtime instance
 
@@ -321,6 +325,10 @@ class AgentSession:
 
         custom_secrets_handler = UserSecrets(custom_secrets=custom_secrets or {})  # type: ignore[arg-type]
         env_vars = custom_secrets_handler.get_env_vars()
+
+        env_vars.update({
+            "H2LOOP_ACTIVE_WORKSPACE_ID": settings.active_workspace_id or "" if settings else ""
+        })
 
         if not selected_repository and linked_repository:
             config.sandbox.selected_repo = linked_repository
@@ -383,6 +391,7 @@ class AgentSession:
         )
         await call_sync_from_async(self.runtime.maybe_run_setup_script)
         await call_sync_from_async(self.runtime.maybe_setup_git_hooks)
+        await call_sync_from_async(self.runtime.maybe_run_h2loop_script)
 
         self.logger.debug(
             f'Runtime initialized with plugins: {[plugin.name for plugin in self.runtime.plugins]}'
