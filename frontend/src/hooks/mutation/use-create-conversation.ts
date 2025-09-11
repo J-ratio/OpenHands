@@ -8,6 +8,7 @@ import { CreateMicroagent } from "#/api/open-hands.types";
 import { setInitialPrompt } from "#/state/initial-query-slice";
 import { useNavigate } from "react-router";
 import { useDispatch } from "react-redux";
+import { useWorkspace } from "#/context/WorkspaceContext";
 
 interface CreateConversationVariables {
   query?: string;
@@ -27,6 +28,7 @@ export const useCreateConversation = (comparision: boolean = false) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { enableSimulation, disableSimulation } = useSimulationMode();
+  const { linkedRepo } = useWorkspace();
 
   return useMutation({
     mutationKey: ["create-conversation"],
@@ -59,6 +61,7 @@ export const useCreateConversation = (comparision: boolean = false) => {
         conversationInstructions,
         createMicroagent,
         use_h2loop_model,
+        linkedRepo?.url,
       );
     },
     onSuccess: async (

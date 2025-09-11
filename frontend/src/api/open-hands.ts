@@ -334,6 +334,7 @@ class OpenHands {
     conversationInstructions?: string,
     createMicroagent?: CreateMicroagent,
     use_h2loop_model?: boolean,
+    linkedRepository?: string,
   ): Promise<Conversation> {
     const body = {
       repository: selectedRepository,
@@ -344,6 +345,7 @@ class OpenHands {
       conversation_instructions: conversationInstructions,
       create_microagent: createMicroagent,
       use_h2loop_model,
+      linked_repository: linkedRepository,
     };
 
     const { data } = await openHands.post<Conversation>(

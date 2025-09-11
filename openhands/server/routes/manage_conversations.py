@@ -94,6 +94,7 @@ class InitSessionRequest(BaseModel):
     conversation_instructions: str | None = None
     mcp_config: MCPConfig | None = None
     use_h2loop_model: bool | None = None
+    linked_repository: str | None = None
     # Only nested runtimes require the ability to specify a conversation id, and it could be a security risk
     if os.getenv('ALLOW_SET_CONVERSATION_ID', '0') == '1':
         conversation_id: str = Field(default_factory=lambda: uuid.uuid4().hex)
@@ -137,6 +138,7 @@ async def new_conversation(
     git_provider = data.git_provider
     conversation_instructions = data.conversation_instructions
     use_h2loop_model = data.use_h2loop_model
+    linked_repository = data.linked_repository
 
     conversation_trigger = ConversationTrigger.GUI
 
@@ -196,6 +198,7 @@ async def new_conversation(
             conversation_id=conversation_id,
             mcp_config=data.mcp_config,
             use_h2loop_model=use_h2loop_model,
+            linked_repository=linked_repository,
         )
 
         asyncio.create_task(trigger_default_llm_model(settings))
