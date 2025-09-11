@@ -621,6 +621,7 @@ class AgentController:
                 else RecallType.KNOWLEDGE
             )
 
+            action.content = augmented_content
             recall_action = RecallAction(
                 query=augmented_content, recall_type=recall_type
             )
