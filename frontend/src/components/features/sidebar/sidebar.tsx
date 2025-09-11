@@ -147,7 +147,7 @@ export function Sidebar() {
                 className={`text-[#9099AC] ${settings?.EMAIL_VERIFIED === false ? "opacity-50" : ""}`}
               />
             </TooltipButton>
-            {import.meta.env.VITE_SHOW_CHAT_COMPARISON_MODE && (
+            {import.meta.env.VITE_SHOW_CHAT_COMPARISON_MODE === "true" && (
               <NewProjectButton
                 disabled={
                   settings?.EMAIL_VERIFIED === false || isCreatingConversation
