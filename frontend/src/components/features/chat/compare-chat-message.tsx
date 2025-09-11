@@ -27,7 +27,7 @@ export function CompareChatMessage({
   actions,
   children,
   enableTypewriter = false,
-  typewriterSpeed = 50,
+  typewriterSpeed = 270,
   isLatestMessage = false,
 }: React.PropsWithChildren<ChatMessageProps>) {
   const [isHovering, setIsHovering] = React.useState(false);
@@ -51,12 +51,13 @@ export function CompareChatMessage({
 
     let currentIndex = 0;
     const timer = setInterval(() => {
-      if (currentIndex < message.length) {
-        setDisplayedMessage(message.slice(0, currentIndex + 3));
-        currentIndex++;
-      } else {
+      currentIndex += 3;
+      if (currentIndex >= message.length) {
+        setDisplayedMessage(message);
         setIsTypingComplete(true);
         clearInterval(timer);
+      } else {
+        setDisplayedMessage(message.slice(0, currentIndex));
       }
     }, typewriterSpeed);
 
