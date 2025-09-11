@@ -147,18 +147,20 @@ export function Sidebar() {
                 className={`text-[#9099AC] ${settings?.EMAIL_VERIFIED === false ? "opacity-50" : ""}`}
               />
             </TooltipButton>
-            <NewProjectButton
-              disabled={
-                settings?.EMAIL_VERIFIED === false || isCreatingConversation
-              }
-              comparision={true}
-              useH2LoopModel={true}
-            />
-            {!shouldHideMicroagentManagement && (
+            {import.meta.env.VITE_SHOW_CHAT_COMPARISON_MODE && (
+              <NewProjectButton
+                disabled={
+                  settings?.EMAIL_VERIFIED === false || isCreatingConversation
+                }
+                comparision={true}
+                useH2LoopModel={true}
+              />
+            )}
+            {/* {!shouldHideMicroagentManagement && (
               <MicroagentManagementButton
                 disabled={settings?.EMAIL_VERIFIED === false}
               />
-            )}
+            )} */}
           </div>
 
           <div className="flex flex-row md:flex-col md:items-center gap-[26px] md:mb-4">
