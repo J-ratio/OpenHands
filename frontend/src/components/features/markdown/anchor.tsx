@@ -14,7 +14,7 @@ export function anchor({
       target="_blank"
       rel="noopener noreferrer"
     >
-      {children}
+      {children || ""}
     </a>
   );
 }

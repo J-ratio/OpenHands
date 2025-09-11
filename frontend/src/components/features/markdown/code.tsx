@@ -21,7 +21,7 @@ export function code({
   const { conversationId } = useConversationId();
 
   const handleCopyToClipboard = () => {
-    navigator.clipboard.writeText(String(children));
+    navigator.clipboard.writeText(String(children || ""));
     setCopyStatus("copied");
 
     setTimeout(() => setCopyStatus("idle"), 2000);
@@ -34,7 +34,7 @@ export function code({
     navigate(baseMermaidPath, {
       replace: isAlreadyOnMermaid,
       state: {
-        mermaidCode: String(children),
+        mermaidCode: String(children || ""),
       },
     });
   };
@@ -51,7 +51,7 @@ export function code({
   };
 
   if (!match) {
-    const isMultiline = String(children).includes("\n");
+    const isMultiline = String(children || "").includes("\n");
 
     if (!isMultiline) {
       return (
@@ -65,7 +65,7 @@ export function code({
             border: "1px solid #30363d",
           }}
         >
-          {children}
+          {children || ""}
         </code>
       );
     }
@@ -81,7 +81,9 @@ export function code({
           overflow: "auto",
         }}
       >
-        <code className={className}>{String(children).replace(/\n$/, "")}</code>
+        <code className={className}>
+          {String(children || "").replace(/\n$/, "")}
+        </code>
       </pre>
     );
   }
@@ -96,7 +98,7 @@ export function code({
         language={match?.[1]}
         PreTag="div"
       >
-        {String(children).replace(/\n$/, "")}
+        {String(children || "").replace(/\n$/, "")}
       </SyntaxHighlighter>
       <div className="absolute top-2 right-2 flex items-center gap-4">
         <RenderCopyButton />

@@ -7,7 +7,9 @@ export function ul({
 }: React.ClassAttributes<HTMLUListElement> &
   React.HTMLAttributes<HTMLUListElement> &
   ExtraProps) {
-  return <ul className="list-disc ml-5 pl-2 whitespace-normal">{children}</ul>;
+  return (
+    <ul className="list-disc ml-5 pl-2 whitespace-normal">{children || ""}</ul>
+  );
 }
 
 // Custom component to render <ol> in markdown
@@ -19,7 +21,7 @@ export function ol({
   ExtraProps) {
   return (
     <ol className="list-decimal ml-5 pl-2 whitespace-normal" start={start}>
-      {children}
+      {children || ""}
     </ol>
   );
 }
