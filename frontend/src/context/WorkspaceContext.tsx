@@ -47,9 +47,12 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
 
   const handleRefreshLinkedRepo = () => setRefreshKey((k) => k + 1);
 
+  const linkedRepoLocalStorageKey = "linked_repo";
+
   async function fetchLinkedRepo(workspaceId: string) {
     if (!workspaceId) {
       setLinkedRepo(undefined);
+      localStorage.removeItem(linkedRepoLocalStorageKey);
       return;
     }
     const res = await getAllDataSourcesByWorkspaceId(workspaceId);
@@ -57,10 +60,16 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
       const repo = res.data.find(
         (ds: DataSource) => ds.type === "GIT_REPOSITORY",
       );
-      setLinkedRepo(repo);
-      localStorage.setItem("linked_repo", repo.url);
+      if (repo) {
+        setLinkedRepo(repo);
+        localStorage.setItem(linkedRepoLocalStorageKey, repo.url);
+      } else {
+        setLinkedRepo(undefined);
+        localStorage.removeItem(linkedRepoLocalStorageKey);
+      }
     } else {
       setLinkedRepo(undefined);
+      localStorage.removeItem(linkedRepoLocalStorageKey);
     }
   }
 
@@ -76,6 +85,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
       );
     } else {
       setLinkedRepo(undefined);
+      localStorage.removeItem(linkedRepoLocalStorageKey);
     }
 
     if (activeWorkspaceId === null) {
