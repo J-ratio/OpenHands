@@ -35,16 +35,16 @@ const FileUpload = ({ workspace, canAdd }) => {
     if (!selectedFile) return;
 
     // Validate file type
-    if (selectedFile.type !== "application/pdf") {
-      setError("Only PDF files are allowed.");
-      setFile(null);
-      return;
-    }
+    // if (selectedFile.type !== "application/pdf") {
+    //   setError("Only PDF files are allowed.");
+    //   setFile(null);
+    //   return;
+    // }
 
     // Validate file size (40MB max)
-    const maxSize = 40 * 1024 * 1024; // 40MB in bytes
+    const maxSize = 10 * 1024 * 1024; // 40MB in bytes
     if (selectedFile.size > maxSize) {
-      setError("File size exceeds 40MB.");
+      setError("Please upload a file lesser than 10MB size.");
       setFile(null);
       return;
     }
@@ -128,7 +128,7 @@ const FileUpload = ({ workspace, canAdd }) => {
             <input
               id="fileInput"
               type="file"
-              accept="application/pdf"
+              accept="*"
               className="sr-only"
               onChange={handleFileChange}
               disabled={!canAdd}
@@ -137,7 +137,7 @@ const FileUpload = ({ workspace, canAdd }) => {
           </label>
           &nbsp;or drag and drop here
         </div>
-        <small className="text-neutral-500">PDF - Max 40MB</small>
+        <small className="text-neutral-500">Max 10MB</small>
       </div>
 
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
@@ -149,7 +149,7 @@ const FileUpload = ({ workspace, canAdd }) => {
           onClick={handleSubmit}
           disabled={!file || isFileAdding}
         >
-          {!isFileAdding ? "Add Document" : "Adding Document..."}
+          {!isFileAdding ? "Add File" : "Adding File..."}
           <ArrowRight size={16} strokeWidth={2} className="ml-2" />
         </Button>
       ) : (

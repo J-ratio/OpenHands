@@ -6,8 +6,8 @@ const MAX_SIZE = 40 * 1024 * 1024; // 40MB
 const FileUpload = ({
   file,
   setFile,
-  fileInfo = `PDF - Max ${MAX_SIZE / 1024 / 1024} MB`,
-  allowedExtensions = ["pdf"],
+  fileInfo = `Any file type - Max ${MAX_SIZE / 1024 / 1024} MB`,
+  allowedExtensions = [],
 }) => {
   const [error, setError] = useState("");
 
@@ -28,8 +28,11 @@ const FileUpload = ({
     const fileName = selectedFile.name.toLowerCase();
     const fileExtension = fileName.split(".").pop();
 
-    if (!allowedExtensions.includes(fileExtension)) {
-      setError(`Only ${allowedExtensions.join(",")} files allowed.`);
+    if (
+      allowedExtensions.length > 0 &&
+      !allowedExtensions.includes(fileExtension)
+    ) {
+      setError(`Only ${allowedExtensions.join(", ")} files allowed.`);
       setFile(null);
       return;
     }
@@ -66,7 +69,11 @@ const FileUpload = ({
             <input
               id="fileInput"
               type="file"
-              accept={allowedExtensions.map((ext) => `.${ext}`).join(",")}
+              accept={
+                allowedExtensions.length === 0
+                  ? ""
+                  : allowedExtensions.map((ext) => `.${ext}`).join(",")
+              }
               className="sr-only"
               onChange={handleFileChange}
             />
