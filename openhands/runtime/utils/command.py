@@ -26,11 +26,13 @@ def get_action_execution_server_startup_command(
 
     # Plugin args
     plugin_args = []
+    print(f"DEBUG: get_action_execution_server_startup_command called with plugins: {plugins}")
     if plugins is not None and len(plugins) > 0:
         plugin_names = [plugin.name for plugin in plugins]
         plugin_args = ['--plugins'] + plugin_names
         print(f"DEBUG: Plugin args generated: {plugin_args}")
         print(f"DEBUG: Plugin names: {plugin_names}")
+        print(f"DEBUG: Plugin types: {[type(p).__name__ for p in plugins]}")
     else:
         print("DEBUG: No plugins to load")
 

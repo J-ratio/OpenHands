@@ -177,6 +177,10 @@ class ActionExecutor:
         enable_browser: bool,
         browsergym_eval_env: str | None,
     ) -> None:
+        logger.info(
+            f'ActionExecutor initializing with plugins: {[p.name for p in plugins_to_load]}'
+        )
+        logger.info(f'ActionExecutor username: {username}, user_id: {user_id}')
         self.plugins_to_load = plugins_to_load
         self._initial_cwd = work_dir
         self.username = username
@@ -298,11 +302,15 @@ class ActionExecutor:
         self.browser_init_task = asyncio.create_task(self._init_browser_async())
         logger.debug('Browser initialization started in background')
 
+        logger.info(
+            f'Starting initialization of {len(self.plugins_to_load)} plugins: {[p.name for p in self.plugins_to_load]}'
+        )
         await wait_all(
             (self._init_plugin(plugin) for plugin in self.plugins_to_load),
             timeout=int(os.environ.get('INIT_PLUGIN_TIMEOUT', '120')),
         )
         logger.info('All plugins initialized')
+        logger.info(f'Final plugin list: {list(self.plugins.keys())}')
 
         # This is a temporary workaround
         # TODO: refactor AgentSkills to be part of JupyterPlugin
@@ -328,14 +336,26 @@ class ActionExecutor:
 
     async def _init_plugin(self, plugin: Plugin):
         assert self.bash_session is not None
+        logger.info(
+            f'Starting initialization of plugin: {plugin.name} (type: {type(plugin).__name__})'
+        )
+        logger.info(
+            f'Current environment - username: {self.username}, runtime_id: {os.environ.get("RUNTIME_ID", "NOT_SET")}'
+        )
+        logger.info(
+            f'Environment variables relevant to VSCode: VSCODE_PORT={os.environ.get("VSCODE_PORT", "NOT_SET")}, USER={os.environ.get("USER", "NOT_SET")}'
+        )
+
         # VSCode plugin needs runtime_id for path-based routing when using Gateway API
         if isinstance(plugin, VSCodePlugin):
+            logger.info('Detected VSCode plugin, initializing with runtime_id')
             runtime_id = os.environ.get('RUNTIME_ID')
             await plugin.initialize(self.username, runtime_id=runtime_id)
         else:
+            logger.info(f'Initializing non-VSCode plugin: {plugin.name}')
             await plugin.initialize(self.username)
         self.plugins[plugin.name] = plugin
-        logger.info(f'Initializing plugin: {plugin.name}')
+        logger.info(f'Successfully initialized plugin: {plugin.name}')
 
         if isinstance(plugin, JupyterPlugin):
             # Escape backslashes in Windows path
@@ -682,10 +702,12 @@ if __name__ == '__main__':
 
     plugins_to_load: list[Plugin] = []
     logger.info(f'Plugins received from command line: {args.plugins}')
+    logger.info(f'Available plugins in ALL_PLUGINS: {list(ALL_PLUGINS.keys())}')
     if args.plugins:
         for plugin in args.plugins:
             logger.info(f'Loading plugin: {plugin}')
             if plugin not in ALL_PLUGINS:
+                logger.error(f'Plugin {plugin} not found in ALL_PLUGINS')
                 raise ValueError(f'Plugin {plugin} not found')
             plugins_to_load.append(ALL_PLUGINS[plugin]())  # type: ignore
     else:
@@ -982,10 +1004,17 @@ if __name__ == '__main__':
     @app.get('/vscode/connection_token')
     async def get_vscode_connection_token():
         assert client is not None
+        logger.info('VSCode connection token endpoint called')
+        logger.info(f'Available plugins: {list(client.plugins.keys())}')
         if 'vscode' in client.plugins:
             plugin: VSCodePlugin = client.plugins['vscode']  # type: ignore
-            return {'token': plugin.vscode_connection_token}
+            token = plugin.vscode_connection_token
+            logger.info(
+                f'VSCode plugin found, returning token: {"***" if token else None}'
+            )
+            return {'token': token}
         else:
+            logger.warning('VSCode plugin not found in client.plugins')
             return {'token': None}
 
     # ================================

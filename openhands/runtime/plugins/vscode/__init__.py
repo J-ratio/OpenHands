@@ -30,6 +30,9 @@ class VSCodePlugin(Plugin):
     async def initialize(self, username: str, runtime_id: str | None = None) -> None:
         logger.info("Initialize VSCode plugin")
         logger.info(f"VSCode plugin initialize called with username={username}, runtime_id={runtime_id}")
+        logger.info(f"Environment variables: VSCODE_PORT={os.environ.get('VSCODE_PORT', 'NOT_SET')}")
+        logger.info(f"System info: os.name={os.name}, sys.platform={sys.platform}")
+
         # Check if we're on Windows - VSCode plugin is not supported on Windows
         if os.name == 'nt' or sys.platform == 'win32':
             self.vscode_port = None
@@ -39,6 +42,7 @@ class VSCodePlugin(Plugin):
             )
             return
 
+        logger.info(f"Passed Windows check, username={username}")
         if username not in ['root', 'openhands']:
             self.vscode_port = None
             self.vscode_connection_token = None
@@ -48,23 +52,29 @@ class VSCodePlugin(Plugin):
             )
             return
 
+        logger.info("Passed username check, setting up VSCode settings")
         # Set up VSCode settings.json
         self._setup_vscode_settings()
 
+        logger.info("VSCode settings setup complete, checking VSCODE_PORT")
         try:
             self.vscode_port = int(os.environ['VSCODE_PORT'])
-        except (KeyError, ValueError):
+            logger.info(f"VSCODE_PORT found: {self.vscode_port}")
+        except (KeyError, ValueError) as e:
             logger.warning(
-                'VSCODE_PORT environment variable not set or invalid. VSCode plugin will be disabled.'
+                f'VSCODE_PORT environment variable not set or invalid: {e}. VSCode plugin will be disabled.'
             )
             return
 
+        logger.info(f"VSCODE_PORT parsed successfully: {self.vscode_port}, checking port availability")
         self.vscode_connection_token = str(uuid.uuid4())
         if not check_port_available(self.vscode_port):
             logger.warning(
                 f'Port {self.vscode_port} is not available. VSCode plugin will be disabled.'
             )
             return
+
+        logger.info(f"Port {self.vscode_port} is available, proceeding with VSCode server startup")
         workspace_path = os.getenv('WORKSPACE_MOUNT_PATH_IN_SANDBOX', '/workspace')
         # Compute base path for OpenVSCode Server when running behind a path-based router
         base_path_flag = ''

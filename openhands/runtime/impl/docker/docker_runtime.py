@@ -206,7 +206,7 @@ class DockerRuntime(ActionExecutionClient):
             await call_sync_from_async(self.setup_initial_env)
 
         self.log(
-            'debug',
+            'info',
             f'Container initialized with plugins: {[plugin.name for plugin in self.plugins]}. VSCode URL: {self.vscode_url}',
         )
         if not self.attach_to_existing:
@@ -456,6 +456,9 @@ class DockerRuntime(ActionExecutionClient):
                 'Using host network mode. If you are using MacOS, please make sure you have the latest version of Docker Desktop and enabled host network feature: https://docs.docker.com/network/drivers/host/#docker-desktop',
             )
 
+        # Determine the username that will be used
+        username = 'openhands' if self.config.run_as_openhands else 'root'
+
         # Combine environment variables
         environment = dict(**self.initial_env_vars)
         environment.update(
@@ -467,6 +470,7 @@ class DockerRuntime(ActionExecutionClient):
                 'APP_PORT_1': str(self._app_ports[0]),
                 'APP_PORT_2': str(self._app_ports[1]),
                 'PIP_BREAK_SYSTEM_PACKAGES': '1',
+                'USER': username,  # Ensure USER environment variable is set
             }
         )
         if self.config.debug or DEBUG:
@@ -531,7 +535,7 @@ class DockerRuntime(ActionExecutionClient):
                 device_requests=device_requests,
                 **(self.config.sandbox.docker_runtime_kwargs or {}),
             )
-            self.log('debug', f'Container started. Server url: {self.api_url}')
+            self.log('info', f'Container started. Server url: {self.api_url}')
             self.set_runtime_status(RuntimeStatus.RUNTIME_STARTED)
         except Exception as e:
             self.log(
@@ -757,9 +761,18 @@ class DockerRuntime(ActionExecutionClient):
             docker_client.close()
 
     def get_action_execution_server_startup_command(self) -> list[str]:
-        return get_action_execution_server_startup_command(
+        logger.info(f'Generating startup command with plugins: {[p.name for p in self.plugins]}')
+        logger.info(f'Plugin details: {[(p.name, type(p).__name__) for p in self.plugins]}')
+
+        # Determine the username that will be used
+        username = 'openhands' if self.config.run_as_openhands else 'root'
+
+        command = get_action_execution_server_startup_command(
             server_port=self._container_port,
             plugins=self.plugins,
             app_config=self.config,
             main_module=self.main_module,
+            override_username=username,
         )
+        logger.info(f'Generated command with username {username}: {command}')
+        return command
