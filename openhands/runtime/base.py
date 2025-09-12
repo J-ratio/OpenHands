@@ -392,6 +392,42 @@ class Runtime(FileEditRuntimeMixin):
             return
         self.event_stream.add_event(observation, source)  # type: ignore[arg-type]
 
+    def _extract_repo_name_from_url(self, repo_url: str) -> str:
+        """Extract repository name from a full URL.
+
+        Args:
+            repo_url: Full repository URL (e.g., 'https://github.com/owner/repo')
+
+        Returns:
+            Repository name in format 'owner/repo'
+        """
+        if not repo_url:
+            return ''
+
+        # Remove protocol and domain
+        if repo_url.startswith(('http://', 'https://')):
+            # Remove protocol
+            repo_url = repo_url.replace('http://', '').replace('https://', '')
+
+            # Find the first '/' after the domain
+            parts = repo_url.split('/')
+            if len(parts) >= 3:
+                # parts[0] is domain, parts[1] is owner, parts[2] is repo
+                owner = parts[1]
+                repo = parts[2]
+
+                # Remove .git extension if present
+                if repo.endswith('.git'):
+                    repo = repo[:-4]
+
+                return f'{owner}/{repo}'
+
+        # If it's already in owner/repo format, return as is
+        if '/' in repo_url and not repo_url.startswith(('http://', 'https://')):
+            return repo_url
+
+        return repo_url
+
     async def clone_or_init_repo(
         self,
         git_provider_tokens: PROVIDER_TOKEN_TYPE | None,
@@ -413,8 +449,10 @@ class Runtime(FileEditRuntimeMixin):
                 )
             return ''
 
+        repo_name = self._extract_repo_name_from_url(selected_repository)
+
         remote_repo_url = await self.provider_handler.get_authenticated_git_url(
-            selected_repository
+            repo_name
         )
 
         if not remote_repo_url:
@@ -425,13 +463,13 @@ class Runtime(FileEditRuntimeMixin):
                 'info', RuntimeStatus.SETTING_UP_WORKSPACE, 'Setting up workspace...'
             )
 
-        dir_name = selected_repository.split('/')[-1]
+        dir_name = repo_name.split('/')[-1]
 
         # Generate a random branch name to avoid conflicts
         random_str = ''.join(
             random.choices(string.ascii_lowercase + string.digits, k=8)
         )
-        openhands_workspace_branch = f'h2loop-workspace-{random_str}'
+        h2loop_workspace_branch = f'h2loop-workspace-{random_str}'
 
         # Clone repository command
         clone_command = f'git clone {remote_repo_url} {dir_name}'
@@ -440,7 +478,7 @@ class Runtime(FileEditRuntimeMixin):
         checkout_command = (
             f'git checkout {selected_branch}'
             if selected_branch
-            else f'git checkout -b {openhands_workspace_branch}'
+            else f'git checkout -b {h2loop_workspace_branch}'
         )
 
         clone_action = CmdRunAction(command=clone_command)
@@ -450,7 +488,7 @@ class Runtime(FileEditRuntimeMixin):
             command=f'cd {dir_name} && {checkout_command}'
         )
         action = cd_checkout_action
-        self.log('info', f'Cloning repo: {selected_repository}')
+        self.log('info', f'Cloning repo: {repo_name}')
         await call_sync_from_async(self.run_action, action)
         return dir_name
 
@@ -469,6 +507,33 @@ class Runtime(FileEditRuntimeMixin):
         # setup scripts time out after 10 minutes
         action = CmdRunAction(
             f'chmod +x {setup_script} && source {setup_script}',
+            blocking=True,
+            hidden=True,
+        )
+        action.set_hard_timeout(600)
+
+        # Add the action to the event stream as an ENVIRONMENT event
+        source = EventSource.ENVIRONMENT
+        self.event_stream.add_event(action, source)
+
+        # Execute the action
+        self.run_action(action)
+
+    def maybe_run_h2loop_script(self):
+        """Run .openhands/h2loop-script.sh if it exists in the workspace or repository."""
+        h2loop_script = 'openhands/scripts/h2loop-script.sh'
+        read_obs = self.read(FileReadAction(path=h2loop_script))
+        if isinstance(read_obs, ErrorObservation):
+            return
+
+        if self.status_callback:
+            self.status_callback(
+                'info', RuntimeStatus.SETTING_UP_WORKSPACE, 'Running h2loop script...'
+            )
+
+        # setup scripts time out after 10 minutes
+        action = CmdRunAction(
+            f'chmod +x {h2loop_script} && source {h2loop_script}',
             blocking=True,
             hidden=True,
         )

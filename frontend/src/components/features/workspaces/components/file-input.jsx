@@ -11,6 +11,7 @@ import { Tooltip, TooltipProvider } from "../../../ui/tooltip";
 
 const FileUpload = ({ workspace, canAdd }) => {
   const [file, setFile] = useState(null);
+  const [isFileAdding, setIsFileAdding] = useState(false);
   const [error, setError] = useState("");
 
   const handleFileChange = (event) => {
@@ -34,16 +35,16 @@ const FileUpload = ({ workspace, canAdd }) => {
     if (!selectedFile) return;
 
     // Validate file type
-    if (selectedFile.type !== "application/pdf") {
-      setError("Only PDF files are allowed.");
-      setFile(null);
-      return;
-    }
+    // if (selectedFile.type !== "application/pdf") {
+    //   setError("Only PDF files are allowed.");
+    //   setFile(null);
+    //   return;
+    // }
 
     // Validate file size (40MB max)
-    const maxSize = 40 * 1024 * 1024; // 40MB in bytes
+    const maxSize = 10 * 1024 * 1024; // 40MB in bytes
     if (selectedFile.size > maxSize) {
-      setError("File size exceeds 40MB.");
+      setError("Please upload a file lesser than 10MB size.");
       setFile(null);
       return;
     }
@@ -97,6 +98,7 @@ const FileUpload = ({ workspace, canAdd }) => {
     if (!file) {
       setError("Please select a file to upload.");
     }
+    setIsFileAdding(true);
     const response = await createEmptyDocumentFn();
 
     if (response.success) {
@@ -107,6 +109,7 @@ const FileUpload = ({ workspace, canAdd }) => {
         window.location.reload();
       }
     }
+    setIsFileAdding(false);
   };
 
   return (
@@ -125,7 +128,7 @@ const FileUpload = ({ workspace, canAdd }) => {
             <input
               id="fileInput"
               type="file"
-              accept="application/pdf"
+              accept="*"
               className="sr-only"
               onChange={handleFileChange}
               disabled={!canAdd}
@@ -134,15 +137,19 @@ const FileUpload = ({ workspace, canAdd }) => {
           </label>
           &nbsp;or drag and drop here
         </div>
-        <small className="text-neutral-500">PDF - Max 40MB</small>
+        <small className="text-neutral-500">Max 10MB</small>
       </div>
 
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
       {file && <FileDetails file={file} />}
 
       {canAdd ? (
-        <Button type="submit" onClick={handleSubmit} disabled={!file}>
-          Add Document
+        <Button
+          type="submit"
+          onClick={handleSubmit}
+          disabled={!file || isFileAdding}
+        >
+          {!isFileAdding ? "Add File" : "Adding File..."}
           <ArrowRight size={16} strokeWidth={2} className="ml-2" />
         </Button>
       ) : (

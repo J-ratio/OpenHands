@@ -120,6 +120,10 @@ class DockerRuntime(ActionExecutionClient):
         self._vscode_port_lock: PortLock | None = None
         self._app_port_locks: list[PortLock] = []
 
+        # Store repository information for VSCode URL generation
+        self._selected_repository: str | None = None
+        self._repo_directory: str | None = None
+
         if os.environ.get('DOCKER_HOST_ADDR'):
             logger.info(
                 f'Using DOCKER_HOST_IP: {os.environ["DOCKER_HOST_ADDR"]} for local_runtime_url'
@@ -694,13 +698,34 @@ class DockerRuntime(ActionExecutionClient):
         port, _ = self._find_available_port_with_lock(port_range, max_attempts)
         return port
 
+    async def clone_or_init_repo(
+        self,
+        git_provider_tokens: PROVIDER_TOKEN_TYPE | None,
+        selected_repository: str | None,
+        selected_branch: str | None,
+    ) -> str:
+        if selected_repository:
+            self._selected_repository = selected_repository
+            # Extract repository name from URL if it's a full URL
+            repo_name = self._extract_repo_name_from_url(selected_repository)
+            self._repo_directory = repo_name.split('/')[-1]
+
+        return await super().clone_or_init_repo(
+            git_provider_tokens, selected_repository, selected_branch
+        )
+
     @property
     def vscode_url(self) -> str | None:
         token = super().get_vscode_token()
         if not token:
             return None
 
-        vscode_url = f'http://localhost:{self._vscode_port}/?tkn={token}&folder={self.config.workspace_mount_path_in_sandbox}'
+        # Use repository directory if available, otherwise use workspace root
+        folder_path = self.config.workspace_mount_path_in_sandbox
+        if self._repo_directory:
+            folder_path = f"{self.config.workspace_mount_path_in_sandbox}/{self._repo_directory}"
+
+        vscode_url = f'http://localhost:{self._vscode_port}/?tkn={token}&folder={folder_path}'
         return vscode_url
 
     @property
