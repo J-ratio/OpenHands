@@ -16,12 +16,15 @@ import { getAllDataSourcesByWorkspaceId } from "../../../../api/data-sources";
 import { HorizontalDotsLoader } from "../../../shared/horizontal-dots-loader";
 
 import { getTabs } from "../../../../utils/basic-utils";
+import { FaRegEye } from "react-icons/fa";
 
 const ViewWorkspaceButton = ({
   workspace,
   truncatedDescription,
   showAddSource,
   setShowAddSource,
+  useViewWorkspaceIcon,
+  onDialogOpenChange,
 }) => {
   const [tabs, setTabs] = useState([]);
   const [open, setOpen] = useState(false);
@@ -59,11 +62,21 @@ const ViewWorkspaceButton = ({
   }, [open]);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(newOpen) => {
+        setOpen(newOpen);
+        onDialogOpenChange?.(newOpen);
+      }}
+    >
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full">
-          View Workspace
-        </Button>
+        {useViewWorkspaceIcon ? (
+          <FaRegEye />
+        ) : (
+          <Button variant="outline" className="w-full">
+            View Workspace
+          </Button>
+        )}
       </DialogTrigger>
       {isLoading ? (
         <HorizontalDotsLoader />

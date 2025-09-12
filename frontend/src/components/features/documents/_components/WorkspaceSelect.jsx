@@ -15,6 +15,7 @@ import { getColorFromName } from "../../../../utils/basic-utils";
 import { useSettings } from "../../../../hooks/query/use-settings";
 import { HorizontalDotsLoader } from "../../../shared/horizontal-dots-loader";
 import { useSaveSettings } from "../../../../hooks/mutation/use-save-settings";
+import ViewWorkspaceButton from "../../workspaces/components/view-workspace-button";
 
 export const WorkspaceSelect = ({
   workspaces,
@@ -25,6 +26,11 @@ export const WorkspaceSelect = ({
   fullWidth = false,
   label = "Select a Workspace",
 }) => {
+  const [showAddSource, setShowAddSource] = useState(false);
+  const [selectOpen, setSelectOpen] = useState(false);
+  const [isViewWorkspaceDialogOpen, setIsViewWorkspaceDialogOpen] =
+    useState(false);
+
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -74,6 +80,11 @@ export const WorkspaceSelect = ({
 
   return (
     <Select
+      open={selectOpen}
+      onOpenChange={(open) => {
+        if (isViewWorkspaceDialogOpen) return;
+        setSelectOpen(open);
+      }}
       defaultValue={selectedWorkspace}
       value={selectedWorkspace}
       onValueChange={(value) => {
@@ -104,31 +115,43 @@ export const WorkspaceSelect = ({
           <SelectContent className="bg-neutral-900 text-neutral-100 border border-neutral-700 rounded-md shadow-lg">
             <SelectGroup>
               {(workspaces || data).map((workspace) => (
-                <SelectItem
-                  value={workspace.id}
-                  key={workspace.id}
-                  onClick={() => {
-                    setSelectedWorkspace(workspace.id.toString());
-                    if (setSelectedWorkspaceName) {
-                      setSelectedWorkspaceName(workspace.name);
+                <div className="flex items-center">
+                  <SelectItem
+                    value={workspace.id}
+                    key={workspace.id}
+                    onClick={() => {
+                      setSelectedWorkspace(workspace.id.toString());
+                      if (setSelectedWorkspaceName) {
+                        setSelectedWorkspaceName(workspace.name);
+                      }
+                    }}
+                    className="hover:bg-neutral-800 focus:bg-neutral-800 text-neutral-100 cursor-pointer transition-colors duration-100 rounded flex items-center"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{
+                          backgroundColor: getColorFromName(workspace.name),
+                        }}
+                      ></div>
+                      <span>
+                        {workspace.name.length < 30
+                          ? workspace.name
+                          : `${workspace.name.substring(0, 30)}...`}
+                      </span>
+                    </div>
+                  </SelectItem>
+                  <ViewWorkspaceButton
+                    workspace={workspace}
+                    useViewWorkspaceIcon={true}
+                    showAddSource={showAddSource}
+                    setShowAddSource={setShowAddSource}
+                    onDialogOpenChange={(isOpen) =>
+                      setIsViewWorkspaceDialogOpen(isOpen)
                     }
-                  }}
-                  className="hover:bg-neutral-800 focus:bg-neutral-800 text-neutral-100 cursor-pointer transition-colors duration-100 rounded flex items-center"
-                >
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{
-                        backgroundColor: getColorFromName(workspace.name),
-                      }}
-                    ></div>
-                    <span>
-                      {workspace.name.length < 30
-                        ? workspace.name
-                        : `${workspace.name.substring(0, 30)}...`}
-                    </span>
-                  </div>
-                </SelectItem>
+                  />
+                  <div className="mr-2"></div>
+                </div>
               ))}
               <div className="my-2 text-center">
                 <CreateWorkspaceButton onCreateSuccess={getData} />

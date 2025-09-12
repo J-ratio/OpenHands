@@ -35,6 +35,7 @@ import { useIsAuthed } from "#/hooks/query/use-is-authed";
 import { ConversationSubscriptionsProvider } from "#/context/conversation-subscriptions-provider";
 import { useUserProviders } from "#/hooks/use-user-providers";
 import { ConversationTabs } from "#/components/features/conversation/conversation-tabs";
+import { useSimulationMode } from "#/fake_scripts/simulation_context";
 
 function AppContent() {
   useConversationConfig();
@@ -43,6 +44,8 @@ function AppContent() {
   const { data: conversation, isFetched, refetch } = useActiveConversation();
   const { isAuthenticated } = useAuthTokenStatus();
   const { providers } = useUserProviders();
+
+  const { isSimulationMode } = useSimulationMode();
 
   // Fetch batch feedback data when conversation is loaded
   useBatchFeedback();
@@ -123,7 +126,11 @@ function AppContent() {
           <div data-testid="app-route" className="flex flex-col h-full gap-3">
             <div className="flex h-full overflow-auto">{renderMain()}</div>
 
-            <Controls showSecurityLock={!!settings?.CONFIRMATION_MODE} />
+            {!isSimulationMode ? (
+              <Controls showSecurityLock={!!settings?.CONFIRMATION_MODE} />
+            ) : (
+              <div className="mb-3"></div>
+            )}
           </div>
         </EventHandler>
       </ConversationSubscriptionsProvider>

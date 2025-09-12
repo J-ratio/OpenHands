@@ -31,6 +31,7 @@ export function DebugCrashLogFileDiffViewer({
 }: DebugCrashLogFileDiffViewerProps) {
   const [isCollapsed, setIsCollapsed] = React.useState(true);
   const [editorHeight, setEditorHeight] = React.useState(400);
+  const [showDiffEditor, setShowDiffEditor] = React.useState(false);
   const diffEditorRef = React.useRef<editor_t.IStandaloneDiffEditor>(null);
 
   const isAdded = type === "A" || type === "U";
@@ -44,6 +45,14 @@ export function DebugCrashLogFileDiffViewer({
 
     return path;
   }, [path, type]);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowDiffEditor(true);
+    }, 13000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   //   const {
   //     data: diff,
@@ -250,19 +259,23 @@ static int imx219_power_off(struct device *dev)
 }
   `;
 
-  return (
-    <div data-testid="file-diff-viewer-outer" className="w-full flex flex-col">
+  if (showDiffEditor) {
+    return (
       <div
-        className={cn(
-          "flex justify-between items-center px-2.5 py-3.5 border border-neutral-600 rounded-xl",
-          !isCollapsed && "border-b-0 rounded-b-none",
-        )}
+        data-testid="file-diff-viewer-outer"
+        className="w-full flex flex-col"
       >
-        <span className="text-sm w-full text-content flex items-center gap-2">
-          {/* {isFetchingData && <LoadingSpinner className="w-5 h-5" />}
+        <div
+          className={cn(
+            "flex justify-between items-center px-2.5 py-3.5 border border-neutral-600 rounded-xl",
+            !isCollapsed && "border-b-0 rounded-b-none",
+          )}
+        >
+          <span className="text-sm w-full text-content flex items-center gap-2">
+            {/* {isFetchingData && <LoadingSpinner className="w-5 h-5" />}
           {!isFetchingData && statusIcon} */}
-          <strong className="w-full truncate">{filePath}</strong>
-          {/* {isMermaidFile && (
+            <strong className="w-full truncate">{filePath}</strong>
+            {/* {isMermaidFile && (
             <button
               className="mr-8 hover:cursor-pointer"
               onClick={() => handleMermaidVisualizeClick()}
@@ -270,57 +283,58 @@ static int imx219_power_off(struct device *dev)
               Visualize
             </button>
           )} */}
-          <button
-            data-testid="collapse"
-            type="button"
-            className="hover:cursor-pointer"
-            onClick={() => setIsCollapsed((prev) => !prev)}
-          >
-            <ChevronUp
-              className={cn(
-                "w-4 h-4 transition-transform mr-2",
-                isCollapsed && "transform rotate-180",
-              )}
-            />
-          </button>
-        </span>
-      </div>
-      {!isCollapsed && (
-        <div
-          className="w-full border border-neutral-600 overflow-hidden"
-          style={{ height: `${editorHeight}px` }}
-        >
-          <DiffEditor
-            data-testid="file-diff-viewer"
-            className="w-full h-full"
-            language={getLanguageFromPath(filePath)}
-            // original={isAdded ? "" : diff.original}
-            // modified={isDeleted ? "" : diff.modified}
-            original={originalCode}
-            modified={modifiedCode}
-            theme="custom-diff-theme"
-            onMount={handleEditorDidMount}
-            beforeMount={beforeMount}
-            options={{
-              renderValidationDecorations: "off",
-              readOnly: true,
-              renderSideBySide: !isAdded && !isDeleted,
-              scrollBeyondLastLine: true,
-              minimap: {
-                enabled: false,
-              },
-              hideUnchangedRegions: {
-                enabled: true,
-              },
-              automaticLayout: true,
-              scrollbar: {
-                // Make scrollbar less intrusive
-                alwaysConsumeMouseWheel: false,
-              },
-            }}
-          />
+            <button
+              data-testid="collapse"
+              type="button"
+              className="hover:cursor-pointer"
+              onClick={() => setIsCollapsed((prev) => !prev)}
+            >
+              <ChevronUp
+                className={cn(
+                  "w-4 h-4 transition-transform mr-2",
+                  isCollapsed && "transform rotate-180",
+                )}
+              />
+            </button>
+          </span>
         </div>
-      )}
-    </div>
-  );
+        {!isCollapsed && (
+          <div
+            className="w-full border border-neutral-600 overflow-hidden"
+            style={{ height: `${editorHeight}px` }}
+          >
+            <DiffEditor
+              data-testid="file-diff-viewer"
+              className="w-full h-full"
+              language={getLanguageFromPath(filePath)}
+              // original={isAdded ? "" : diff.original}
+              // modified={isDeleted ? "" : diff.modified}
+              original={originalCode}
+              modified={modifiedCode}
+              theme="custom-diff-theme"
+              onMount={handleEditorDidMount}
+              beforeMount={beforeMount}
+              options={{
+                renderValidationDecorations: "off",
+                readOnly: true,
+                renderSideBySide: !isAdded && !isDeleted,
+                scrollBeyondLastLine: true,
+                minimap: {
+                  enabled: false,
+                },
+                hideUnchangedRegions: {
+                  enabled: true,
+                },
+                automaticLayout: true,
+                scrollbar: {
+                  // Make scrollbar less intrusive
+                  alwaysConsumeMouseWheel: false,
+                },
+              }}
+            />
+          </div>
+        )}
+      </div>
+    );
+  }
 }
