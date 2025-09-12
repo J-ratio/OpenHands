@@ -83,7 +83,12 @@ const Codebases = ({ attachedCodebases }) => {
           className="rounded-md border px-4 py-2 font-mono text-xs shadow-sm cursor-pointer flex items-center justify-between"
           key={_idx}
         >
-          <div className="flex flex-col">
+          <div
+            className="flex flex-col"
+            onClick={() => {
+              window.open(codebase.url, "_blank", "noopener,noreferrer");
+            }}
+          >
             <IconBrandGithub className="mt-1 shrink-0" />
             <span className="break-all whitespace-normal leading-tight">
               {codebase.name}
