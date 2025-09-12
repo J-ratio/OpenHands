@@ -58,6 +58,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
         (ds: DataSource) => ds.type === "GIT_REPOSITORY",
       );
       setLinkedRepo(repo);
+      localStorage.setItem("linked_repo", repo.url);
     } else {
       setLinkedRepo(undefined);
     }
