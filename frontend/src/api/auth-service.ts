@@ -1,6 +1,7 @@
 import { routes } from "#/constants/apiRoutes";
 import axios from "axios";
 import qs from "qs";
+import { openHands } from "./open-hands-axios";
 
 export async function login(email: string, password: string) {
   const formData = qs.stringify({
@@ -34,5 +35,5 @@ export async function register(email: string, password: string) {
 }
 
 export async function checkAuth() {
-  return axios.get(routes.profile);
+  return openHands.get(routes.profile);
 }

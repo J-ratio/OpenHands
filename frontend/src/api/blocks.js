@@ -1,32 +1,14 @@
 // "use server";
 import { routes } from "../constants/apiRoutes";
-import { isAuthenticated as getAuthStatus } from "../utils/isAuth";
-import axios from "axios";
 import { handleError } from "../utils/handleError";
+import { openHands } from "./open-hands-axios";
 
 export const updateBlock = async (docId, blockId, prompt) => {
   try {
-    const { isAuthenticated, token, message } = getAuthStatus();
-
-    if (!isAuthenticated) {
-      return {
-        errorMessage: message,
-        success: false,
-      };
-    }
-
-    const res = await axios.put(
-      routes.editBlock(docId, blockId),
-      {
-        type: "TEXT",
-        prompt,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
+    const res = await openHands.put(routes.editBlock(docId, blockId), {
+      type: "TEXT",
+      prompt,
+    });
 
     return {
       data: res.data,

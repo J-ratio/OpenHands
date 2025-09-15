@@ -1,6 +1,6 @@
-import axios from "axios";
 import { routes } from "../constants/apiRoutes";
 import { handleError } from "../utils/handleError";
+import { openHands } from "./open-hands-axios";
 
 export const getStatus = async () => {
   try {
@@ -18,7 +18,7 @@ export const getStatus = async () => {
 
 export const getServicesStatus = async () => {
   try {
-    const res = await axios.get(routes.status);
+    const res = await openHands.get(routes.status);
 
     if (!res.data) {
       throw new Error("Empty response from status API");
