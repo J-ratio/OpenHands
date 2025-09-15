@@ -115,7 +115,7 @@ export const WorkspaceSelect = ({
           <SelectContent className="bg-neutral-900 text-neutral-100 border border-neutral-700 rounded-md shadow-lg">
             <SelectGroup>
               {(workspaces || data).map((workspace) => (
-                <div className="flex items-center">
+                <div className="flex items-center" key={workspace.id}>
                   <SelectItem
                     value={workspace.id}
                     key={workspace.id}
