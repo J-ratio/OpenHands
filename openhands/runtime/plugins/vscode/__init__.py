@@ -83,11 +83,26 @@ class VSCodePlugin(Plugin):
                 if path_mode:
                     base_path_flag = f' --server-base-path /{runtime_id}/vscode'
 
+        # Allow embedding from the same domain with HTTPS
+        allow_origin = os.getenv('VSCODE_ALLOW_ORIGIN', 'https://hub.h2loop.ai')
+        allow_origin_flag = f' --allow-origin {allow_origin}'
+
+        # Generate self-signed certificate for HTTPS
+        cert_dir = '/tmp/vscode-certs'
+        cert_file = f'{cert_dir}/cert.pem'
+        key_file = f'{cert_dir}/key.pem'
+
+        cert_setup = (
+            f'mkdir -p {cert_dir}\n'
+            f'openssl req -x509 -newkey rsa:4096 -keyout {key_file} -out {cert_file} -days 365 -nodes -subj "/C=US/ST=State/L=City/O=Organization/CN=localhost"\n'
+        )
+
         cmd = (
             f"su - {username} -s /bin/bash << 'EOF'\n"
             f'sudo chown -R {username}:{username} /openhands/.openvscode-server\n'
+            f'{cert_setup}'
             f'cd {workspace_path}\n'
-            f'exec /openhands/.openvscode-server/bin/openvscode-server --host 0.0.0.0 --connection-token {self.vscode_connection_token} --port {self.vscode_port} --disable-workspace-trust{base_path_flag}\n'
+            f'exec /openhands/.openvscode-server/bin/openvscode-server --host 0.0.0.0 --connection-token {self.vscode_connection_token} --port {self.vscode_port} --disable-workspace-trust{base_path_flag}{allow_origin_flag} --cert {cert_file} --cert-key {key_file}\n'
             'EOF'
         )
 
