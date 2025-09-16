@@ -725,8 +725,9 @@ class DockerRuntime(ActionExecutionClient):
         if self._repo_directory:
             folder_path = f"{self.config.workspace_mount_path_in_sandbox}/{self._repo_directory}"
 
-        if self.config.sandbox.local_runtime_url.startswith('http://'):
-            host = self.config.sandbox.local_runtime_url.replace('http://', 'https://')
+        # Use the same host address logic as web_hosts for consistency
+        host_addr = os.environ.get('DOCKER_HOST_ADDR', 'localhost')
+        host = f'https://{host_addr}'
 
         vscode_url = f'{host}:{self._vscode_port}/?tkn={token}&folder={folder_path}'
         return vscode_url

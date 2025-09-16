@@ -84,7 +84,10 @@ class VSCodePlugin(Plugin):
                     base_path_flag = f' --server-base-path /{runtime_id}/vscode'
 
         # Allow embedding from the same domain with HTTPS
-        allow_origin = os.getenv('VSCODE_ALLOW_ORIGIN', 'https://hub.h2loop.ai')
+        # Use the same host address logic as the runtime for consistency
+        host_addr = os.environ.get('DOCKER_HOST_ADDR', 'localhost')
+        default_allow_origin = f'https://{host_addr}'
+        allow_origin = os.getenv('VSCODE_ALLOW_ORIGIN', default_allow_origin)
         allow_origin_flag = f' --allow-origin {allow_origin}'
 
         # Generate self-signed certificate for HTTPS
