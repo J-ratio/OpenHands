@@ -35,6 +35,14 @@ const isAgentStatusError = (evt: unknown): boolean =>
   isAgentStateChangeObservation(evt) &&
   evt.extras.agent_state === AgentState.ERROR;
 
+/**
+ * Props for the Messages component.
+ * @property {(OpenHandsAction | OpenHandsObservation)[]} messages - The list of messages to display.
+ * @property {boolean} isAwaitingUserConfirmation - Whether the system is waiting for user confirmation.
+ * @property {React.ReactNode} [sideBySideResponse] - Optional side-by-side response to display alongside messages.
+ * @property {string} [optimisticUserMessage] - A temporary user message displayed optimistically before confirmation.
+ * @property {boolean} [isProcessingChunks] - Indicates if the system is currently processing attached file chunks.
+ */
 interface MessagesProps {
   messages: (OpenHandsAction | OpenHandsObservation)[];
   isAwaitingUserConfirmation: boolean;

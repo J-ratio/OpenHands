@@ -291,6 +291,9 @@ export function ChatInterface() {
     );
   }
 
+  const shouldShowMessageLoadingSpinner =
+    !isSimulationMode && isLoadingMessages && !isProcessingChunks;
+
   return (
     <ScrollProvider value={scrollProviderValue}>
       <div className="h-full flex flex-col justify-between">
@@ -324,7 +327,7 @@ export function ChatInterface() {
             />
           )}
 
-          {!isSimulationMode && isLoadingMessages && !isProcessingChunks && (
+          {!isSimulationMode && shouldShowMessageLoadingSpinner && (
             <div className="flex justify-center">
               <LoadingSpinner size="small" />
             </div>
