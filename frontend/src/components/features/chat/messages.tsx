@@ -23,6 +23,7 @@ import {
 import { AgentState } from "#/types/agent-state";
 import { getFirstPRUrl } from "#/utils/parse-pr-url";
 import MemoryIcon from "#/icons/memory_icon.svg?react";
+import { useTranslation } from "react-i18next";
 
 const isErrorEvent = (evt: unknown): evt is { error: true; message: string } =>
   typeof evt === "object" &&
@@ -60,6 +61,7 @@ export const Messages: React.FC<MessagesProps> = React.memo(
     } = useCreateConversationAndSubscribeMultiple();
     const { conversationId } = useConversationId();
     const { data: conversation } = useUserConversation(conversationId);
+    const { t } = useTranslation();
 
     const [selectedEventId, setSelectedEventId] = React.useState<number | null>(
       null,
@@ -266,7 +268,7 @@ export const Messages: React.FC<MessagesProps> = React.memo(
               <div className="flex items-center gap-2 mt-2 px-4">
                 <LoadingSpinner size="small" />
                 <div className="text-sm text-tertiary-light">
-                  Processing attached files...
+                  {`${t('CHAT_INTERFACE$PROCESSING_ATTACHED_FILES')}...`}
                 </div>
               </div>
             )}

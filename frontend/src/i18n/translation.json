@@ -4607,6 +4607,22 @@
     "ja": "新しいファイルが追加されました",
     "uk": "ДОДАНО НОВІ ФАЙЛИ"
   },
+  "CHAT_INTERFACE$PROCESSING_ATTACHED_FILES": {
+  "en": "Processing Attached Files",
+  "de": "Anhänge werden verarbeitet",
+  "zh-CN": "正在处理附件",
+  "zh-TW": "正在處理附件",
+  "ko-KR": "첨부 파일 처리 중",
+  "no": "Behandler vedlagte filer",
+  "it": "Elaborazione dei file allegati",
+  "pt": "Processando arquivos anexados",
+  "es": "Procesando archivos adjuntos",
+  "ar": "جارٍ معالجة الملفات المرفقة",
+  "fr": "Traitement des fichiers joints",
+  "tr": "Ekli dosyalar işleniyor",
+  "ja": "添付ファイルを処理中",
+  "uk": "Обробка прикріплених"
+  },
   "CHAT_INTERFACE$DISCONNECTED": {
     "en": "Disconnected",
     "ja": "切断されました",
