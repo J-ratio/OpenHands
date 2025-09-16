@@ -13,11 +13,14 @@ export function transformVSCodeUrl(vsCodeUrl: string | null): string | null {
   try {
     const url = new URL(vsCodeUrl);
 
+    console.log(url.hostname);
+    console.log(window.location.hostname);
     // Check if the URL points to localhost
     if (
       url.hostname === "localhost" &&
       window.location.hostname !== "localhost"
     ) {
+      url.protocol = window.location.protocol;
       // Replace localhost with the current hostname
       url.hostname = window.location.hostname;
       return url.toString();
