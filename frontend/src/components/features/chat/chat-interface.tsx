@@ -75,6 +75,7 @@ export function ChatInterface() {
   >("positive");
   const [feedbackModalIsOpen, setFeedbackModalIsOpen] = React.useState(false);
   const [messageToSend, setMessageToSend] = React.useState<string | null>(null);
+  const [isProcessingChunks, setIsProcessingChunks] = React.useState(false);
   const { selectedRepository, replayJson, initialPrompt } = useSelector(
     (state: RootState) => state.initialQuery,
   );
@@ -150,6 +151,7 @@ export function ChatInterface() {
 
     setOptimisticUserMessage(content);
     setMessageToSend(null);
+    setIsProcessingChunks(attachedFiles.length > 0);
 
     const promises = images.map((image) => convertImageToBase64(image));
     const imageUrls = await Promise.all(promises);
@@ -185,6 +187,8 @@ export function ChatInterface() {
         }));
       }
     }
+
+    setIsProcessingChunks(false);
 
     const filePrompt = `${t("CHAT_INTERFACE$AUGMENTED_PROMPT_FILES_TITLE")}: ${uploadedFiles.join("\n\n")}`;
     let prompt =
@@ -309,19 +313,21 @@ export function ChatInterface() {
               onComplete={() => {}}
             />
           )}
-          {!isSimulationMode && isLoadingMessages && (
-            <div className="flex justify-center">
-              <LoadingSpinner size="small" />
-            </div>
-          )}
-
-          {!isSimulationMode && !isLoadingMessages && (
+          {!isSimulationMode && (
             <Messages
               messages={events}
               isAwaitingUserConfirmation={
                 curAgentState === AgentState.AWAITING_USER_CONFIRMATION
               }
+              optimisticUserMessage={optimisticUserMessage}
+              isProcessingChunks={isProcessingChunks}
             />
+          )}
+
+          {!isSimulationMode && isLoadingMessages && !isProcessingChunks && (
+            <div className="flex justify-center">
+              <LoadingSpinner size="small" />
+            </div>
           )}
 
           {!isSimulationMode &&

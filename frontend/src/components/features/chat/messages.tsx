@@ -11,8 +11,8 @@ import {
 } from "#/types/core/guards";
 import { EventMessage } from "./event-message";
 import { ChatMessage } from "./chat-message";
-import { useOptimisticUserMessage } from "#/hooks/use-optimistic-user-message";
 import { LaunchMicroagentModal } from "./microagent/launch-microagent-modal";
+import { LoadingSpinner } from "#/components/shared/loading-spinner";
 import { useUserConversation } from "#/hooks/query/use-user-conversation";
 import { useConversationId } from "#/hooks/use-conversation-id";
 import { useCreateConversationAndSubscribeMultiple } from "#/hooks/use-create-conversation-and-subscribe-multiple";
@@ -39,20 +39,19 @@ interface MessagesProps {
   messages: (OpenHandsAction | OpenHandsObservation)[];
   isAwaitingUserConfirmation: boolean;
   sideBySideResponse?: React.ReactNode;
+  optimisticUserMessage?: string;
+  isProcessingChunks?: boolean;
 }
 
 export const Messages: React.FC<MessagesProps> = React.memo(
-  ({ messages, isAwaitingUserConfirmation }) => {
+  ({ messages, isAwaitingUserConfirmation, optimisticUserMessage, isProcessingChunks }) => {
     const {
       createConversationAndSubscribe,
       isPending,
       unsubscribeFromConversation,
     } = useCreateConversationAndSubscribeMultiple();
-    const { getOptimisticUserMessage } = useOptimisticUserMessage();
     const { conversationId } = useConversationId();
     const { data: conversation } = useUserConversation(conversationId);
-
-    const optimisticUserMessage = getOptimisticUserMessage();
 
     const [selectedEventId, setSelectedEventId] = React.useState<number | null>(
       null,
@@ -253,7 +252,17 @@ export const Messages: React.FC<MessagesProps> = React.memo(
         ))}
 
         {optimisticUserMessage && (
-          <ChatMessage type="user" message={optimisticUserMessage} />
+          <>
+            <ChatMessage type="user" message={optimisticUserMessage} />
+            {isProcessingChunks && (
+              <div className="flex items-center gap-2 mt-2 px-4">
+                <LoadingSpinner size="small" />
+                <div className="text-sm text-tertiary-light">
+                  Processing attached files...
+                </div>
+              </div>
+            )}
+          </>
         )}
         {conversation?.selected_repository &&
           showLaunchMicroagentModal &&
@@ -274,8 +283,12 @@ export const Messages: React.FC<MessagesProps> = React.memo(
     );
   },
   (prevProps, nextProps) => {
-    // Prevent re-renders if messages are the same length
-    if (prevProps.messages.length !== nextProps.messages.length) {
+    // Prevent re-renders if messages are the same length, optimistic message is the same, and processing state is the same
+    if (
+      prevProps.messages.length !== nextProps.messages.length ||
+      prevProps.optimisticUserMessage !== nextProps.optimisticUserMessage ||
+      prevProps.isProcessingChunks !== nextProps.isProcessingChunks
+    ) {
       return false;
     }
 
