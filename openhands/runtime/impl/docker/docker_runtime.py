@@ -727,6 +727,11 @@ class DockerRuntime(ActionExecutionClient):
 
         # Use the same host address logic as web_hosts for consistency
         host_addr = os.environ.get('DOCKER_HOST_ADDR', 'localhost')
+        # If DOCKER_HOST_ADDR is set to an external domain, use localhost for VSCode
+        if host_addr and not (host_addr == 'localhost' or
+                             host_addr.startswith(('127.', '192.168.', '10.', '172.')) or
+                             '.' not in host_addr):  # Allow simple hostnames
+            host_addr = 'localhost'
         host = f'https://{host_addr}'
 
         vscode_url = f'{host}:{self._vscode_port}/?tkn={token}&folder={folder_path}'
