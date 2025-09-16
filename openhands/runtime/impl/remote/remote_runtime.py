@@ -63,6 +63,8 @@ class RemoteRuntime(ActionExecutionClient):
         git_provider_tokens: PROVIDER_TOKEN_TYPE | None = None,
         main_module: str = DEFAULT_MAIN_MODULE,
     ) -> None:
+        self._selected_repository: str | None = None
+        self._repo_directory: str | None = None
         super().__init__(
             config,
             event_stream,
@@ -374,6 +376,21 @@ class RemoteRuntime(ActionExecutionClient):
     def session_api_key(self) -> str | None:
         return self._session_api_key
 
+    async def clone_or_init_repo(
+        self,
+        git_provider_tokens: PROVIDER_TOKEN_TYPE | None,
+        selected_repository: str | None,
+        selected_branch: str | None,
+    ) -> str:
+        # Store repository information for VSCode URL generation
+        if selected_repository:
+            self._selected_repository = selected_repository
+            self._repo_directory = selected_repository.split('/')[-1]
+
+        return await super().clone_or_init_repo(
+            git_provider_tokens, selected_repository, selected_branch
+        )
+
     @property
     def vscode_url(self) -> str | None:
         token = super().get_vscode_token()
@@ -383,12 +400,18 @@ class RemoteRuntime(ActionExecutionClient):
         self.log('debug', f'runtime_url: {self.runtime_url}')
         parsed = urlparse(self.runtime_url)
         scheme, netloc, path = parsed.scheme, parsed.netloc, parsed.path or '/'
+
+        # Use repository directory if available, otherwise use workspace root
+        folder_path = self.config.workspace_mount_path_in_sandbox
+        if self._repo_directory:
+            folder_path = f"{self.config.workspace_mount_path_in_sandbox}/{self._repo_directory}"
+
         # Path mode if runtime_url path starts with /{id}
         path_mode = path.startswith(f'/{self.runtime_id}')
         if path_mode:
-            vscode_url = f'{scheme}://{netloc}/{self.runtime_id}/vscode?tkn={token}&folder={self.config.workspace_mount_path_in_sandbox}'
+            vscode_url = f'{scheme}://{netloc}/{self.runtime_id}/vscode?tkn={token}&folder={folder_path}'
         else:
-            vscode_url = f'{scheme}://vscode-{netloc}/?tkn={token}&folder={self.config.workspace_mount_path_in_sandbox}'
+            vscode_url = f'{scheme}://vscode-{netloc}/?tkn={token}&folder={folder_path}'
         self.log(
             'debug',
             f'VSCode URL: {vscode_url}',

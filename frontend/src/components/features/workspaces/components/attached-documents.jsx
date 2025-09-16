@@ -1,4 +1,4 @@
-"use client";
+import { FaRegEye } from "react-icons/fa";
 import { IconFileText, IconTrash } from "@tabler/icons-react";
 import { ScrollArea } from "../../../ui/scroll-area";
 import {
@@ -33,6 +33,50 @@ const AttachedDocuments = ({ workspace, attachedDocs }) => {
 export default AttachedDocuments;
 
 const Documents = ({ attachedDocs }) => {
+  const DATA_SOURCES_PREFIX = "/data/data_sources";
+  const API_BASE_URL = "https://coreapi.h2loop.ai/data-sources";
+
+  const getDocPath = (doc) => {
+    if (
+      !doc?.versions ||
+      !Array.isArray(doc.versions) ||
+      doc.versions.length === 0
+    ) {
+      return undefined;
+    }
+
+    const latestDocVersion = doc.versions[0];
+    if (!latestDocVersion?.path) {
+      return undefined;
+    }
+
+    let path = latestDocVersion.path;
+
+    if (path.startsWith(DATA_SOURCES_PREFIX)) {
+      path = path.replace(DATA_SOURCES_PREFIX, API_BASE_URL);
+    }
+
+    return path;
+  };
+
+  const handlePreview = (doc) => {
+    const path = getDocPath(doc);
+    if (!path) {
+      console.warn(
+        "No valid path found for document preview:",
+        doc?.name || "Unknown",
+      );
+      return;
+    }
+
+    try {
+      new URL(path);
+      window.open(path, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      console.error("Invalid URL for preview:", path, error);
+    }
+  };
+
   const handleDelete = async (doc) => {
     const mainPromise = async () => await deleteADataSource(doc.id);
     const promise = mainPromise();
@@ -61,33 +105,56 @@ const Documents = ({ attachedDocs }) => {
     return (
       <ScrollArea className={"w-full rounded-md h-44"}>
         <div className="grid gap-2">
-          {attachedDocs?.map((doc) => (
-            <div key={doc.id}>
-              <div className="rounded-md border px-4 py-2 font-mono text-xs shadow-sm cursor-pointer flex items-center justify-between">
-                <div className="flex flex-col">
-                  <IconFileText />
-                  {doc.name}
-                </div>
-                <div className="flex items-center gap-2">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          className="h-8 w-8 bg-destructive hover:bg-destructive/80"
-                          onClick={() => handleDelete(doc)}
-                        >
-                          <IconTrash className="text-destructive-foreground" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Remove Document</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+          {attachedDocs?.map((doc) => {
+            const path = getDocPath(doc);
+            return (
+              <div key={doc.id}>
+                <div className="rounded-md border px-4 py-2 font-mono text-xs shadow-sm cursor-pointer flex items-center justify-between">
+                  <div
+                    className="flex flex-col"
+                    onClick={() => handlePreview(doc)}
+                  >
+                    <IconFileText />
+                    {doc.name.length > 30
+                      ? `${doc.name.substring(0, 30)}...`
+                      : doc.name}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <TooltipProvider>
+                      {path && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="icon"
+                              variant="outline"
+                              className="h-8 w-8 bg-destructive hover:bg-destructive/80"
+                              onClick={() => handlePreview(doc)}
+                            >
+                              <FaRegEye className="text-destructive-foreground" />
+                            </Button>
+                          </TooltipTrigger>
+                        </Tooltip>
+                      )}
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            className="h-8 w-8 bg-destructive hover:bg-destructive/80"
+                            onClick={() => handleDelete(doc)}
+                          >
+                            <IconTrash className="text-destructive-foreground" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Remove Document</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </ScrollArea>
     );

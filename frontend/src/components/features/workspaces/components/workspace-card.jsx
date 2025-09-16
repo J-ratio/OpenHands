@@ -1,4 +1,3 @@
-"use client";
 import { useState } from "react";
 import { Card, CardDescription, CardHeader, CardTitle } from "../../../ui/card";
 import ViewWorkspaceButton from "./view-workspace-button";
@@ -13,16 +12,10 @@ import { getColorFromName } from "../../../../utils/basic-utils";
 
 const WorkspaceCard = ({
   workspace,
-  dataSources,
   isDeletable = true,
   onDeleteWorkspace,
 }) => {
   const [showAddSource, setShowAddSource] = useState(false);
-
-  const repositories = dataSources?.filter(
-    (source) => source.type === "GIT_REPOSITORY",
-  );
-  const files = dataSources?.filter((source) => source.type === "FILE");
 
   const truncatedDescription =
     workspace?.description?.length > 100
@@ -77,8 +70,6 @@ const WorkspaceCard = ({
           <ViewWorkspaceButton
             workspace={workspace}
             truncatedDescription={truncatedDescription}
-            repositories={repositories}
-            files={files}
             showAddSource={showAddSource}
             setShowAddSource={setShowAddSource}
           />

@@ -7,6 +7,7 @@ from pydantic import SecretStr
 from openhands.integrations.provider import PROVIDER_TOKEN_TYPE
 from openhands.server import shared
 from openhands.server.settings import Settings
+from openhands.server.token_context import set_current_access_token
 from openhands.server.user_auth.user_auth import UserAuth, AuthType
 from openhands.storage.data_models.user_secrets import UserSecrets
 from openhands.storage.secrets.secrets_store import SecretsStore
@@ -160,9 +161,7 @@ class H2LoopUserAuth(UserAuth):
         token = await instance._extract_token_from_request(request)
         if token:
             instance._access_token = SecretStr(token)
-            user_id = await instance.get_user_id()
-            if user_id:
-                _USER_TOKEN_CACHE[user_id] = instance._access_token
+            set_current_access_token(instance._access_token)
 
         return instance
 

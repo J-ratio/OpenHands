@@ -86,6 +86,10 @@ class OpenHandsConfig(BaseModel):
     workspace_mount_path_in_sandbox: str = Field(
         default=DEFAULT_WORKSPACE_MOUNT_PATH_IN_SANDBOX
     )
+    linked_repository: str | None = Field(
+        default=None,
+        description='URL of a linked repository that should be cloned when starting a conversation'
+    )
 
     # Deprecated parameters - will be removed in a future version
     workspace_mount_path: str | None = Field(default=None, deprecated=True)

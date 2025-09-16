@@ -121,22 +121,26 @@ async def run_controller(
         call_async_from_sync(runtime.connect)
 
         # Initialize repository if needed
-        if config.sandbox.selected_repo:
+        selected_repo = config.sandbox.selected_repo or config.linked_repository
+        if selected_repo:
             repo_directory = initialize_repository_for_runtime(
                 runtime,
                 immutable_provider_tokens=repo_tokens,
-                selected_repository=config.sandbox.selected_repo,
+                selected_repository=selected_repo,
             )
 
     event_stream = runtime.event_stream
 
     # when memory is created, it will load the microagents from the selected repository
     if memory is None:
+        selected_repo_for_memory = (
+            config.sandbox.selected_repo or config.linked_repository
+        )
         memory = create_memory(
             runtime=runtime,
             event_stream=event_stream,
             sid=sid,
-            selected_repository=config.sandbox.selected_repo,
+            selected_repository=selected_repo_for_memory,
             repo_directory=repo_directory,
             conversation_instructions=conversation_instructions,
             working_dir=config.workspace_mount_path_in_sandbox,
