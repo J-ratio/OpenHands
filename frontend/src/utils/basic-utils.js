@@ -297,6 +297,10 @@ export const getColorFromName = (name) => {
   for (let i = 0; i < name.length; i++) {
     hash = (hash << 5) + hash + name.charCodeAt(i);
   }
-  const hue = Math.abs(hash) % 360;
+  // Generate hue only in blue (180-270) and green (90-180) ranges
+  const blueGreenRange = 180; // 180 degrees total for blue and green combined
+  const hueOffset = Math.abs(hash) % blueGreenRange;
+  // Map to green range (90-180) or blue range (180-270)
+  const hue = hueOffset < 90 ? hueOffset + 90 : hueOffset + 90;
   return `hsl(${hue}, 70%, 50%)`;
 };

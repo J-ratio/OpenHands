@@ -110,9 +110,14 @@ const Documents = ({ attachedDocs }) => {
             return (
               <div key={doc.id}>
                 <div className="rounded-md border px-4 py-2 font-mono text-xs shadow-sm cursor-pointer flex items-center justify-between">
-                  <div className="flex flex-col">
+                  <div
+                    className="flex flex-col"
+                    onClick={() => handlePreview(doc)}
+                  >
                     <IconFileText />
-                    {doc.name}
+                    {doc.name.length > 30
+                      ? `${doc.name.substring(0, 30)}...`
+                      : doc.name}
                   </div>
                   <div className="flex items-center gap-2">
                     <TooltipProvider>
