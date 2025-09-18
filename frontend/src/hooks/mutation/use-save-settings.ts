@@ -45,6 +45,7 @@ export const useSaveSettings = () => {
   const { data: currentSettings } = useSettings();
 
   return useMutation({
+    mutationKey: ["save-settings"],
     mutationFn: async (settings: Partial<PostSettings>) => {
       const newSettings = { ...currentSettings, ...settings };
 
