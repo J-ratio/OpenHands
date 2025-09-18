@@ -18,7 +18,7 @@ export function HomeHeader() {
   const isCreatingConversationElsewhere = useIsCreatingConversation();
   const { t } = useTranslation();
   const { data: settings, isFetching: isFetchingSettings } = useSettings();
-  const {isFetchingLinkedRepo } = useWorkspace();
+  const { isFetchingLinkedRepo } = useWorkspace();
   const isSavingSettings = useIsMutating({ mutationKey: ["save-settings"] }) > 0;
 
   // We check for isSuccess because the app might require time to render

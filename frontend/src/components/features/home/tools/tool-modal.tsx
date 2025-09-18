@@ -232,7 +232,7 @@ export function ToolModal({
                         ? dataSourceToGitRepository(linkedRepo)
                         : undefined
                     }
-                    onLinkedRepoChanged={() => {}}
+                    onLinkedRepoChanged={() => { }}
                   />
                   {linkedRepo && id === "GENERATE_CLASS_DIAGRAM" && (
                     <SettingsInput

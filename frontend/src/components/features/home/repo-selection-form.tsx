@@ -46,7 +46,7 @@ export function RepositorySelectionForm({
   displayRepoSelector = true,
 }: RepositorySelectionFormProps) {
   const navigate = useNavigate();
-  const {isFetching: isFetchingSettings} = useSettings();
+  const { isFetching: isFetchingSettings } = useSettings();
   const { selectedWorkspaceId, isFetchingLinkedRepo } = useWorkspace();
 
   const [selectedRepository, setSelectedRepository] =
@@ -184,9 +184,9 @@ export function RepositorySelectionForm({
     async function linkRepoToWorkspace() {
       const repoUrl = selectedRepository
         ? composeRepoUrl(
-            selectedRepository.git_provider,
-            selectedRepository.full_name,
-          )
+          selectedRepository.git_provider,
+          selectedRepository.full_name,
+        )
         : "";
       const { success, errorMessage, data } = await createADatasource({
         name: null,

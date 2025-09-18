@@ -57,6 +57,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
       if (!workspaceId) {
         setLinkedRepo(undefined);
         localStorage.removeItem(linkedRepoLocalStorageKey);
+        setIsFetchingLinkedRepo(false);
         return;
       }
       const res = await getAllDataSourcesByWorkspaceId(workspaceId);
@@ -75,8 +76,10 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
         setLinkedRepo(undefined);
         localStorage.removeItem(linkedRepoLocalStorageKey);
       }
-    } finally {
       setIsFetchingLinkedRepo(false);
+    } catch (error) {
+      setIsFetchingLinkedRepo(false);
+      throw error;
     }
   }
 
