@@ -79,7 +79,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
       setIsFetchingLinkedRepo(false);
     } catch (error) {
       setIsFetchingLinkedRepo(false);
-      throw error;
+      console.error(error);
     }
   }
 
