@@ -1,3 +1,4 @@
+import { useIsMutating } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { useCreateConversation } from "#/hooks/mutation/use-create-conversation";
@@ -5,6 +6,7 @@ import { useIsCreatingConversation } from "#/hooks/use-is-creating-conversation"
 import { BrandButton } from "../settings/brand-button";
 import H2LoopLogo from "#/assets/branding/h2loop-logo.svg?react";
 import { useSettings } from "#/hooks/query/use-settings";
+import { useWorkspace } from "#/context/WorkspaceContext";
 
 export function HomeHeader() {
   const navigate = useNavigate();
@@ -15,7 +17,9 @@ export function HomeHeader() {
   } = useCreateConversation();
   const isCreatingConversationElsewhere = useIsCreatingConversation();
   const { t } = useTranslation();
-  const { data: settings } = useSettings();
+  const { data: settings, isFetching: isFetchingSettings } = useSettings();
+  const { isFetchingLinkedRepo } = useWorkspace();
+  const isSavingSettings = useIsMutating({ mutationKey: ["save-settings"] }) > 0;
 
   // We check for isSuccess because the app might require time to render
   // into the new conversation screen after the conversation is created.
@@ -41,7 +45,7 @@ export function HomeHeader() {
               },
             )
           }
-          isDisabled={isCreatingConversation}
+          isDisabled={isCreatingConversation || isSavingSettings || isFetchingSettings || isFetchingLinkedRepo}
         >
           {!isCreatingConversation && t("HOME$LAUNCH_FROM_SCRATCH")}
           {isCreatingConversation && t("HOME$LOADING")}

@@ -16,6 +16,7 @@ import { useSettings } from "../../../../hooks/query/use-settings";
 import { HorizontalDotsLoader } from "../../../shared/horizontal-dots-loader";
 import { useSaveSettings } from "../../../../hooks/mutation/use-save-settings";
 import ViewWorkspaceButton from "../../workspaces/components/view-workspace-button";
+import { useWorkspace } from "../../../../context/WorkspaceContext";
 
 export const WorkspaceSelect = ({
   workspaces,
@@ -35,7 +36,8 @@ export const WorkspaceSelect = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { data: settings, isLoading: isSettingsLoading } = useSettings();
-  const { mutate: saveUserSettings } = useSaveSettings();
+  const { mutate: saveUserSettings, isPending: isSavingSettings } = useSaveSettings();
+  const { isFetchingLinkedRepo } = useWorkspace();
 
   async function getData() {
     setLoading(true);
@@ -82,7 +84,7 @@ export const WorkspaceSelect = ({
     <Select
       open={selectOpen}
       onOpenChange={(open) => {
-        if (isViewWorkspaceDialogOpen) return;
+        if (isViewWorkspaceDialogOpen || isFetchingLinkedRepo || isSavingSettings) return;
         setSelectOpen(open);
       }}
       defaultValue={selectedWorkspace}
@@ -98,6 +100,7 @@ export const WorkspaceSelect = ({
           );
         }
       }}
+      disabled={isFetchingLinkedRepo || isSavingSettings}
       className="bg-neutral-900 text-neutral-100 rounded-md border border-neutral-700"
     >
       {isSettingsLoading ? (
@@ -110,7 +113,11 @@ export const WorkspaceSelect = ({
               " text-lg font-semibold bg-neutral-900 text-neutral-100 border border-neutral-700 placeholder:text-neutral-500 focus:ring-0 outline-none rounded-md transition-colors duration-150"
             }
           >
-            <SelectValue placeholder={label} className="text-neutral-500" />
+            {isFetchingLinkedRepo || isSavingSettings ? (
+              <HorizontalDotsLoader />
+            ) : (
+              <SelectValue placeholder={label} className="text-neutral-500" />
+            )}
           </SelectTrigger>
           <SelectContent className="bg-neutral-900 text-neutral-100 border border-neutral-700 rounded-md shadow-lg">
             <SelectGroup>

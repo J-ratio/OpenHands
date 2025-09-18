@@ -22,6 +22,7 @@ interface WorkspaceContextType {
   setWorkspaces: (workspaces: any[]) => void;
   linkedRepo: DataSource | undefined;
   handleRefreshLinkedRepo: () => void;
+  isFetchingLinkedRepo: boolean;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(
@@ -42,6 +43,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     undefined,
   );
   const [refreshKey, setRefreshKey] = useState<number>(0);
+  const [isFetchingLinkedRepo, setIsFetchingLinkedRepo] = useState<boolean>(false);
 
   const { mutate: saveUserSettings } = useSaveSettings();
 
@@ -50,26 +52,33 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   const linkedRepoLocalStorageKey = "linked_repo";
 
   async function fetchLinkedRepo(workspaceId: string) {
-    if (!workspaceId) {
-      setLinkedRepo(undefined);
-      localStorage.removeItem(linkedRepoLocalStorageKey);
-      return;
-    }
-    const res = await getAllDataSourcesByWorkspaceId(workspaceId);
-    if (res.success && Array.isArray(res.data)) {
-      const repo = res.data.find(
-        (ds: DataSource) => ds.type === "GIT_REPOSITORY",
-      );
-      if (repo) {
-        setLinkedRepo(repo);
-        localStorage.setItem(linkedRepoLocalStorageKey, repo.url);
+    setIsFetchingLinkedRepo(true);
+    try {
+      if (!workspaceId) {
+        setLinkedRepo(undefined);
+        localStorage.removeItem(linkedRepoLocalStorageKey);
+        return;
+      }
+      const res = await getAllDataSourcesByWorkspaceId(workspaceId);
+      if (res.success && Array.isArray(res.data)) {
+        const repo = res.data.find(
+          (ds: DataSource) => ds.type === "GIT_REPOSITORY",
+        );
+        if (repo) {
+          setLinkedRepo(repo);
+          localStorage.setItem(linkedRepoLocalStorageKey, repo.url);
+        } else {
+          setLinkedRepo(undefined);
+          localStorage.removeItem(linkedRepoLocalStorageKey);
+        }
       } else {
         setLinkedRepo(undefined);
         localStorage.removeItem(linkedRepoLocalStorageKey);
       }
-    } else {
-      setLinkedRepo(undefined);
-      localStorage.removeItem(linkedRepoLocalStorageKey);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsFetchingLinkedRepo(false);
     }
   }
 
@@ -119,6 +128,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
         handleRefreshLinkedRepo,
         selectedWorkspaceName,
         setSelectedWorkspaceName,
+        isFetchingLinkedRepo,
       }}
     >
       {children}
