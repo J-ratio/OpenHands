@@ -16,6 +16,7 @@ import GenerateInterfaceDocForm from "./generate-interface-documentation-form";
 import { GitRepository } from "#/types/git";
 import FileUpload from "../../templates/_components/FileUpload";
 import { useSimulationMode } from "#/fake_scripts/simulation_context";
+import { useSettings } from "#/hooks/query/use-settings";
 
 const DialogContent = RawDialogContent as React.FC<
   React.PropsWithChildren<any>
@@ -57,6 +58,9 @@ export function ToolModal({
   const [crashLogFile, setCrashLogFile] = React.useState();
 
   const isCreatingConversation = isPending || isSuccess;
+
+  const { isFetching: isFetchingSettings } = useSettings();
+  const { isFetchingLinkedRepo } = useWorkspace();
 
   const DialogTitle = RawDialogTitle as React.FC<{ children: React.ReactNode }>;
 
@@ -184,7 +188,7 @@ export function ToolModal({
                 type="button"
                 className="mt-4 max-w-md w-full text-lg font-bold"
                 onClick={() => handleCreateOrGenerate("FIND_BUGS_ANOMALIES")}
-                isDisabled={isCreatingConversation}
+                isDisabled={isCreatingConversation || isFetchingSettings || isFetchingLinkedRepo}
               >
                 Find Bugs
               </BrandButton>
@@ -207,7 +211,7 @@ export function ToolModal({
                   onClick={() =>
                     handleCreateOrGenerate("DEBUG_USING_CRASHLOGS")
                   }
-                  isDisabled={!crashLogFile || isCreatingConversation}
+                  isDisabled={!crashLogFile || isCreatingConversation || isFetchingSettings || isFetchingLinkedRepo}
                 >
                   Debug Crash Logs
                 </BrandButton>
@@ -228,7 +232,7 @@ export function ToolModal({
                         ? dataSourceToGitRepository(linkedRepo)
                         : undefined
                     }
-                    onLinkedRepoChanged={() => {}}
+                    onLinkedRepoChanged={() => { }}
                   />
                   {linkedRepo && id === "GENERATE_CLASS_DIAGRAM" && (
                     <SettingsInput
@@ -252,7 +256,9 @@ export function ToolModal({
                       !selectedBranchName ||
                       !selectedRepo ||
                       isCreatingConversation ||
-                      (id === "GENERATE_CLASS_DIAGRAM" && !className.trim())
+                      (id === "GENERATE_CLASS_DIAGRAM" && !className.trim()) ||
+                      isFetchingSettings ||
+                      isFetchingLinkedRepo
                     }
                     onClick={() => handleCreateOrGenerate(id)}
                   >

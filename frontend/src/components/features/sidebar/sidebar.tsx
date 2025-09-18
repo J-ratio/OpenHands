@@ -10,6 +10,7 @@ import { SettingsModal } from "#/components/shared/modals/settings/settings-moda
 import { useSettings } from "#/hooks/query/use-settings";
 import { ConversationPanel } from "../conversation-panel/conversation-panel";
 import { ConversationPanelWrapper } from "../conversation-panel/conversation-panel-wrapper";
+import { useIsMutating } from "@tanstack/react-query";
 import { useLogoutToken } from "#/hooks/use-logout-token";
 import { useConfig } from "#/hooks/query/use-config";
 import { displayErrorToast } from "#/utils/custom-toast-handlers";
@@ -23,6 +24,7 @@ import { IoDocumentTextSharp } from "react-icons/io5";
 import { FaFile } from "react-icons/fa";
 import { TbTemplate } from "react-icons/tb";
 import { MicroagentManagementButton } from "#/components/shared/buttons/microagent-management-button";
+import { useWorkspace } from "#/context/WorkspaceContext";
 
 export function Sidebar() {
   const location = useLocation();
@@ -35,6 +37,8 @@ export function Sidebar() {
     isFetching: isFetchingSettings,
   } = useSettings();
   const { logout } = useLogoutToken();
+  const { isFetchingLinkedRepo } = useWorkspace();
+  const isSavingSettings = useIsMutating({ mutationKey: ["save-settings"] }) > 0;
 
   // const [settingsModalIsOpen, setSettingsModalIsOpen] = React.useState(false);
 
@@ -90,7 +94,7 @@ export function Sidebar() {
             </div>
             <NewProjectButton
               disabled={
-                settings?.EMAIL_VERIFIED === false || isCreatingConversation
+                settings?.EMAIL_VERIFIED === false || isCreatingConversation || isSavingSettings || isFetchingSettings || isFetchingLinkedRepo
               }
             />
 
@@ -150,7 +154,7 @@ export function Sidebar() {
             {import.meta.env.VITE_SHOW_CHAT_COMPARISON_MODE === "true" && (
               <NewProjectButton
                 disabled={
-                  settings?.EMAIL_VERIFIED === false || isCreatingConversation
+                  settings?.EMAIL_VERIFIED === false || isCreatingConversation || isSavingSettings || isFetchingSettings || isFetchingLinkedRepo
                 }
                 comparision={true}
                 useH2LoopModel={true}

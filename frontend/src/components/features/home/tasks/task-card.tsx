@@ -6,6 +6,8 @@ import { useCreateConversation } from "#/hooks/mutation/use-create-conversation"
 import { cn } from "#/utils/utils";
 import { TaskIssueNumber } from "./task-issue-number";
 import { useOptimisticUserMessage } from "#/hooks/use-optimistic-user-message";
+import { useSettings } from "#/hooks/query/use-settings";
+import { useWorkspace } from "#/context/WorkspaceContext";
 
 const getTaskTypeMap = (
   t: (key: string) => string,
@@ -26,6 +28,8 @@ export function TaskCard({ task }: TaskCardProps) {
   const isCreatingConversation = useIsCreatingConversation();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { isFetching: isFetchingSettings } = useSettings();
+  const { isFetchingLinkedRepo } = useWorkspace();
 
   const handleLaunchConversation = () => {
     setOptimisticUserMessage(t("TASK$ADDRESSING_TASK"));
@@ -77,7 +81,7 @@ export function TaskCard({ task }: TaskCardProps) {
           "underline underline-offset-2 disabled:opacity-80",
           isPending && "no-underline font-bold",
         )}
-        disabled={isCreatingConversation}
+        disabled={isCreatingConversation || isFetchingSettings || isFetchingLinkedRepo}
         onClick={handleLaunchConversation}
       >
         {!isPending && t("HOME$LAUNCH")}

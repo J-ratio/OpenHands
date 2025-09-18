@@ -24,6 +24,7 @@ import { GitProviderDropdown } from "../../common/git-provider-dropdown";
 import { GitRepositoryDropdown } from "../../common/git-repository-dropdown";
 import { GitBranchDropdown } from "../../common/git-branch-dropdown";
 import { dataSourceToGitRepository } from "#/utils/utils";
+import { useSettings } from "#/hooks/query/use-settings";
 
 interface RepositorySelectionFormProps {
   onRepoSelection: (repo: GitRepository | null) => void;
@@ -45,7 +46,8 @@ export function RepositorySelectionForm({
   displayRepoSelector = true,
 }: RepositorySelectionFormProps) {
   const navigate = useNavigate();
-  const { selectedWorkspaceId } = useWorkspace();
+  const { isFetching: isFetchingSettings } = useSettings();
+  const { selectedWorkspaceId, isFetchingLinkedRepo } = useWorkspace();
 
   const [selectedRepository, setSelectedRepository] =
     React.useState<GitRepository | null>(linkedRepo);
@@ -182,9 +184,9 @@ export function RepositorySelectionForm({
     async function linkRepoToWorkspace() {
       const repoUrl = selectedRepository
         ? composeRepoUrl(
-            selectedRepository.git_provider,
-            selectedRepository.full_name,
-          )
+          selectedRepository.git_provider,
+          selectedRepository.full_name,
+        )
         : "";
       const { success, errorMessage, data } = await createADatasource({
         name: null,
@@ -243,7 +245,7 @@ export function RepositorySelectionForm({
               variant="primary"
               type="button"
               isDisabled={
-                !!linkedRepo || !selectedRepository || isCreatingConversation
+                !!linkedRepo || !selectedRepository || isCreatingConversation || isFetchingSettings || isFetchingLinkedRepo
               }
               onClick={linkRepoToWorkspace}
               className="ml-2 w-20"
@@ -257,6 +259,7 @@ export function RepositorySelectionForm({
               type="button"
               onClick={() => unlinkRepoFromWorkspace(linkedRepo.id)}
               className="ml-2 w-20"
+              isDisabled={isFetchingSettings || isFetchingLinkedRepo}
             >
               UnLink
             </BrandButton>
@@ -316,7 +319,8 @@ export function RepositorySelectionForm({
             (!selectedBranch && !hasNoBranches) ||
             isLoadingBranches ||
             isCreatingConversation ||
-            (providers.length > 1 && !selectedProvider)
+            (providers.length > 1 && !selectedProvider) ||
+            isFetchingSettings || isFetchingLinkedRepo
           }
           onClick={() =>
             createConversation(
