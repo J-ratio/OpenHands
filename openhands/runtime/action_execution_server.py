@@ -236,10 +236,10 @@ class ActionExecutor:
             logger.warning('Browser environment not supported on windows')
             return
 
-        logger.debug('Initializing browser asynchronously')
+        logger.info('Initializing browser asynchronously')
         try:
             self.browser = BrowserEnv(self.browsergym_eval_env)
-            logger.debug('Browser initialized asynchronously')
+            logger.info('Browser initialized asynchronously')
         except Exception as e:
             logger.error(f'Failed to initialize browser: {e}')
             self.browser = None
@@ -256,7 +256,7 @@ class ActionExecutor:
 
             # Wait for browser to be initialized
             if self.browser_init_task:
-                logger.debug('Waiting for browser to be ready...')
+                logger.info('Waiting for browser to be ready...')
                 await self.browser_init_task
 
             # Check if browser was successfully initialized
@@ -264,7 +264,7 @@ class ActionExecutor:
                 raise BrowserUnavailableException('Browser initialization failed')
 
         # If we get here, the browser is ready
-        logger.debug('Browser is ready')
+        logger.info('Browser is ready')
 
     def _create_bash_session(self, cwd: str | None = None):
         if sys.platform == 'win32':
@@ -290,36 +290,36 @@ class ActionExecutor:
 
     async def ainit(self):
         # bash needs to be initialized first
-        logger.debug('Initializing bash session')
+        logger.info('Initializing bash session')
         self.bash_session = self._create_bash_session()
-        logger.debug('Bash session initialized')
+        logger.info('Bash session initialized')
 
         # Start browser initialization in the background
         self.browser_init_task = asyncio.create_task(self._init_browser_async())
-        logger.debug('Browser initialization started in background')
+        logger.info('Browser initialization started in background')
 
         await wait_all(
             (self._init_plugin(plugin) for plugin in self.plugins_to_load),
             timeout=int(os.environ.get('INIT_PLUGIN_TIMEOUT', '120')),
         )
-        logger.debug('All plugins initialized')
+        logger.info('All plugins initialized')
 
         # This is a temporary workaround
         # TODO: refactor AgentSkills to be part of JupyterPlugin
         # AFTER ServerRuntime is deprecated
-        logger.debug('Initializing AgentSkills')
+        logger.info('Initializing AgentSkills')
         if 'agent_skills' in self.plugins and 'jupyter' in self.plugins:
             obs = await self.run_ipython(
                 IPythonRunCellAction(
                     code='from openhands.runtime.plugins.agent_skills.agentskills import *\n'
                 )
             )
-            logger.debug(f'AgentSkills initialized: {obs}')
+            logger.info(f'AgentSkills initialized: {obs}')
 
-        logger.debug('Initializing bash commands')
+        logger.info('Initializing bash commands')
         await self._init_bash_commands()
 
-        logger.debug('Runtime client initialized.')
+        logger.info('Runtime client initialized.')
         self._initialized = True
 
     @property
@@ -335,7 +335,7 @@ class ActionExecutor:
         else:
             await plugin.initialize(self.username)
         self.plugins[plugin.name] = plugin
-        logger.debug(f'Initializing plugin: {plugin.name}')
+        logger.info(f'Initializing plugin: {plugin.name}')
 
         if isinstance(plugin, JupyterPlugin):
             # Escape backslashes in Windows path
@@ -362,14 +362,14 @@ class ActionExecutor:
         for command in INIT_COMMANDS:
             action = CmdRunAction(command=command)
             action.set_hard_timeout(300)
-            logger.debug(f'Executing init command: {command}')
+            logger.info(f'Executing init command: {command}')
             obs = await self.run(action)
             assert isinstance(obs, CmdOutputObservation)
-            logger.debug(
+            logger.info(
                 f'Init command outputs (exit code: {obs.exit_code}): {obs.content}'
             )
             assert obs.exit_code == 0
-        logger.debug('Bash init commands completed')
+        logger.info('Bash init commands completed')
 
     async def run_action(self, action) -> Observation:
         async with self.lock:
@@ -399,7 +399,7 @@ class ActionExecutor:
             # current working directory in Bash
             jupyter_cwd = getattr(self, '_jupyter_cwd', None)
             if self.bash_session.cwd != jupyter_cwd:
-                logger.debug(
+                logger.info(
                     f'{self.bash_session.cwd} != {jupyter_cwd} -> reset Jupyter PWD'
                 )
                 # escape windows paths
@@ -409,7 +409,7 @@ class ActionExecutor:
                 _reset_obs: IPythonRunCellObservation = await _jupyter_plugin.run(
                     _aux_action
                 )
-                logger.debug(
+                logger.info(
                     f'Changed working directory in IPython to: {self.bash_session.cwd}. Output: {_reset_obs}'
                 )
                 self._jupyter_cwd = self.bash_session.cwd
@@ -913,7 +913,7 @@ if __name__ == '__main__':
                 shutil.unpack_archive(zip_path, full_dest_path)
                 os.remove(zip_path)  # Remove the zip file after extraction
 
-                logger.debug(
+                logger.info(
                     f'Uploaded file {file.filename} and extracted to {destination}'
                 )
             else:
@@ -921,7 +921,7 @@ if __name__ == '__main__':
                 file_path = os.path.join(full_dest_path, file.filename)
                 with open(file_path, 'wb') as buffer:
                     shutil.copyfileobj(file.file, buffer)
-                logger.debug(f'Uploaded file {file.filename} to {destination}')
+                logger.info(f'Uploaded file {file.filename} to {destination}')
 
             return JSONResponse(
                 content={
@@ -937,7 +937,7 @@ if __name__ == '__main__':
 
     @app.get('/download_files')
     def download_file(path: str):
-        logger.debug('Downloading files')
+        logger.info('Downloading files')
         try:
             if not os.path.isabs(path):
                 raise HTTPException(
@@ -1066,5 +1066,5 @@ if __name__ == '__main__':
             logger.error(f'Error listing files: {e}')
             return JSONResponse(content=[])
 
-    logger.debug(f'Starting action execution API on port {args.port}')
+    logger.info(f'Starting action execution API on port {args.port}')
     run(app, host='0.0.0.0', port=args.port)

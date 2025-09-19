@@ -302,7 +302,7 @@ class DockerRuntime(ActionExecutionClient):
                         'bind': container_path,
                         'mode': mount_mode,
                     }
-                    logger.debug(
+                    logger.info(
                         f'Mount dir (sandbox.volumes): {host_path} to {container_path} with mode: {mount_mode}'
                     )
 
@@ -319,7 +319,7 @@ class DockerRuntime(ActionExecutionClient):
                 'bind': self.config.workspace_mount_path_in_sandbox,
                 'mode': mount_mode,
             }
-            logger.debug(
+            logger.info(
                 f'Mount dir (legacy): {self.config.workspace_mount_path} with mode: {mount_mode}'
             )
 
@@ -485,7 +485,7 @@ class DockerRuntime(ActionExecutionClient):
 
         # If no volumes were configured, set to None
         if not volumes:
-            logger.debug(
+            logger.info(
                 'Mount dir is not set, will not mount the workspace directory to the container'
             )
             volumes = {}  # Empty dict instead of None to satisfy mypy
@@ -620,17 +620,17 @@ class DockerRuntime(ActionExecutionClient):
         if self._host_port_lock:
             self._host_port_lock.release()
             self._host_port_lock = None
-            logger.debug(f'Released host port lock for port {self._host_port}')
+            logger.info(f'Released host port lock for port {self._host_port}')
 
         if self._vscode_port_lock:
             self._vscode_port_lock.release()
             self._vscode_port_lock = None
-            logger.debug(f'Released VSCode port lock for port {self._vscode_port}')
+            logger.info(f'Released VSCode port lock for port {self._vscode_port}')
 
         for i, lock in enumerate(self._app_port_locks):
             if lock:
                 lock.release()
-                logger.debug(
+                logger.info(
                     f'Released app port lock for port {self._app_ports[i] if i < len(self._app_ports) else "unknown"}'
                 )
 
@@ -686,7 +686,7 @@ class DockerRuntime(ActionExecutionClient):
         if self._is_port_in_use_docker(port):
             port_lock.release()
             # Try again with a different port
-            logger.debug(f'Port {port} is in use by Docker, trying again')
+            logger.info(f'Port {port} is in use by Docker, trying again')
             return self._find_available_port_with_lock(port_range, max_attempts - 1)
 
         return port, port_lock
