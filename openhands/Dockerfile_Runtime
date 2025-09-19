@@ -2,4 +2,4 @@ FROM pulkith2loop/runtime:latest
 
 COPY runtime/plugins/vscode/__init__.py /openhands/code/openhands/runtime/plugins/vscode/__init__.py
 
-COPY runtime/plugins/vscode/extensions/add-to-chat/ /openhands/code/openhands/runtime/plugins/vscode/extensions/
+COPY runtime/plugins/vscode/extensions/add-to-chat/ /openhands/code/openhands/runtime/plugins/vscode/extensions/add-to-chat/
