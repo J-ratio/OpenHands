@@ -28,7 +28,7 @@ export const parseMessageFromEvent = (
   const delimiter = !uploadedFilesNotPresent
     ? i18n.t("CHAT_INTERFACE$AUGMENTED_PROMPT_FILES_TITLE")
     : !attachedFilesNotPresent || !attachedCodeblocksNotPresent
-      ? "Please use following data chunks from attached files to inform your answer: "
+      ? " Please use the following data chunks from attached files to inform your answer: "
       : "";
   const parts = m.split(delimiter);
 
