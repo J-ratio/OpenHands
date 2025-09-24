@@ -563,21 +563,25 @@ class AgentController:
                 extra={'msg_type': 'ACTION', 'event_source': EventSource.USER},
             )
 
-            # if this is the first user message for this agent, matters for the microagent info type
-            first_user_message = self._first_user_message()
-            is_first_user_message = (
-                action.id == first_user_message.id if first_user_message else False
-            )
-            recall_type = (
-                RecallType.WORKSPACE_CONTEXT
-                if is_first_user_message
-                else RecallType.KNOWLEDGE
-            )
+            # Skip recall if attached files or codeblocks are present, as data is already in the prompt
+            if not (action.attached_files or action.attached_codeblocks):
+                # if this is the first user message for this agent, matters for the microagent info type
+                first_user_message = self._first_user_message()
+                is_first_user_message = (
+                    action.id == first_user_message.id if first_user_message else False
+                )
+                recall_type = (
+                    RecallType.WORKSPACE_CONTEXT
+                    if is_first_user_message
+                    else RecallType.KNOWLEDGE
+                )
 
-            recall_action = RecallAction(query=action.content, recall_type=recall_type)
-            self._pending_action = recall_action
-            # this is source=USER because the user message is the trigger for the microagent retrieval
-            self.event_stream.add_event(recall_action, EventSource.USER)
+                recall_action = RecallAction(
+                    query=action.content, recall_type=recall_type
+                )
+                self._pending_action = recall_action
+                # this is source=USER because the user message is the trigger for the microagent retrieval
+                self.event_stream.add_event(recall_action, EventSource.USER)
 
             if self.get_agent_state() != AgentState.RUNNING:
                 await self.set_agent_state_to(AgentState.RUNNING)
