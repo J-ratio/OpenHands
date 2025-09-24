@@ -196,23 +196,23 @@ export function ChatInterface() {
 
     if (groupedStrings.length > 0 || attachedCodeBlocks.length > 0) {
       prompt +=
-        "Please use following data chunks from attached files to inform your answer: ";
+        " Please use the following data chunks from attached files to inform your answer: ";
 
       if (attachedCodeBlocks.length > 0) {
-        prompt += `\n\nHere are the attached codeblocks:`;
+        prompt += `\n\n Here are the attached codeblocks:`;
         attachedCodeBlocks.forEach((codeBlock) => {
-          prompt += `\n\nCodeblock from ${codeBlock.fileName}: ${codeBlock.selectedCode}`;
+          prompt += `\n\n Codeblock from ${codeBlock.fileName}: ${codeBlock.selectedCode}`;
         });
       }
 
       if (groupedStrings.length > 0) {
-        prompt += "\n\nHere are the relevant chunks from the workspace files: ";
+        prompt += "\n\n Here are the relevant chunks from the workspace files: ";
         groupedStrings.forEach((group) => {
-          prompt += `\n\nFile Name: ${group.fileName} and it's chunks: ${group.text}`;
+          prompt += `\n\n File Name: ${group.fileName} and it's chunks: ${group.text}`;
         });
       }
       prompt +=
-        "Do not attempt to read above files directly in workspace. Only use the above snippets to answer user query.";
+        " Do not attempt to read above files directly in workspace. Only use the above snippets to answer user query.";
     }
 
     send(
@@ -313,7 +313,7 @@ export function ChatInterface() {
           {isSimulationMode && (
             <ChatSimulator
               messages={DEBUG_CRASH_LOGS_MESSAGES}
-              onComplete={() => {}}
+              onComplete={() => { }}
             />
           )}
           {!isSimulationMode && (
