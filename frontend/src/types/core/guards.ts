@@ -14,6 +14,7 @@ import {
   ErrorObservation,
   MCPObservation,
   OpenHandsObservation,
+  RecallObservation,
   TaskTrackingObservation,
 } from "./observations";
 import { StatusUpdate } from "./variances";
@@ -98,6 +99,11 @@ export const isTaskTrackingObservation = (
   event: OpenHandsParsedEvent,
 ): event is TaskTrackingObservation =>
   isOpenHandsObservation(event) && event.observation === "task_tracking";
+
+export const isRecallObservation = (
+  event: OpenHandsParsedEvent,
+): event is RecallObservation =>
+  isOpenHandsObservation(event) && event.observation === "recall";
 
 export const isStatusUpdate = (event: unknown): event is StatusUpdate =>
   typeof event === "object" &&

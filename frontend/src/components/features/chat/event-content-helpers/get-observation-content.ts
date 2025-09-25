@@ -77,6 +77,23 @@ const getRecallObservationContent = (event: RecallObservation): string => {
     }
   }
 
+  if (event.extras.recall_type === "h2loop_backend_recall") {
+    if (
+      event.extras.chunked_files &&
+      Object.keys(event.extras.chunked_files).length > 0
+    ) {
+      content += `\n\n**Retrieved File Chunks:**`;
+      for (const [fileName, chunks] of Object.entries(
+        event.extras.chunked_files,
+      )) {
+        content += `\n\nFile Name: **${fileName}**`;
+        chunks.forEach((chunk, index) => {
+          content += `\n\n*Chunk ${index + 1}:*\n${chunk}`;
+        });
+      }
+    }
+  }
+
   // Handle microagent knowledge
   if (
     event.extras.microagent_knowledge &&

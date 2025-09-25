@@ -120,7 +120,7 @@ export interface MicroagentKnowledge {
 export interface RecallObservation extends OpenHandsObservationEvent<"recall"> {
   source: "agent";
   extras: {
-    recall_type?: "workspace_context" | "knowledge";
+    recall_type?: "workspace_context" | "knowledge" | "h2loop_backend_recall";
     repo_name?: string;
     repo_directory?: string;
     repo_instructions?: string;
@@ -129,6 +129,7 @@ export interface RecallObservation extends OpenHandsObservationEvent<"recall"> {
     additional_agent_instructions?: string;
     date?: string;
     microagent_knowledge?: MicroagentKnowledge[];
+    chunked_files?: Record<string, string[]>;
   };
 }
 

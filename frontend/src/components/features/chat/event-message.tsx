@@ -12,6 +12,7 @@ import {
   isRejectObservation,
   isMcpObservation,
   isTaskTrackingObservation,
+  isRecallObservation,
 } from "#/types/core/guards";
 import { OpenHandsObservation } from "#/types/core/observations";
 import { ImageCarousel } from "../images/image-carousel";
@@ -259,6 +260,32 @@ export function EventMessage({
         <GenericEventMessage
           title={title}
           details={<TaskTrackingObservationContent event={event} />}
+          success={getObservationResult(event)}
+          initiallyExpanded={initiallyExpanded}
+        />
+        {shouldShowConfirmationButtons && <ConfirmationButtons />}
+      </div>
+    );
+  }
+
+  if (isRecallObservation(event)) {
+    const { recall_type } = event.extras;
+    let title: React.ReactNode;
+    let initiallyExpanded = false;
+
+    if (recall_type === "h2loop_backend_recall") {
+      title = "Files chunks retrieved";
+      initiallyExpanded = false;
+    } else {
+      title = t("OBSERVATION_MESSAGE$RECALL");
+      initiallyExpanded = false;
+    }
+
+    return (
+      <div>
+        <GenericEventMessage
+          title={title}
+          details={getEventContent(event).details}
           success={getObservationResult(event)}
           initiallyExpanded={initiallyExpanded}
         />
