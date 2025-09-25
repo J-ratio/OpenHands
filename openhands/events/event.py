@@ -31,6 +31,9 @@ class RecallType(str, Enum):
     KNOWLEDGE = 'knowledge'
     """A knowledge microagent."""
 
+    H2LOOP_BACKEND_RECALL = 'h2loop_backend_recall'
+    """H2Loop backend API (currently for file data chunks)"""
+
 
 @dataclass
 class Event:

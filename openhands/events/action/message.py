@@ -11,7 +11,7 @@ class MessageAction(Action):
     content: str
     file_urls: list[str] | None = None
     image_urls: list[str] | None = None
-    attached_files: list[str] | None = None
+    attached_files: list[dict] | None = None
     attached_codeblocks: list[str] | None = None
     wait_for_response: bool = False
     action: str = ActionType.MESSAGE

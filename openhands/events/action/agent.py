@@ -92,6 +92,7 @@ class RecallAction(Action):
     recall_type: RecallType
     query: str = ''
     thought: str = ''
+    attached_files: list[dict] | None = None
     action: str = ActionType.RECALL
 
     @property

@@ -151,7 +151,7 @@ export function ChatInterface() {
 
     setOptimisticUserMessage(content);
     setMessageToSend(null);
-    setIsProcessingChunks(attachedFiles.length > 0);
+    // setIsProcessingChunks(attachedFiles.length > 0);
 
     const promises = images.map((image) => convertImageToBase64(image));
     const imageUrls = await Promise.all(promises);
@@ -165,55 +165,55 @@ export function ChatInterface() {
 
     skippedFiles.forEach((f) => displayErrorToast(f.reason));
 
-    let groupedStrings: { fileName: string; text: string }[] = [];
-    if (attachedFiles.length > 0) {
-      const allChunks: Chunk[] = [];
-      for (const file of attachedFiles) {
-        const chunkResponse = await AttachedFileService.getChunksFromFiles(
-          file.id,
-          content,
-        );
-        if (chunkResponse?.chunks) {
-          allChunks.push(...chunkResponse.chunks);
-        }
-      }
+    // let groupedStrings: { fileName: string; text: string }[] = [];
+    // if (attachedFiles.length > 0) {
+    //   const allChunks: Chunk[] = [];
+    //   for (const file of attachedFiles) {
+    //     const chunkResponse = await AttachedFileService.getChunksFromFiles(
+    //       file.id,
+    //       content,
+    //     );
+    //     if (chunkResponse?.chunks) {
+    //       allChunks.push(...chunkResponse.chunks);
+    //     }
+    //   }
 
-      if (allChunks.length) {
-        const grouped = _.groupBy(allChunks, "file_name");
+    //   if (allChunks.length) {
+    //     const grouped = _.groupBy(allChunks, "file_name");
 
-        groupedStrings = _.map(grouped, (chunks, fileName) => ({
-          fileName,
-          text: chunks.map((c) => c.full_text).join(" "),
-        }));
-      }
-    }
+    //     groupedStrings = _.map(grouped, (chunks, fileName) => ({
+    //       fileName,
+    //       text: chunks.map((c) => c.full_text).join(" "),
+    //     }));
+    //   }
+    // }
 
-    setIsProcessingChunks(false);
+    // setIsProcessingChunks(false);
 
     const filePrompt = `${t("CHAT_INTERFACE$AUGMENTED_PROMPT_FILES_TITLE")}: ${uploadedFiles.join("\n\n")}`;
     let prompt =
       uploadedFiles.length > 0 ? `${content}\n\n${filePrompt}` : content;
 
-    if (groupedStrings.length > 0 || attachedCodeBlocks.length > 0) {
-      prompt +=
-        " Please use the following data chunks from attached files to inform your answer: ";
+    // if (groupedStrings.length > 0 || attachedCodeBlocks.length > 0) {
+    //   prompt +=
+    //     " Please use the following data chunks from attached files to inform your answer: ";
 
-      if (attachedCodeBlocks.length > 0) {
-        prompt += `\n\n Here are the attached codeblocks:`;
-        attachedCodeBlocks.forEach((codeBlock) => {
-          prompt += `\n\n Codeblock from ${codeBlock.fileName}: ${codeBlock.selectedCode}`;
-        });
-      }
-
-      if (groupedStrings.length > 0) {
-        prompt += "\n\n Here are the relevant chunks from the workspace files: ";
-        groupedStrings.forEach((group) => {
-          prompt += `\n\n File Name: ${group.fileName} and it's chunks: ${group.text}`;
-        });
-      }
-      prompt +=
-        " Do not attempt to read above files directly in workspace. Only use the above snippets to answer user query.";
+    if (attachedCodeBlocks.length > 0) {
+      prompt += `\n\n Here are the attached codeblocks:`;
+      attachedCodeBlocks.forEach((codeBlock) => {
+        prompt += `\n\n Codeblock from ${codeBlock.fileName}: ${codeBlock.selectedCode}`;
+      });
     }
+
+    //   if (groupedStrings.length > 0) {
+    //     prompt += "\n\n Here are the relevant chunks from the workspace files: ";
+    //     groupedStrings.forEach((group) => {
+    //       prompt += `\n\n File Name: ${group.fileName} and it's chunks: ${group.text}`;
+    //     });
+    //   }
+    //   prompt +=
+    //     " Do not attempt to read above files directly in workspace. Only use the above snippets to answer user query.";
+    // }
 
     send(
       createChatMessage(

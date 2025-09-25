@@ -563,8 +563,16 @@ class AgentController:
                 extra={'msg_type': 'ACTION', 'event_source': EventSource.USER},
             )
 
-            # Skip recall if attached files or codeblocks are present, as data is already in the prompt
-            if not (action.attached_files or action.attached_codeblocks):
+            if action.attached_files:
+                recall_action = RecallAction(
+                    query=action.content,
+                    recall_type=RecallType.H2LOOP_BACKEND_RECALL,
+                    attached_files=action.attached_files,
+                )
+                self._pending_action = recall_action
+                # this is source=USER because the user message is the trigger for the chunk retrieval
+                self.event_stream.add_event(recall_action, EventSource.USER)
+            else:
                 # if this is the first user message for this agent, matters for the microagent info type
                 first_user_message = self._first_user_message()
                 is_first_user_message = (

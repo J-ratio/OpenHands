@@ -651,6 +651,24 @@ class ConversationMemory:
 
                 # Return empty list if no microagents to include or all were disabled
                 return []
+            elif obs.recall_type == RecallType.H2LOOP_BACKEND_RECALL:
+                # Include actual chunk content in the LLM context
+                if obs.chunked_files:
+                    text_parts = [
+                        'Please use the following data chunks from the attached files to inform your answer: ',
+                        'Here are the relevant chunks from the attached files: ',
+                    ]
+
+                    for file_name, chunks in obs.chunked_files.items():
+                        if chunks:
+                            chunk_text = ' '.join(chunks)
+                            text_parts.append(
+                                f'File name: {file_name} and its chunks are: {chunk_text}'
+                            )
+
+                    text = '\n\n'.join(text_parts)
+                    return [Message(role='user', content=[TextContent(text=text)])]
+                return []
         elif (
             isinstance(obs, RecallObservation)
             and not self.agent_config.enable_prompt_extensions

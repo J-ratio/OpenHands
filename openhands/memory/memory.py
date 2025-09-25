@@ -5,6 +5,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
 
+import httpx
+
 import openhands
 from openhands.core.config.mcp_config import MCPConfig
 from openhands.core.logger import openhands_logger as logger
@@ -24,6 +26,7 @@ from openhands.microagent import (
 )
 from openhands.runtime.base import Runtime
 from openhands.runtime.runtime_status import RuntimeStatus
+from openhands.server.token_context import get_current_access_token
 from openhands.utils.prompt import (
     ConversationInstructions,
     RepositoryInfo,
@@ -130,6 +133,22 @@ class Memory:
 
                     self.event_stream.add_event(microagent_obs, EventSource.ENVIRONMENT)
                     return
+
+                # Handle H2LOOP_BACKEND_RECALL (file data chunks)
+                elif (
+                    event.source == EventSource.USER
+                ) and event.recall_type == RecallType.H2LOOP_BACKEND_RECALL:
+                    logger.debug('H2LOOP backend recall here')
+                    chunked_obs: RecallObservation | NullObservation | None = None
+                    chunked_obs = await self._on_h2loop_backend_recall(event)
+                    if chunked_obs is None:
+                        chunked_obs = NullObservation(content='')
+
+                    # important: this will release the execution flow from waiting for the retrieval to complete
+                    chunked_obs._cause = event.id  # type: ignore[union-attr]
+
+                    self.event_stream.add_event(chunked_obs, EventSource.ENVIRONMENT)
+                    return
         except Exception as e:
             error_str = f'Error: {str(e.__class__.__name__)}'
             logger.error(error_str)
@@ -218,6 +237,84 @@ class Memory:
                 recall_type=RecallType.KNOWLEDGE,
                 microagent_knowledge=microagent_knowledge,
                 content='Retrieved knowledge from microagents',
+            )
+            return obs
+        return None
+
+    async def _on_h2loop_backend_recall(
+        self,
+        event: RecallAction,
+    ) -> RecallObservation | None:
+        """Handle H2LOOP_BACKEND_RECALL by retrieving chunked file data from backend API.
+
+        This method retrieves chunks from the chunks API for attached files.
+        The chunks are stored in a structured format for efficient LLM context management.
+        """
+        if not event.attached_files:
+            logger.warning(
+                'H2LOOP_BACKEND_RECALL triggered but no attached files provided'
+            )
+            return None
+
+        # TODO: fix the retrieval of the current user's access token
+        access_token = get_current_access_token()
+        if not access_token:
+            logger.error('No access token available for H2LOOP_BACKEND_RECALL')
+            return None
+
+        logger.info(
+            f'H2LOOP_BACKEND_RECALL triggered for {len(event.attached_files)} file(s)'
+        )
+
+        chunked_files = {}
+
+        async with httpx.AsyncClient() as client:
+            for file in event.attached_files:
+                file_id = file.get('id')
+                if not file_id:
+                    logger.warning(f'Attached file missing id: {file}')
+                    continue
+
+                try:
+                    url = f'https://coreapi.h2loop.ai/api/v1/data-sources/{file_id}/chunks'
+                    headers = {'Authorization': f'Bearer {access_token}'}
+                    params = {'query': event.query, 'limit': 20}
+
+                    logger.debug(f'Calling chunks API: {url} with params {params}')
+                    response = await client.get(url, params=params, headers=headers)
+                    response.raise_for_status()
+
+                    data = response.json()
+                    chunks = data.get('chunks', [])
+
+                    if chunks:
+                        file_chunks: dict[str, list] = {}
+                        for chunk in chunks:
+                            file_name = chunk.get('file_name', 'unknown_file')
+                            text = chunk.get('text', '')
+
+                            if file_name not in file_chunks:
+                                file_chunks[file_name] = []
+                            file_chunks[file_name].append(text)
+
+                        for file_name, chunk_texts in file_chunks.items():
+                            chunked_files[file_name] = chunk_texts
+
+                        logger.info(
+                            f'Retrieved {len(chunks)} chunks for file {file_id}'
+                        )
+
+                except Exception as e:
+                    logger.error(
+                        f'Failed to retrieve chunks for file {file_id}: {str(e)}'
+                    )
+                    continue
+
+        if chunked_files:
+            obs = RecallObservation(
+                recall_type=RecallType.H2LOOP_BACKEND_RECALL,
+                chunked_files=chunked_files,
+                content=f'Retrieved chunked data for {len(chunked_files)} file(s)',
             )
             return obs
         return None

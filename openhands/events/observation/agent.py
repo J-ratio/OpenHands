@@ -98,13 +98,28 @@ class RecallObservation(Observation):
     ]
     """
 
+    # h2loop backend recall - file data chunks
+    chunked_files: dict[str, list[str]] = field(default_factory=dict)
+    """
+    Dictionary mapping file paths to their chunked content.
+    Used for H2LOOP_BACKEND_RECALL to store file chunks retrieved from backend API
+    without bloating the message body.
+
+    Example:
+    {
+        "/workspace/test.txt": ["chunk1 content", "chunk2 content", "chunk3 content"],
+        "/workspace/code.py": ["def hello():", "    print('world')", "    return True"]
+    }
+    """
+
     @property
     def message(self) -> str:
-        return (
-            'Added workspace context'
-            if self.recall_type == RecallType.WORKSPACE_CONTEXT
-            else 'Added microagent knowledge'
-        )
+        if self.recall_type == RecallType.WORKSPACE_CONTEXT:
+            return 'Added workspace context'
+        elif self.recall_type == RecallType.KNOWLEDGE:
+            return 'Added microagent knowledge'
+        elif self.recall_type == RecallType.H2LOOP_BACKEND_RECALL:
+            return f'Added chunked file data for {len(self.chunked_files)} file(s)'
 
     def __str__(self) -> str:
         # Build a string representation
@@ -120,6 +135,13 @@ class RecallObservation(Observation):
                     f'date={self.date}'
                     f'custom_secrets_descriptions={self.custom_secrets_descriptions}',
                     f'conversation_instructions={self.conversation_instructions[0:20]}...',
+                ]
+            )
+        elif self.recall_type == RecallType.H2LOOP_BACKEND_RECALL:
+            fields.extend(
+                [
+                    f'recall_type={self.recall_type}',
+                    f'chunked_files={list(self.chunked_files.keys())}',
                 ]
             )
         else:
