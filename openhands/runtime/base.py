@@ -60,7 +60,7 @@ from openhands.microagent import (
     load_microagents_from_dir,
 )
 from openhands.runtime.plugins import (
-    JupyterRequirement,
+    # JupyterRequirement,
     PluginRequirement,
     VSCodeRequirement,
 )
@@ -246,15 +246,15 @@ class Runtime(FileEditRuntimeMixin):
         env_vars = {key.upper(): value for key, value in env_vars.items()}
 
         # Add env vars to the IPython shell (if Jupyter is used)
-        if any(isinstance(plugin, JupyterRequirement) for plugin in self.plugins):
-            code = 'import os\n'
-            for key, value in env_vars.items():
-                # Note: json.dumps gives us nice escaping for free
-                code += f'os.environ["{key}"] = {json.dumps(value)}\n'
-            code += '\n'
-            self.run_ipython(IPythonRunCellAction(code))
-            # Note: we don't log the vars values, they're leaking info
-            logger.debug('Added env vars to IPython')
+        # if any(isinstance(plugin, JupyterRequirement) for plugin in self.plugins):
+        #     code = 'import os\n'
+        #     for key, value in env_vars.items():
+        #         # Note: json.dumps gives us nice escaping for free
+        #         code += f'os.environ["{key}"] = {json.dumps(value)}\n'
+        #     code += '\n'
+        #     self.run_ipython(IPythonRunCellAction(code))
+        #     # Note: we don't log the vars values, they're leaking info
+        #     logger.debug('Added env vars to IPython')
 
         # Check if we're on Windows
         import os
