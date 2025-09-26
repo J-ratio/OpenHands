@@ -579,8 +579,8 @@ class AgentController:
             # this is source=USER because the user message is the trigger for the microagent retrieval
             self.event_stream.add_event(recall_action, EventSource.USER)
 
-            if self.get_agent_state() != AgentState.RUNNING:
-                await self.set_agent_state_to(AgentState.RUNNING)
+        if self.get_agent_state() != AgentState.RUNNING:
+            await self.set_agent_state_to(AgentState.RUNNING)
 
         elif action.source == EventSource.AGENT:
             # If the agent is waiting for a response, set the appropriate state
