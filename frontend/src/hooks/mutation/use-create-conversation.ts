@@ -28,7 +28,9 @@ export const useCreateConversation = (comparision: boolean = false) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { enableSimulation, disableSimulation } = useSimulationMode();
-  const linkedRepoUrl = localStorage.getItem("linked_repo") ?? "";
+  const { linkedRepo } = useWorkspace();
+  const linkedRepoUrl =
+    localStorage.getItem("linked_repo") ?? linkedRepo?.url ?? "";
 
   return useMutation({
     mutationKey: ["create-conversation"],
