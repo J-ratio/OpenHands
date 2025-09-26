@@ -10,10 +10,10 @@ from litellm import (
 )
 
 from openhands.agenthub.codeact_agent.tools import (
-    BrowserTool,
+    # BrowserTool,
     CondensationRequestTool,
     FinishTool,
-    IPythonTool,
+    # IPythonTool,
     LLMBasedFileEditTool,
     ThinkTool,
     create_cmd_run_tool,
@@ -122,15 +122,15 @@ def response_to_actions(
                 set_security_risk(action, arguments)
 
             # ================================================
-            # IPythonTool (Jupyter)
+            # IPythonTool (Jupyter) - REMOVED
             # ================================================
-            elif tool_call.function.name == IPythonTool['function']['name']:
-                if 'code' not in arguments:
-                    raise FunctionCallValidationError(
-                        f'Missing required argument "code" in tool call {tool_call.function.name}'
-                    )
-                action = IPythonRunCellAction(code=arguments['code'])
-                set_security_risk(action, arguments)
+            # elif tool_call.function.name == IPythonTool['function']['name']:
+            #     if 'code' not in arguments:
+            #         raise FunctionCallValidationError(
+            #             f'Missing required argument "code" in tool call {tool_call.function.name}'
+            #         )
+            #     action = IPythonRunCellAction(code=arguments['code'])
+            #     set_security_risk(action, arguments)
 
             # ================================================
             # AgentDelegateAction (Delegation to another agent)
@@ -240,15 +240,15 @@ def response_to_actions(
                 action = CondensationRequestAction()
 
             # ================================================
-            # BrowserTool
+            # BrowserTool - REMOVED
             # ================================================
-            elif tool_call.function.name == BrowserTool['function']['name']:
-                if 'code' not in arguments:
-                    raise FunctionCallValidationError(
-                        f'Missing required argument "code" in tool call {tool_call.function.name}'
-                    )
-                action = BrowseInteractiveAction(browser_actions=arguments['code'])
-                set_security_risk(action, arguments)
+            # elif tool_call.function.name == BrowserTool['function']['name']:
+            #     if 'code' not in arguments:
+            #         raise FunctionCallValidationError(
+            #             f'Missing required argument "code" in tool call {tool_call.function.name}'
+            #         )
+            #     action = BrowseInteractiveAction(browser_actions=arguments['code'])
+            #     set_security_risk(action, arguments)
 
             # ================================================
             # TaskTrackingAction
