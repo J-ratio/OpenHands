@@ -58,16 +58,16 @@ const getRecallObservationContent = (event: RecallObservation): string => {
       content += `\n\n**Directory:** ${event.extras.repo_directory}`;
     }
     if (event.extras.date) {
-      content += `\n\n**Date:** ${event.extras.date}`;
+      // content += `\n\n**Date:** ${event.extras.date}`;
     }
     if (
       event.extras.runtime_hosts &&
       Object.keys(event.extras.runtime_hosts).length > 0
     ) {
-      content += `\n\n**Available Hosts**`;
-      for (const [host, port] of Object.entries(event.extras.runtime_hosts)) {
-        content += `\n\n- ${host} (port ${port})`;
-      }
+      // content += `\n\n**Available Hosts**`;
+      // for (const [host, port] of Object.entries(event.extras.runtime_hosts)) {
+      //   content += `\n\n- ${host} (port ${port})`;
+      // }
     }
     if (event.extras.repo_instructions) {
       content += `\n\n**Repository Instructions:**\n\n${event.extras.repo_instructions}`;

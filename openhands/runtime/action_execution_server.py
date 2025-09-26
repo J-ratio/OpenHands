@@ -44,8 +44,7 @@ from openhands.events.action import (
     CmdRunAction,
     FileEditAction,
     FileReadAction,
-    FileWriteAction,
-    IPythonRunCellAction,
+    FileWriteAction
 )
 from openhands.events.event import FileEditSource, FileReadSource
 from openhands.events.observation import (
@@ -55,8 +54,7 @@ from openhands.events.observation import (
     FileEditObservation,
     FileReadObservation,
     FileWriteObservation,
-    IPythonRunCellObservation,
-    Observation,
+    Observation
 )
 from openhands.events.serialization import event_from_dict, event_to_dict
 from openhands.runtime.browser import browse
@@ -65,7 +63,7 @@ from openhands.runtime.file_viewer_server import start_file_viewer_server
 
 # Import our custom MCP Proxy Manager
 from openhands.runtime.mcp.proxy import MCPProxyManager
-from openhands.runtime.plugins import ALL_PLUGINS, JupyterPlugin, Plugin, VSCodePlugin
+from openhands.runtime.plugins import ALL_PLUGINS, Plugin, VSCodePlugin
 from openhands.runtime.utils import find_available_tcp_port
 from openhands.runtime.utils.bash import BashSession
 from openhands.runtime.utils.files import insert_lines, read_lines
@@ -307,14 +305,14 @@ class ActionExecutor:
         # This is a temporary workaround
         # TODO: refactor AgentSkills to be part of JupyterPlugin
         # AFTER ServerRuntime is deprecated
-        logger.debug('Initializing AgentSkills')
-        if 'agent_skills' in self.plugins and 'jupyter' in self.plugins:
-            obs = await self.run_ipython(
-                IPythonRunCellAction(
-                    code='from openhands.runtime.plugins.agent_skills.agentskills import *\n'
-                )
-            )
-            logger.debug(f'AgentSkills initialized: {obs}')
+        # logger.debug('Initializing AgentSkills')
+        # if 'agent_skills' in self.plugins and 'jupyter' in self.plugins:
+        #     obs = await self.run_ipython(
+        #         IPythonRunCellAction(
+        #             code='from openhands.runtime.plugins.agent_skills.agentskills import *\n'
+        #         )
+        #     )
+        #     logger.debug(f'AgentSkills initialized: {obs}')
 
         logger.debug('Initializing bash commands')
         await self._init_bash_commands()
@@ -337,12 +335,12 @@ class ActionExecutor:
         self.plugins[plugin.name] = plugin
         logger.debug(f'Initializing plugin: {plugin.name}')
 
-        if isinstance(plugin, JupyterPlugin):
-            # Escape backslashes in Windows path
-            cwd = self.bash_session.cwd.replace('\\', '/')
-            await self.run_ipython(
-                IPythonRunCellAction(code=f'import os; os.chdir(r"{cwd}")')
-            )
+        # if isinstance(plugin, JupyterPlugin):
+        #     # Escape backslashes in Windows path
+        #     cwd = self.bash_session.cwd.replace('\\', '/')
+        #     await self.run_ipython(
+        #         IPythonRunCellAction(code=f'import os; os.chdir(r"{cwd}")')
+        #     )
 
     async def _init_bash_commands(self):
         # You can add any bash commands you want to run on startup here
@@ -391,42 +389,42 @@ class ActionExecutor:
             logger.error(f'Error running command: {e}')
             return ErrorObservation(str(e))
 
-    async def run_ipython(self, action: IPythonRunCellAction) -> Observation:
-        assert self.bash_session is not None
-        if 'jupyter' in self.plugins:
-            _jupyter_plugin: JupyterPlugin = self.plugins['jupyter']  # type: ignore
-            # This is used to make AgentSkills in Jupyter aware of the
-            # current working directory in Bash
-            jupyter_cwd = getattr(self, '_jupyter_cwd', None)
-            if self.bash_session.cwd != jupyter_cwd:
-                logger.debug(
-                    f'{self.bash_session.cwd} != {jupyter_cwd} -> reset Jupyter PWD'
-                )
-                # escape windows paths
-                cwd = self.bash_session.cwd.replace('\\', '/')
-                reset_jupyter_cwd_code = f'import os; os.chdir("{cwd}")'
-                _aux_action = IPythonRunCellAction(code=reset_jupyter_cwd_code)
-                _reset_obs: IPythonRunCellObservation = await _jupyter_plugin.run(
-                    _aux_action
-                )
-                logger.debug(
-                    f'Changed working directory in IPython to: {self.bash_session.cwd}. Output: {_reset_obs}'
-                )
-                self._jupyter_cwd = self.bash_session.cwd
+    # async def run_ipython(self, action: IPythonRunCellAction) -> Observation:
+    #     assert self.bash_session is not None
+    #     if 'jupyter' in self.plugins:
+    #         _jupyter_plugin: JupyterPlugin = self.plugins['jupyter']  # type: ignore
+    #         # This is used to make AgentSkills in Jupyter aware of the
+    #         # current working directory in Bash
+    #         jupyter_cwd = getattr(self, '_jupyter_cwd', None)
+    #         if self.bash_session.cwd != jupyter_cwd:
+    #             logger.debug(
+    #                 f'{self.bash_session.cwd} != {jupyter_cwd} -> reset Jupyter PWD'
+    #             )
+    #             # escape windows paths
+    #             cwd = self.bash_session.cwd.replace('\\', '/')
+    #             reset_jupyter_cwd_code = f'import os; os.chdir("{cwd}")'
+    #             _aux_action = IPythonRunCellAction(code=reset_jupyter_cwd_code)
+    #             _reset_obs: IPythonRunCellObservation = await _jupyter_plugin.run(
+    #                 _aux_action
+    #             )
+    #             logger.debug(
+    #                 f'Changed working directory in IPython to: {self.bash_session.cwd}. Output: {_reset_obs}'
+    #             )
+    #             self._jupyter_cwd = self.bash_session.cwd
 
-            obs: IPythonRunCellObservation = await _jupyter_plugin.run(action)
-            obs.content = obs.content.rstrip()
+    #         obs: IPythonRunCellObservation = await _jupyter_plugin.run(action)
+    #         obs.content = obs.content.rstrip()
 
-            if action.include_extra:
-                obs.content += (
-                    f'\n[Jupyter current working directory: {self.bash_session.cwd}]'
-                )
-                obs.content += f'\n[Jupyter Python interpreter: {_jupyter_plugin.python_interpreter_path}]'
-            return obs
-        else:
-            raise RuntimeError(
-                'JupyterRequirement not found. Unable to run IPython action.'
-            )
+    #         if action.include_extra:
+    #             obs.content += (
+    #                 f'\n[Jupyter current working directory: {self.bash_session.cwd}]'
+    #             )
+    #             obs.content += f'\n[Jupyter Python interpreter: {_jupyter_plugin.python_interpreter_path}]'
+    #         return obs
+    #     else:
+    #         raise RuntimeError(
+    #             'JupyterRequirement not found. Unable to run IPython action.'
+    #         )
 
     def _resolve_path(self, path: str, working_dir: str) -> str:
         filepath = Path(path)
@@ -659,7 +657,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--enable-browser',
         action=argparse.BooleanOptionalAction,
-        default=True,
+        default=False,
         help='Enable the browser environment',
     )
     parser.add_argument(
