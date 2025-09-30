@@ -17,6 +17,7 @@ from openhands.agenthub.codeact_agent.tools import (
     LLMBasedFileEditTool,
     ThinkTool,
     create_cmd_run_tool,
+    create_str_diff_patcher_tool,
     create_str_replace_editor_tool,
 )
 from openhands.agenthub.codeact_agent.tools.security_utils import RISK_LEVELS
@@ -31,11 +32,9 @@ from openhands.events.action import (
     AgentDelegateAction,
     AgentFinishAction,
     AgentThinkAction,
-    BrowseInteractiveAction,
     CmdRunAction,
     FileEditAction,
     FileReadAction,
-    IPythonRunCellAction,
     MessageAction,
     TaskTrackingAction,
 )
@@ -170,6 +169,72 @@ def response_to_actions(
                         'impl_source', FileEditSource.LLM_BASED_EDIT
                     ),
                 )
+            elif (
+                tool_call.function.name
+                == create_str_diff_patcher_tool()['function']['name']
+            ):
+                if 'command' not in arguments:
+                    raise FunctionCallValidationError(
+                        f'Missing required argument "command" in tool call {tool_call.function.name}'
+                    )
+                if 'path' not in arguments:
+                    raise FunctionCallValidationError(
+                        f'Missing required argument "path" in tool call {tool_call.function.name}'
+                    )
+                path = arguments['path']
+                command = arguments['command']
+                if command == 'apply_diff':
+                    if 'diff' not in arguments:
+                        raise FunctionCallValidationError(
+                            f'Missing required argument "diff" for "apply_diff" command in tool call {tool_call.function.name}'
+                        )
+                    if not arguments.get('diff', '').strip():
+                        raise FunctionCallValidationError(
+                            f'Empty or whitespace-only "diff" for "apply_diff" command in tool call {tool_call.function.name}'
+                        )
+                other_kwargs = {
+                    k: v for k, v in arguments.items() if k not in ['command', 'path']
+                }
+
+                if command == 'view':
+                    action = FileReadAction(
+                        path=path,
+                        impl_source=FileReadSource.OH_ACI,
+                        view_range=other_kwargs.get('view_range', None),
+                    )
+                else:
+                    if 'view_range' in other_kwargs:
+                        # Remove view_range from other_kwargs since it is not needed for FileEditAction
+                        other_kwargs.pop('view_range')
+
+                    # Filter out unexpected arguments
+                    valid_kwargs_for_editor = {}
+                    # Get valid parameters from the str_diff_patcher tool definition
+                    str_diff_patcher_tool = create_str_diff_patcher_tool()
+                    valid_params = set(
+                        str_diff_patcher_tool['function']['parameters'][
+                            'properties'
+                        ].keys()
+                    )
+
+                    for key, value in other_kwargs.items():
+                        if key in valid_params:
+                            # security_risk is valid but should NOT be part of editor kwargs
+                            if key != 'security_risk':
+                                valid_kwargs_for_editor[key] = value
+                        else:
+                            raise FunctionCallValidationError(
+                                f'Unexpected argument {key} in tool call {tool_call.function.name}. Allowed arguments are: {valid_params}'
+                            )
+
+                    action = FileEditAction(
+                        path=path,
+                        command=command,
+                        impl_source=FileEditSource.OH_ACI,
+                        **valid_kwargs_for_editor,
+                    )
+
+                set_security_risk(action, arguments)
             elif (
                 tool_call.function.name
                 == create_str_replace_editor_tool()['function']['name']

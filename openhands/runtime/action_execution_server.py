@@ -557,29 +557,78 @@ class ActionExecutor:
 
     async def edit(self, action: FileEditAction) -> Observation:
         assert action.impl_source == FileEditSource.OH_ACI
-        result_str, (old_content, new_content) = _execute_file_editor(
-            self.file_editor,
-            command=action.command,
-            path=action.path,
-            file_text=action.file_text,
-            old_str=action.old_str,
-            new_str=action.new_str,
-            insert_line=action.insert_line,
-            enable_linting=False,
-        )
 
-        return FileEditObservation(
-            content=result_str,
-            path=action.path,
-            old_content=action.old_str,
-            new_content=action.new_str,
-            impl_source=FileEditSource.OH_ACI,
-            diff=get_diff(
-                old_contents=old_content or '',
-                new_contents=new_content or '',
-                filepath=action.path,
-            ),
-        )
+        if action.command == 'apply_diff':
+            from openhands.agenthub.codeact_agent.tools.str_diff_patcher import (
+                apply_search_replace_blocks,
+            )
+
+            # Read the current file content
+            try:
+                with open(action.path, 'r', encoding='utf-8') as f:
+                    current_content = f.read()
+            except FileNotFoundError:
+                return ErrorObservation(f'File not found: {action.path}')
+            except UnicodeDecodeError:
+                return ErrorObservation(
+                    f'File could not be decoded as utf-8: {action.path}'
+                )
+
+            old_content = current_content
+
+            diff_text = action.diff
+
+            if diff_text is None:
+                return ErrorObservation('Diff text is required for apply_diff command')
+
+            try:
+                new_content = apply_search_replace_blocks(current_content, diff_text)
+            except Exception as e:
+                return ErrorObservation(f'Error applying diff: {str(e)}')
+
+            # Write back the new content
+            try:
+                with open(action.path, 'w', encoding='utf-8') as f:
+                    f.write(new_content)
+            except Exception as e:
+                return ErrorObservation(f'Error writing file: {str(e)}')
+
+            return FileEditObservation(
+                content='Diff applied successfully',
+                path=action.path,
+                old_content=old_content,
+                new_content=new_content,
+                impl_source=FileEditSource.OH_ACI,
+                diff=get_diff(
+                    old_contents=old_content,
+                    new_contents=new_content,
+                    filepath=action.path,
+                ),
+            )
+        else:
+            result_str, (old_content, new_content) = _execute_file_editor(  # type: ignore[assignment]
+                self.file_editor,
+                command=action.command,
+                path=action.path,
+                file_text=action.file_text,
+                old_str=action.old_str,
+                new_str=action.new_str,
+                insert_line=action.insert_line,
+                enable_linting=False,
+            )
+
+            return FileEditObservation(
+                content=result_str,
+                path=action.path,
+                old_content=action.old_str,
+                new_content=action.new_str,
+                impl_source=FileEditSource.OH_ACI,
+                diff=get_diff(
+                    old_contents=old_content or '',
+                    new_contents=new_content or '',
+                    filepath=action.path,
+                ),
+            )
 
     async def browse(self, action: BrowseURLAction) -> Observation:
         if self.browser is None:

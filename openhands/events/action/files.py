@@ -60,7 +60,7 @@ class FileWriteAction(Action):
 
 @dataclass
 class FileEditAction(Action):
-    """Edits a file using various commands including view, create, str_replace, insert, and undo_edit.
+    """Edits a file using various commands including view, create, str_replace, insert, undo_edit, and apply_diff.
 
     This class supports two main modes of operation:
     1. LLM-based editing (impl_source = FileEditSource.LLM_BASED_EDIT)
@@ -69,11 +69,12 @@ class FileEditAction(Action):
     Attributes:
         path (str): The path to the file being edited. Works for both LLM-based and OH_ACI editing.
         OH_ACI only arguments:
-            command (str): The editing command to be performed (view, create, str_replace, insert, undo_edit, write).
+            command (str): The editing command to be performed (view, create, str_replace, insert, undo_edit, apply_diff, write).
             file_text (str): The content of the file to be created (used with 'create' command in OH_ACI mode).
             old_str (str): The string to be replaced (used with 'str_replace' command in OH_ACI mode).
             new_str (str): The string to replace old_str (used with 'str_replace' and 'insert' commands in OH_ACI mode).
             insert_line (int): The line number after which to insert new_str (used with 'insert' command in OH_ACI mode).
+            diff (str): The SEARCH/REPLACE block for editing (used with 'apply_diff' command).
         LLM-based editing arguments:
             content (str): The content to be written or edited in the file (used in LLM-based editing and 'write' command).
             start (int): The starting line for editing (1-indexed, inclusive). Default is 1.
@@ -91,6 +92,7 @@ class FileEditAction(Action):
     Note:
         - If start is set to -1 in LLM-based editing, the content will be appended to the file.
         - The 'write' command behaves similarly to LLM-based editing, using content, start, and end attributes.
+        - The 'apply_diff' command uses advanced diff patching logic for more reliable replacements.
     """
 
     path: str
@@ -101,6 +103,7 @@ class FileEditAction(Action):
     old_str: str | None = None
     new_str: str | None = None
     insert_line: int | None = None
+    diff: str | None = None
 
     # LLM-based editing arguments
     content: str = ''
@@ -134,5 +137,7 @@ class FileEditAction(Action):
                 ret += f'New String: ```\n{self.new_str}\n```\n'
             elif self.command == 'undo_edit':
                 ret += 'Undo Edit\n'
+            elif self.command == 'apply_diff':
+                ret += f'Diff: ```\n{self.diff}\n```\n'
             # We ignore "view" command because it will be mapped to a FileReadAction
         return ret

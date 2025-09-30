@@ -1,5 +1,4 @@
 import os
-import sys
 from collections import deque
 from typing import TYPE_CHECKING
 
@@ -13,15 +12,17 @@ if TYPE_CHECKING:
 
 import openhands.agenthub.codeact_agent.function_calling as codeact_function_calling
 from openhands.agenthub.codeact_agent.tools.bash import create_cmd_run_tool
+
 # from openhands.agenthub.codeact_agent.tools.browser import BrowserTool
 from openhands.agenthub.codeact_agent.tools.condensation_request import (
     CondensationRequestTool,
 )
 from openhands.agenthub.codeact_agent.tools.finish import FinishTool
+
 # from openhands.agenthub.codeact_agent.tools.ipython import IPythonTool
 from openhands.agenthub.codeact_agent.tools.llm_based_edit import LLMBasedFileEditTool
-from openhands.agenthub.codeact_agent.tools.str_replace_editor import (
-    create_str_replace_editor_tool,
+from openhands.agenthub.codeact_agent.tools.str_diff_patcher import (
+    create_str_diff_patcher_tool,
 )
 from openhands.agenthub.codeact_agent.tools.task_tracker import (
     create_task_tracker_tool,
@@ -144,9 +145,7 @@ class CodeActAgent(Agent):
             tools.append(LLMBasedFileEditTool)
         elif self.config.enable_editor:
             tools.append(
-                create_str_replace_editor_tool(
-                    use_short_description=use_short_tool_desc
-                )
+                create_str_diff_patcher_tool(use_short_description=use_short_tool_desc)
             )
         return tools
 
