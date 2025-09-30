@@ -22,7 +22,10 @@ export function ChatSuggestions({ onSuggestionsClick }: ChatSuggestionsProps) {
           {t(I18nKey.LANDING$TITLE)}
         </span>
       </div>
-      <Suggestions
+      <p className="text-gray-500 text-lg font-medium text-center">
+        Ask anything you like from below..
+      </p>
+      {/* <Suggestions
         suggestions={Object.entries(SUGGESTIONS.repo)
           .slice(0, 4)
           .map(([label, value]) => ({
@@ -30,7 +33,7 @@ export function ChatSuggestions({ onSuggestionsClick }: ChatSuggestionsProps) {
             value,
           }))}
         onSuggestionClick={onSuggestionsClick}
-      />
+      /> */}
     </div>
   );
 }
