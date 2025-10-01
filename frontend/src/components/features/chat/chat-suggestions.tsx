@@ -23,7 +23,7 @@ export function ChatSuggestions({ onSuggestionsClick }: ChatSuggestionsProps) {
         </span>
       </div>
       <p className="text-gray-500 text-lg font-medium text-center">
-        Ask anything you like from below..
+        Ask anything you'd like below.
       </p>
       {/* <Suggestions
         suggestions={Object.entries(SUGGESTIONS.repo)
