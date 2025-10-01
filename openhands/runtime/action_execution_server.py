@@ -576,10 +576,12 @@ class ActionExecutor:
 
             old_content = current_content
 
-            diff_text = action.diff
+            if action.search_block is None or action.replace_block is None:
+                return ErrorObservation(
+                    'search_block and replace_block are required for apply_diff command'
+                )
 
-            if diff_text is None:
-                return ErrorObservation('Diff text is required for apply_diff command')
+            diff_text = f'<<<<<<< SEARCH\n{action.search_block}\n=======\n{action.replace_block}\n>>>>>>> REPLACE'
 
             try:
                 new_content = apply_search_replace_blocks(current_content, diff_text)

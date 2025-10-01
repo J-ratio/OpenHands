@@ -74,7 +74,8 @@ class FileEditAction(Action):
             old_str (str): The string to be replaced (used with 'str_replace' command in OH_ACI mode).
             new_str (str): The string to replace old_str (used with 'str_replace' and 'insert' commands in OH_ACI mode).
             insert_line (int): The line number after which to insert new_str (used with 'insert' command in OH_ACI mode).
-            diff (str): The SEARCH/REPLACE block for editing (used with 'apply_diff' command).
+            search_block (str): The search content for editing (used with 'apply_diff' command).
+            replace_block (str): The replace content for editing (used with 'apply_diff' command).
         LLM-based editing arguments:
             content (str): The content to be written or edited in the file (used in LLM-based editing and 'write' command).
             start (int): The starting line for editing (1-indexed, inclusive). Default is 1.
@@ -103,7 +104,8 @@ class FileEditAction(Action):
     old_str: str | None = None
     new_str: str | None = None
     insert_line: int | None = None
-    diff: str | None = None
+    search_block: str | None = None
+    replace_block: str | None = None
 
     # LLM-based editing arguments
     content: str = ''
@@ -138,6 +140,7 @@ class FileEditAction(Action):
             elif self.command == 'undo_edit':
                 ret += 'Undo Edit\n'
             elif self.command == 'apply_diff':
-                ret += f'Diff: ```\n{self.diff}\n```\n'
+                ret += f'Search Block: ```\n{self.search_block}\n```\n'
+                ret += f'Replace Block: ```\n{self.replace_block}\n```\n'
             # We ignore "view" command because it will be mapped to a FileReadAction
         return ret

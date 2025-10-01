@@ -45,6 +45,35 @@ from openhands.events.tool import ToolCallMetadata
 from openhands.llm.tool_names import TASK_TRACKER_TOOL_NAME
 
 
+def parse_diff_to_blocks(diff_text: str) -> tuple[str, str]:
+    """Parse a SEARCH/REPLACE diff block to extract search_block and replace_block."""
+    lines = diff_text.split('\n')
+    search_lines = []
+    replace_lines = []
+    in_search = False
+    in_replace = False
+
+    for line in lines:
+        if line.strip() == '<<<<<<< SEARCH':
+            in_search = True
+            continue
+        elif line.strip() == '=======':
+            in_search = False
+            in_replace = True
+            continue
+        elif line.strip() == '>>>>>>> REPLACE':
+            in_replace = False
+            continue
+        elif in_search:
+            search_lines.append(line)
+        elif in_replace:
+            replace_lines.append(line)
+
+    search_block = '\n'.join(search_lines).rstrip('\n')
+    replace_block = '\n'.join(replace_lines).rstrip('\n')
+    return search_block, replace_block
+
+
 def combine_thought(action: Action, thought: str) -> Action:
     if not hasattr(action, 'thought'):
         return action
@@ -183,15 +212,6 @@ def response_to_actions(
                     )
                 path = arguments['path']
                 command = arguments['command']
-                if command == 'apply_diff':
-                    if 'diff' not in arguments:
-                        raise FunctionCallValidationError(
-                            f'Missing required argument "diff" for "apply_diff" command in tool call {tool_call.function.name}'
-                        )
-                    if not arguments.get('diff', '').strip():
-                        raise FunctionCallValidationError(
-                            f'Empty or whitespace-only "diff" for "apply_diff" command in tool call {tool_call.function.name}'
-                        )
                 other_kwargs = {
                     k: v for k, v in arguments.items() if k not in ['command', 'path']
                 }
@@ -217,6 +237,14 @@ def response_to_actions(
                         ].keys()
                     )
 
+                    # Special handling for apply_diff command
+                    if command == 'apply_diff' and 'diff' in other_kwargs:
+                        # Parse the diff to extract search_block and replace_block
+                        diff_text = other_kwargs.pop('diff')
+                        search_block, replace_block = parse_diff_to_blocks(diff_text)
+                        valid_kwargs_for_editor['search_block'] = search_block
+                        valid_kwargs_for_editor['replace_block'] = replace_block
+
                     for key, value in other_kwargs.items():
                         if key in valid_params:
                             # security_risk is valid but should NOT be part of editor kwargs
@@ -227,11 +255,28 @@ def response_to_actions(
                                 f'Unexpected argument {key} in tool call {tool_call.function.name}. Allowed arguments are: {valid_params}'
                             )
 
+                    # Validate that search_block and replace_block are not empty for apply_diff
+                    if command == 'apply_diff':
+                        if (
+                            'search_block' not in valid_kwargs_for_editor
+                            or not valid_kwargs_for_editor['search_block'].strip()
+                        ):
+                            raise FunctionCallValidationError(
+                                f'search_block is missing or empty for apply_diff command in tool call {tool_call.function.name}'
+                            )
+                        if (
+                            'replace_block' not in valid_kwargs_for_editor
+                            or not valid_kwargs_for_editor['replace_block'].strip()
+                        ):
+                            raise FunctionCallValidationError(
+                                f'replace_block is missing or empty for apply_diff command in tool call {tool_call.function.name}'
+                            )
+
                     action = FileEditAction(
                         path=path,
                         command=command,
                         impl_source=FileEditSource.OH_ACI,
-                        **valid_kwargs_for_editor,
+                        **valid_kwargs_for_editor,  # type: ignore
                     )
 
                 set_security_risk(action, arguments)
@@ -288,7 +333,7 @@ def response_to_actions(
                         path=path,
                         command=command,
                         impl_source=FileEditSource.OH_ACI,
-                        **valid_kwargs_for_editor,
+                        **valid_kwargs_for_editor,  # type: ignore
                     )
 
                 set_security_risk(action, arguments)

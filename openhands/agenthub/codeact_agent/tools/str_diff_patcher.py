@@ -164,7 +164,7 @@ _DETAILED_STR_DIFF_PATCHER_DESCRIPTION = """Custom editing tool for viewing, cre
 * The `create` command cannot be used if the specified `path` already exists as a file
 * If a `command` generates a long output, it will be truncated and marked with `<response clipped>`
 * The `undo_edit` command will revert the last edit made to the file at `path`
-* The `apply_diff` command applies SEARCH/REPLACE blocks to the file for editing strings, allowing both simple and multiple edits in one operation
+* The `apply_diff` command applies search and replace content to the file for editing strings, allowing both simple and multiple edits in one operation
 * This tool can be used for creating and editing files in plain-text format.
 
 
@@ -180,7 +180,7 @@ When making edits:
 
 CRITICAL REQUIREMENTS FOR USING THIS TOOL:
 
-    For `apply_diff` command, provide the `diff` parameter containing the full SEARCH/REPLACE blocks. Follow these steps and guidelines to generate SEARCH/REPLACE blocks:
+    For `apply_diff` command, provide the `search_block` and `replace_block` parameters containing the search and replace content. The system will construct the SEARCH/REPLACE blocks automatically. Follow these guidelines:
 
     a. Generate a SEARCH block:
     - Ensure it accurately matches a portion of the source code.
@@ -227,7 +227,8 @@ _SHORT_STR_DIFF_PATCHER_DESCRIPTION = """Custom editing tool for viewing, creati
 * If a `command` generates a long output, it will be truncated and marked with `<response clipped>`
 * The `undo_edit` command will revert the last edit made to the file at `path`
 Notes for using the `apply_diff` command:
-* Provide `diff` parameter containing the SEARCH/REPLACE block for editing files
+* Provide `search_block` and `replace_block` parameters containing the search and replace content for editing files
+* SEARCH and REPLACE blocks must contain at least one non-whitespace line. Empty blocks are not allowed.
 * Uses advanced diff patching logic for reliable replacements
 """
 
@@ -276,13 +277,19 @@ def create_str_diff_patcher_tool(
                         'items': {'type': 'integer'},
                         'type': 'array',
                     },
-                    'diff': {
-                        'description': 'Required parameter of `apply_diff` command containing the SEARCH/REPLACE block.',
+                    'search_block': {
+                        'description': 'Required parameter of `apply_diff` command containing the search content.',
+                        'type': 'string',
+                    },
+                    'replace_block': {
+                        'description': 'Required parameter of `apply_diff` command containing the replace content.',
                         'type': 'string',
                     },
                 },
                 'if': {'properties': {'command': {'const': 'apply_diff'}}},
-                'then': {'required': ['command', 'path', 'diff']},
+                'then': {
+                    'required': ['command', 'path', 'search_block', 'replace_block']
+                },
                 'else': {'required': ['command', 'path']},
             },
         ),
