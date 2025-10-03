@@ -13,12 +13,12 @@ if TYPE_CHECKING:
 
 import openhands.agenthub.codeact_agent.function_calling as codeact_function_calling
 from openhands.agenthub.codeact_agent.tools.bash import create_cmd_run_tool
-from openhands.agenthub.codeact_agent.tools.browser import BrowserTool
+# from openhands.agenthub.codeact_agent.tools.browser import BrowserTool
 from openhands.agenthub.codeact_agent.tools.condensation_request import (
     CondensationRequestTool,
 )
 from openhands.agenthub.codeact_agent.tools.finish import FinishTool
-from openhands.agenthub.codeact_agent.tools.ipython import IPythonTool
+# from openhands.agenthub.codeact_agent.tools.ipython import IPythonTool
 from openhands.agenthub.codeact_agent.tools.llm_based_edit import LLMBasedFileEditTool
 from openhands.agenthub.codeact_agent.tools.str_replace_editor import (
     create_str_replace_editor_tool,
@@ -128,13 +128,15 @@ class CodeActAgent(Agent):
             tools.append(FinishTool)
         if self.config.enable_condensation_request:
             tools.append(CondensationRequestTool)
-        if self.config.enable_browsing:
-            if sys.platform == 'win32':
-                logger.warning('Windows runtime does not support browsing yet')
-            else:
-                tools.append(BrowserTool)
-        if self.config.enable_jupyter:
-            tools.append(IPythonTool)
+        # Browser tool removed
+        # if self.config.enable_browsing:
+        #     if sys.platform == 'win32':
+        #         logger.warning('Windows runtime does not support browsing yet')
+        #     else:
+        #         tools.append(BrowserTool)
+        # Jupyter/IPython tool removed
+        # if self.config.enable_jupyter:
+        #     tools.append(IPythonTool)
         if self.config.enable_plan_mode:
             # In plan mode, we use the task_tracker tool for task management
             tools.append(create_task_tracker_tool(use_short_tool_desc))
