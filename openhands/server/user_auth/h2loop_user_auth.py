@@ -1,14 +1,15 @@
 from dataclasses import dataclass
 from typing import Optional
+
 import httpx
-from fastapi import Request, HTTPException, status
+from fastapi import HTTPException, Request, status
 from pydantic import SecretStr
 
 from openhands.integrations.provider import PROVIDER_TOKEN_TYPE
 from openhands.server import shared
 from openhands.server.settings import Settings
 from openhands.server.token_context import set_current_access_token
-from openhands.server.user_auth.user_auth import UserAuth, AuthType
+from openhands.server.user_auth.user_auth import AuthType, UserAuth
 from openhands.storage.data_models.user_secrets import UserSecrets
 from openhands.storage.secrets.secrets_store import SecretsStore
 from openhands.storage.settings.settings_store import SettingsStore
@@ -28,19 +29,18 @@ class H2LoopUserAuth(UserAuth):
 
     async def _extract_token_from_request(self, request: Request) -> Optional[str]:
         """Extract access token from Authorization header"""
-        auth_header = request.headers.get("Authorization")
-        if auth_header and auth_header.startswith("Bearer "):
+        auth_header = request.headers.get('Authorization')
+        if auth_header and auth_header.startswith('Bearer '):
             return auth_header[7:]  # Remove "Bearer " prefix
         return None
 
     async def _get_user_info_from_auth_api(self, token: str) -> dict:
         """Get user info from your authentication API"""
-        auth_api_url = "https://coreapi.h2loop.ai/api/v1/auth/me"
+        auth_api_url = 'https://coreapi.h2loop.ai/api/v1/auth/me'
 
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                auth_api_url,
-                headers={"Authorization": f"Bearer {token}"}
+                auth_api_url, headers={'Authorization': f'Bearer {token}'}, timeout=90
             )
 
             if response.status_code == 200:
@@ -48,7 +48,7 @@ class H2LoopUserAuth(UserAuth):
             else:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid access token"
+                    detail='Invalid access token',
                 )
 
     async def get_user_id(self) -> str | None:
@@ -58,8 +58,8 @@ class H2LoopUserAuth(UserAuth):
                 user_data = await self._get_user_info_from_auth_api(
                     self._access_token.get_secret_value()
                 )
-                self._user_id = str(user_data.get("id"))
-                self._user_email = user_data.get("email")
+                self._user_id = str(user_data.get('id'))
+                self._user_email = user_data.get('email')
             except Exception:
                 return None
         return self._user_id
@@ -84,7 +84,7 @@ class H2LoopUserAuth(UserAuth):
         if not user_id:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not authenticated"
+                detail='User not authenticated',
             )
 
         settings_store = await shared.SettingsStoreImpl.get_instance(
@@ -117,7 +117,7 @@ class H2LoopUserAuth(UserAuth):
         if not user_id:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not authenticated"
+                detail='User not authenticated',
             )
 
         secret_store = await shared.SecretsStoreImpl.get_instance(
