@@ -26,10 +26,10 @@ export const queryClient = new QueryClient({
 
         if (!shownErrors.has(errorMessage || "")) {
           displayErrorToast(errorMessage || i18next.t(I18nKey.ERROR$GENERIC));
-          shownErrors.add(errorMessage);
+          shownErrors.add(errorMessage || "");
 
           setTimeout(() => {
-            shownErrors.delete(errorMessage);
+            shownErrors.delete(errorMessage || "");
           }, 3000);
         }
       }

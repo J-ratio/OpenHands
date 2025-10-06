@@ -15,3 +15,6 @@ export const isAxiosErrorWithMessageField = (
   error.response?.data !== null &&
   "message" in error.response.data &&
   typeof error.response?.data?.message === "string";
+
+export const isAxiosErrorWithStringData = (error: AxiosError) =>
+  typeof error.response?.data === "string";
