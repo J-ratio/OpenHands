@@ -35,7 +35,7 @@ function HomeScreen() {
       <main className="flex flex-col lg:flex-row justify-between gap-8">
         <RepoConnector
           onRepoSelection={(repo) => setSelectedRepo(repo)}
-          onBranchSelection={(_) => {}}
+          onBranchSelection={(_) => { }}
           heading={
             linkedRepo
               ? "Repository Linked"
@@ -43,7 +43,7 @@ function HomeScreen() {
           }
         />
         <hr className="md:hidden border-[#717888]" />
-        {providersAreSet && <TaskSuggestions filterFor={selectedRepo} />}
+        {/* {providersAreSet && <TaskSuggestions filterFor={selectedRepo} />} */}
       </main>
       <ToolsSection />
     </div>
