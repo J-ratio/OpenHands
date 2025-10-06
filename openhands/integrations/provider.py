@@ -218,7 +218,11 @@ class ProviderHandler:
             except Exception as e:
                 logger.warning(f'Error fetching repos from {provider}: {e}')
 
-        if not all_repos and auth_errors:
+        if (
+            not all_repos
+            and auth_errors
+            and len(auth_errors) == len(self.provider_tokens)
+        ):
             raise AuthenticationError(
                 f'Authentication failed for all providers: {" | ".join(auth_errors)}'
             )
