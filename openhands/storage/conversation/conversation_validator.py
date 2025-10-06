@@ -1,17 +1,16 @@
 import os
 from datetime import datetime, timezone
 
-from fastapi import Depends
 from pydantic import SecretStr
-from openhands.server.user_auth.h2loop_user_auth import H2LoopUserAuth
+
 from openhands.core.config.utils import load_openhands_config
 from openhands.core.logger import openhands_logger as logger
 from openhands.server.config.server_config import ServerConfig
+from openhands.server.user_auth.h2loop_user_auth import H2LoopUserAuth
 from openhands.storage.conversation.conversation_store import ConversationStore
 from openhands.storage.data_models.conversation_metadata import ConversationMetadata
 from openhands.utils.conversation_summary import get_default_conversation_title
 from openhands.utils.import_utils import get_impl
-from openhands.server.user_auth import get_user_id
 
 
 class ConversationValidator:
@@ -34,13 +33,16 @@ class ConversationValidator:
         cookies_str: str,
         authorization_header: str | None = None,
     ) -> str | None:
-        user_id = None
-        metadata = await self._ensure_metadata_exists(conversation_id, user_id)
-        return metadata.user_id
+        # user_id = None
+        # metadata = await self._ensure_metadata_exists(conversation_id, user_id)
+        # return metadata.user_id
 
-        # user_auth = H2LoopUserAuth(_access_token=SecretStr(authorization_header))
-        # user_id = await user_auth.get_user_id()
-        # return user_id
+        if authorization_header is None:
+            return None
+
+        user_auth = H2LoopUserAuth(_access_token=SecretStr(authorization_header))
+        user_id = await user_auth.get_user_id()
+        return user_id
 
     async def _ensure_metadata_exists(
         self,
