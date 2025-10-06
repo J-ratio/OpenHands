@@ -19,11 +19,11 @@ export const retrieveAxiosErrorMessage = (error: AxiosError) => {
     error.response?.data.message
   ) {
     errorMessage = error.response?.data.message;
-  } else if (
-    isAxiosErrorWithStringData(error) &&
-    (error.response?.data as string).trim()
-  ) {
-    errorMessage = error.response?.data as string;
+  } else if (isAxiosErrorWithStringData(error)) {
+    const errorResponseData = error.response?.data as string;
+    if (errorResponseData.trim()) {
+      errorMessage = errorResponseData;
+    }
   } else {
     errorMessage = error.message;
   }
