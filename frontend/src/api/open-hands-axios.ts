@@ -1,16 +1,16 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
 
 // Add 401 interceptor to default axios instance
-// axios.interceptors.response.use(
-//   (response: AxiosResponse) => response,
-//   (error: AxiosError) => {
-//     if (error.response?.status === 401) {
-//       window.location.href = "/login";
-//       return Promise.reject(error);
-//     }
-//     return Promise.reject(error);
-//   },
-// );
+axios.interceptors.response.use(
+  (response: AxiosResponse) => response,
+  (error: AxiosError) => {
+    if (error.response?.status === 401) {
+      window.location.href = "/login";
+      return Promise.reject(error);
+    }
+    return Promise.reject(error);
+  },
+);
 
 export const openHands = axios.create({
   baseURL: `${window.location.protocol}//${import.meta.env.VITE_BACKEND_BASE_URL || window?.location.host}`,
@@ -71,11 +71,11 @@ openHands.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error: AxiosError) => {
     // Check if it's a 401 error (unauthorized/token expired)
-    // if (error.response?.status === 401) {
-    //   // Redirect to login page
-    //   window.location.href = "/login";
-    //   return Promise.reject(error);
-    // }
+    if (error.response?.status === 401) {
+      // Redirect to login page
+      window.location.href = "/login";
+      return Promise.reject(error);
+    }
 
     // Check if it's a 403 error with the email verification message
     if (
