@@ -2,6 +2,7 @@ import { AxiosError } from "axios";
 import {
   isAxiosErrorWithErrorField,
   isAxiosErrorWithMessageField,
+  isAxiosErrorWithStringData,
 } from "./type-guards";
 
 /**
@@ -18,6 +19,11 @@ export const retrieveAxiosErrorMessage = (error: AxiosError) => {
     error.response?.data.message
   ) {
     errorMessage = error.response?.data.message;
+  } else if (
+    isAxiosErrorWithStringData(error) &&
+    (error.response?.data as string).trim()
+  ) {
+    errorMessage = error.response?.data as string;
   } else {
     errorMessage = error.message;
   }
