@@ -723,9 +723,15 @@ class DockerRuntime(ActionExecutionClient):
         # Use repository directory if available, otherwise use workspace root
         folder_path = self.config.workspace_mount_path_in_sandbox
         if self._repo_directory:
-            folder_path = f"{self.config.workspace_mount_path_in_sandbox}/{self._repo_directory}"
+            folder_path = (
+                f'{self.config.workspace_mount_path_in_sandbox}/{self._repo_directory}'
+            )
 
-        vscode_url = f'http://localhost:{self._vscode_port}/?tkn={token}&folder={folder_path}'
+        # proxy_base = "https://hub.h2loop.ai:8002"
+        proxy_base = 'http://localhost:8002'
+        vscode_url = (
+            f'{proxy_base}/{self._vscode_port}/?tkn={token}&folder={folder_path}'
+        )
         return vscode_url
 
     @property
