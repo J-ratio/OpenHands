@@ -1,8 +1,15 @@
+import asyncio
+import logging
+
 import httpx
-from fastapi import FastAPI, Request
+import websockets
+from fastapi import FastAPI, Request, WebSocket
 from fastapi.responses import Response
 
 app = FastAPI()
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 @app.api_route(
@@ -33,29 +40,43 @@ async def proxy_http(request: Request, port: int, path: str):
         )
 
 
-# @app.websocket("/{port}/{path:path}")
-# async def proxy_ws(websocket: WebSocket, port: int, path: str):
-#     """Proxies WebSocket connections for VS Code web client."""
-#     await websocket.accept()
-#     target_url = f"ws://hub.h2loop.ai:{port}/{path}"
+@app.websocket('/{port}/{path:path}')
+async def proxy_ws(websocket: WebSocket, port: int, path: str):
+    """Proxies WebSocket connections for VS Code web client."""
+    await websocket.accept()
 
-#     async with websockets.connect(target_url) as target_ws:
-#         async def client_to_target():
-#             try:
-#                 while True:
-#                     msg = await websocket.receive_text()
-#                     await target_ws.send(msg)
-#             except:
-#                 await target_ws.close()
+    # Build target URL with query parameters
+    query_string = str(websocket.url.query) if websocket.url.query else ''
+    target_url = f'ws://localhost:{port}/{path}'
+    if query_string:
+        target_url += f'?{query_string}'
 
-#         async def target_to_client():
-#             try:
-#                 async for msg in target_ws:
-#                     await websocket.send_text(msg)
-#             except:
-#                 await websocket.close()
+    logger.debug(f'WebSocket proxy: {target_url}')
 
-#         await asyncio.gather(client_to_target(), target_to_client())
+    try:
+        async with websockets.connect(target_url) as target_ws:
+
+            async def client_to_target():
+                try:
+                    while True:
+                        msg = await websocket.receive_text()
+                        await target_ws.send(msg)
+                except Exception as e:
+                    logger.error(f'Client to target error: {e}')
+                    await target_ws.close()
+
+            async def target_to_client():
+                try:
+                    async for msg in target_ws:
+                        await websocket.send_text(msg)
+                except Exception as e:
+                    logger.error(f'Target to client error: {e}')
+                    await websocket.close()
+
+            await asyncio.gather(client_to_target(), target_to_client())
+    except Exception as e:
+        logger.error(f'WebSocket proxy error: {e}')
+        await websocket.close()
 
 
 if __name__ == '__main__':
