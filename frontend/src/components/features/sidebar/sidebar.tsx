@@ -48,6 +48,7 @@ export function Sidebar() {
   const [conversationPanelIsOpen, setConversationPanelIsOpen] =
     React.useState(false);
 
+  const { mutate: createConversation } = useCreateConversation();
   const { isPending, isSuccess } = useCreateConversation();
   const isCreatingConversationElsewhere = useIsCreatingConversation();
   const isCreatingConversation =
@@ -56,6 +57,13 @@ export function Sidebar() {
   const conversations = conversationsData?.pages.flatMap((page) => page.results) ?? [];
   const runningConversations = conversations.filter(conv => conv.status === "RUNNING" || conv.status === "STARTING");
   const existsRunningConversations = runningConversations.length > 0;
+
+  // Auto-create conversation if no conversations exist
+  React.useEffect(() => {
+    if (conversationsData && conversations.length === 0 && !isCreatingConversation && !isFetchingLinkedRepo) {
+      createConversation({ skipNavigation: true });
+    }
+  }, [conversationsData, conversations.length, isCreatingConversation, createConversation, isFetchingLinkedRepo]);
 
   const handleComparisonClick = () => {
     if (existsRunningConversations && runningConversations[0]) {
