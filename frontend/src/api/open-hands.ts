@@ -732,6 +732,20 @@ class OpenHands {
     );
     return data;
   }
+
+  /**
+   * Trigger loading of conversation on login
+   * @returns Response from the login endpoint
+   */
+  static async loadConversationOnStart(): Promise<{
+    status: string;
+    message: string;
+  }> {
+    const { data } = await openHands.post<{ status: string; message: string }>(
+      "/api/login",
+    );
+    return data;
+  }
 }
 
 export default OpenHands;

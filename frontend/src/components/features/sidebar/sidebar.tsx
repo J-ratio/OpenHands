@@ -1,6 +1,7 @@
 import React from "react";
-import { useLocation } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { useGitUser } from "#/hooks/query/use-git-user";
+import { usePaginatedConversations } from "#/hooks/query/use-paginated-conversations";
 import { UserActions } from "./user-actions";
 import { H2LoopLogoButton } from "#/components/shared/buttons/h2loop-logo-button";
 import { NewProjectButton } from "#/components/shared/buttons/new-project-button";
@@ -25,9 +26,11 @@ import { FaFile } from "react-icons/fa";
 import { TbTemplate } from "react-icons/tb";
 import { MicroagentManagementButton } from "#/components/shared/buttons/microagent-management-button";
 import { useWorkspace } from "#/context/WorkspaceContext";
+import OpenHands from "#/api/open-hands";
 
 export function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const user = useGitUser();
   const { data: config } = useConfig();
   const {
@@ -39,16 +42,45 @@ export function Sidebar() {
   const { logout } = useLogoutToken();
   const { isFetchingLinkedRepo } = useWorkspace();
   const isSavingSettings = useIsMutating({ mutationKey: ["save-settings"] }) > 0;
+  const { data: conversationsData } = usePaginatedConversations(50);
 
   // const [settingsModalIsOpen, setSettingsModalIsOpen] = React.useState(false);
 
   const [conversationPanelIsOpen, setConversationPanelIsOpen] =
     React.useState(false);
 
+  const { mutate: createConversation } = useCreateConversation();
   const { isPending, isSuccess } = useCreateConversation();
   const isCreatingConversationElsewhere = useIsCreatingConversation();
   const isCreatingConversation =
     isPending || isSuccess || isCreatingConversationElsewhere;
+
+  const conversations = conversationsData?.pages.flatMap((page) => page.results) ?? [];
+  const runningConversations = conversations.filter(conv => conv.status === "RUNNING" || conv.status === "STARTING");
+  const existsRunningConversations = runningConversations.length > 0;
+
+  // Auto-create conversation if no conversations exist
+  React.useEffect(() => {
+    if (conversationsData && conversations.length === 0 && !isCreatingConversation && !isFetchingLinkedRepo) {
+      createConversation({ skipNavigation: true });
+    }
+  }, [conversationsData, conversations.length, isCreatingConversation, isFetchingLinkedRepo]);
+
+  // Load conversation on start when no conversations are running
+  React.useEffect(() => {
+    if (conversationsData && conversations.length > 0 && runningConversations.length === 0) {
+      OpenHands.loadConversationOnStart().catch((error) => {
+        console.warn("Failed to trigger load conversation on start:", error);
+      });
+    }
+  }, [conversationsData, conversations.length, runningConversations.length]);
+
+  const handleComparisonClick = () => {
+    if (existsRunningConversations && runningConversations[0]) {
+      const id = runningConversations[0].conversation_id;
+      navigate(`/conversations/${id}/compare`);
+    }
+  };
 
   // TODO: Remove HIDE_LLM_SETTINGS check once released
   const shouldHideLlmSettings =
@@ -158,6 +190,7 @@ export function Sidebar() {
                 }
                 comparision={true}
                 useH2LoopModel={true}
+                onClick={existsRunningConversations ? handleComparisonClick : undefined}
               />
             )}
             {/* {!shouldHideMicroagentManagement && (
