@@ -64,7 +64,7 @@ export function Sidebar() {
     if (conversationsData && conversations.length === 0 && !isCreatingConversation && !isFetchingLinkedRepo) {
       createConversation({ skipNavigation: true });
     }
-  }, [conversationsData, conversations.length, isCreatingConversation, createConversation, isFetchingLinkedRepo]);
+  }, [conversationsData, conversations.length, isCreatingConversation, isFetchingLinkedRepo]);
 
   // Load conversation on start when no conversations are running
   React.useEffect(() => {
