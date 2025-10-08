@@ -1,6 +1,7 @@
 import React from "react";
-import { useLocation } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { useGitUser } from "#/hooks/query/use-git-user";
+import { usePaginatedConversations } from "#/hooks/query/use-paginated-conversations";
 import { UserActions } from "./user-actions";
 import { H2LoopLogoButton } from "#/components/shared/buttons/h2loop-logo-button";
 import { NewProjectButton } from "#/components/shared/buttons/new-project-button";
@@ -28,6 +29,7 @@ import { useWorkspace } from "#/context/WorkspaceContext";
 
 export function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const user = useGitUser();
   const { data: config } = useConfig();
   const {
@@ -39,6 +41,7 @@ export function Sidebar() {
   const { logout } = useLogoutToken();
   const { isFetchingLinkedRepo } = useWorkspace();
   const isSavingSettings = useIsMutating({ mutationKey: ["save-settings"] }) > 0;
+  const { data: conversationsData } = usePaginatedConversations(50);
 
   // const [settingsModalIsOpen, setSettingsModalIsOpen] = React.useState(false);
 
@@ -49,6 +52,17 @@ export function Sidebar() {
   const isCreatingConversationElsewhere = useIsCreatingConversation();
   const isCreatingConversation =
     isPending || isSuccess || isCreatingConversationElsewhere;
+
+  const conversations = conversationsData?.pages.flatMap((page) => page.results) ?? [];
+  const runningConversations = conversations.filter(conv => conv.status === "RUNNING" || conv.status === "STARTING");
+  const existsRunningConversations = runningConversations.length > 0;
+
+  const handleComparisonClick = () => {
+    if (existsRunningConversations && runningConversations[0]) {
+      const id = runningConversations[0].conversation_id;
+      navigate(`/conversations/${id}/compare`);
+    }
+  };
 
   // TODO: Remove HIDE_LLM_SETTINGS check once released
   const shouldHideLlmSettings =
@@ -158,6 +172,7 @@ export function Sidebar() {
                 }
                 comparision={true}
                 useH2LoopModel={true}
+                onClick={existsRunningConversations ? handleComparisonClick : undefined}
               />
             )}
             {/* {!shouldHideMicroagentManagement && (
