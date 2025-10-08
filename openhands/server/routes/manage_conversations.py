@@ -83,13 +83,45 @@ from openhands.utils.conversation_summary import get_default_conversation_title
 app = APIRouter(prefix='/api', dependencies=get_dependencies())
 
 
+def is_start_conversation_on_login_enabled() -> bool:
+    return os.environ.get('START_CONVERSATION_ON_LOGIN', 'false').lower() == 'true'
+
+
+@app.post('/login')
+async def login(
+    background_tasks: BackgroundTasks,
+    user_id: str = Depends(get_user_id),
+    conversation_store: ConversationStore = Depends(get_conversation_store),
+    settings_store: SettingsStore = Depends(get_user_settings_store),
+) -> dict:
+    """Start the latest conversation's container on user login."""
+    if not is_start_conversation_on_login_enabled():
+        return {
+            'status': 'ok',
+            'message': 'Login successful, conversation auto-start disabled',
+        }
+
+    background_tasks.add_task(
+        start_latest_conversation,
+        user_id,
+        conversation_store,
+        settings_store,
+        conversation_manager,
+    )
+    return {
+        'status': 'ok',
+        'message': 'Login successful, starting latest conversation in background',
+    }
+
+
 async def start_latest_conversation(
     user_id: str,
     conversation_store: ConversationStore,
     settings_store: SettingsStore,
     conversation_manager: ConversationManager,
 ):
-    """Start the latest conversation's container for pre-warming on login."""
+    """Start the latest conversation's container to pre-warm conversations on login."""
+
     user_settings = await settings_store.load()
     if not user_settings:
         logger.warning('User settings not found. Skipping latest conversation start.')
@@ -139,24 +171,6 @@ async def start_latest_conversation(
     await conversation_manager.maybe_start_agent_loop(
         conversation_id, conversation_init_data, user_id
     )
-
-
-@app.post('/login')
-async def login(
-    background_tasks: BackgroundTasks,
-    user_id: str = Depends(get_user_id),
-    conversation_store: ConversationStore = Depends(get_conversation_store),
-    settings_store: SettingsStore = Depends(get_user_settings_store),
-) -> dict:
-    """Start the latest conversation's container on user login."""
-    background_tasks.add_task(
-        start_latest_conversation,
-        user_id,
-        conversation_store,
-        settings_store,
-        conversation_manager,
-    )
-    return {'status': 'ok', 'message': 'Latest conversation started'}
 
 
 class InitSessionRequest(BaseModel):
