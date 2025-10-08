@@ -10,6 +10,7 @@ import {
 import H2LoopLogo from "#/assets/branding/h2loop-logo.svg?react";
 import { login as loginApi } from "#/api/auth-service";
 import { validateEmail } from "#/utils/validators";
+import OpenHands from "#/api/open-hands";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -35,6 +36,9 @@ export default function Login() {
       await loginApi(email, password);
       displaySuccessToast("Login successful!");
       setTimeout(() => navigate("/"), 100);
+      OpenHands.triggerPrewarm().catch((error) => {
+        console.warn("Failed to trigger container pre-warming:", error);
+      });
     } catch (err: any) {
       const msg =
         err?.response?.data?.detail ||

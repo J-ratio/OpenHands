@@ -732,6 +732,17 @@ class OpenHands {
     );
     return data;
   }
+
+  /**
+   * Trigger container pre-warming after login
+   * @returns Response from the login endpoint
+   */
+  static async triggerPrewarm(): Promise<{ status: string; message: string }> {
+    const { data } = await openHands.post<{ status: string; message: string }>(
+      "/api/login",
+    );
+    return data;
+  }
 }
 
 export default OpenHands;
