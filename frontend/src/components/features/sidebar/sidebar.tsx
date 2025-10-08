@@ -26,6 +26,7 @@ import { FaFile } from "react-icons/fa";
 import { TbTemplate } from "react-icons/tb";
 import { MicroagentManagementButton } from "#/components/shared/buttons/microagent-management-button";
 import { useWorkspace } from "#/context/WorkspaceContext";
+import OpenHands from "#/api/open-hands";
 
 export function Sidebar() {
   const location = useLocation();
@@ -64,6 +65,15 @@ export function Sidebar() {
       createConversation({ skipNavigation: true });
     }
   }, [conversationsData, conversations.length, isCreatingConversation, createConversation, isFetchingLinkedRepo]);
+
+  // Load conversation on start when no conversations are running
+  React.useEffect(() => {
+    if (conversationsData && conversations.length > 0 && runningConversations.length === 0) {
+      OpenHands.loadConversationOnStart().catch((error) => {
+        console.warn("Failed to trigger load conversation on start:", error);
+      });
+    }
+  }, [conversationsData, conversations.length, runningConversations.length]);
 
   const handleComparisonClick = () => {
     if (existsRunningConversations && runningConversations[0]) {
