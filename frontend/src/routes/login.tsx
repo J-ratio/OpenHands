@@ -36,8 +36,8 @@ export default function Login() {
       await loginApi(email, password);
       displaySuccessToast("Login successful!");
       setTimeout(() => navigate("/"), 100);
-      OpenHands.triggerPrewarm().catch((error) => {
-        console.warn("Failed to trigger container pre-warming:", error);
+      OpenHands.loadConversationOnStart().catch((error) => {
+        console.warn("Failed to trigger load conversation on start:", error);
       });
     } catch (err: any) {
       const msg =

@@ -734,10 +734,13 @@ class OpenHands {
   }
 
   /**
-   * Trigger container pre-warming after login
+   * Trigger loading of conversation on login
    * @returns Response from the login endpoint
    */
-  static async triggerPrewarm(): Promise<{ status: string; message: string }> {
+  static async loadConversationOnStart(): Promise<{
+    status: string;
+    message: string;
+  }> {
     const { data } = await openHands.post<{ status: string; message: string }>(
       "/api/login",
     );
