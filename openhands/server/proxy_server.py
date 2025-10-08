@@ -59,10 +59,13 @@ async def proxy_ws(websocket: WebSocket, port: int, path: str):
             async def client_to_target():
                 try:
                     while True:
-                        msg = await websocket.receive_text()
-                        await target_ws.send(msg)
+                        message = await websocket.receive()
+                        if isinstance(message, dict) and 'text' in message:
+                            await target_ws.send(message['text'])
+                        elif isinstance(message, dict) and 'bytes' in message:
+                            await target_ws.send(message['bytes'])
                 except Exception as e:
-                    logger.error(f'Client to target error: {e}')
+                    logger.exception(f'Client to target error: {e}')
                     await target_ws.close()
 
             async def target_to_client():
