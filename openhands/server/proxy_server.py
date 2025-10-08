@@ -10,7 +10,7 @@ app = FastAPI()
 )
 async def proxy_http(request: Request, port: int, path: str):
     """Proxies normal HTTP requests to localhost:<port>"""
-    target_url = f'http://localhost:{port}{path}'
+    target_url = f'http://localhost:{port}/{path}'
 
     async with httpx.AsyncClient() as client:
         method = request.method

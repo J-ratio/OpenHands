@@ -83,6 +83,9 @@ class VSCodePlugin(Plugin):
                 if path_mode:
                     base_path_flag = f' --server-base-path /{runtime_id}/vscode'
 
+        if not base_path_flag:
+            base_path_flag = f' --server-base-path /{self.vscode_port}'
+
         cmd = (
             f"su - {username} -s /bin/bash << 'EOF'\n"
             f'sudo chown -R {username}:{username} /openhands/.openvscode-server\n'
@@ -134,15 +137,11 @@ class VSCodePlugin(Plugin):
         # Make sure the settings file is readable and writable by all users
         os.chmod(target_path, 0o666)
 
-        extensions_src = current_dir / "extensions"
-        extensions_dest = Path("/openhands/.openvscode-server/extensions")
+        extensions_src = current_dir / 'extensions'
+        extensions_dest = Path('/openhands/.openvscode-server/extensions')
 
         if extensions_src.exists():
-            shutil.copytree(
-                extensions_src,
-                extensions_dest,
-                dirs_exist_ok=True
-            )
+            shutil.copytree(extensions_src, extensions_dest, dirs_exist_ok=True)
 
         logger.debug(f'VSCode settings and extensions synced to {extensions_dest}')
 
