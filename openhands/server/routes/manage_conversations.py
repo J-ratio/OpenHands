@@ -5,11 +5,10 @@ import re
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, status
+import requests
+from fastapi import APIRouter, BackgroundTasks, Depends, status
 from fastapi.responses import JSONResponse
 from jinja2 import Environment, FileSystemLoader
-from pydantic import BaseModel, Field
-import requests
 from pydantic import BaseModel, ConfigDict, Field
 
 from openhands.core.config.llm_config import LLMConfig
@@ -37,6 +36,9 @@ from openhands.integrations.service_types import (
 )
 from openhands.runtime import get_runtime_cls
 from openhands.runtime.runtime_status import RuntimeStatus
+from openhands.server.conversation_manager.conversation_manager import (
+    ConversationManager,
+)
 from openhands.server.data_models.agent_loop_info import AgentLoopInfo
 from openhands.server.data_models.conversation_info import ConversationInfo
 from openhands.server.data_models.conversation_info_result_set import (
@@ -48,7 +50,6 @@ from openhands.server.services.conversation_service import (
     setup_init_conversation_settings,
 )
 from openhands.server.shared import (
-    ConversationManagerImpl,
     ConversationStoreImpl,
     config,
     conversation_manager,
@@ -80,6 +81,96 @@ from openhands.utils.async_utils import wait_all
 from openhands.utils.conversation_summary import get_default_conversation_title
 
 app = APIRouter(prefix='/api', dependencies=get_dependencies())
+
+
+def is_start_conversation_on_login_enabled() -> bool:
+    return os.environ.get('START_CONVERSATION_ON_LOGIN', 'false').lower() == 'true'
+
+
+@app.post('/login')
+async def login(
+    background_tasks: BackgroundTasks,
+    user_id: str = Depends(get_user_id),
+    conversation_store: ConversationStore = Depends(get_conversation_store),
+    settings_store: SettingsStore = Depends(get_user_settings_store),
+) -> dict:
+    """Start the latest conversation's container on user login."""
+    if not is_start_conversation_on_login_enabled():
+        return {
+            'status': 'ok',
+            'message': 'Login successful, conversation auto-start disabled',
+        }
+
+    background_tasks.add_task(
+        start_latest_conversation,
+        user_id,
+        conversation_store,
+        settings_store,
+        conversation_manager,
+    )
+    return {
+        'status': 'ok',
+        'message': 'Login successful, starting latest conversation in background',
+    }
+
+
+async def start_latest_conversation(
+    user_id: str,
+    conversation_store: ConversationStore,
+    settings_store: SettingsStore,
+    conversation_manager: ConversationManager,
+):
+    """Start the latest conversation's container to pre-warm conversations on login."""
+
+    user_settings = await settings_store.load()
+    if not user_settings:
+        logger.warning('User settings not found. Skipping latest conversation start.')
+        return
+
+    # Search for recent conversations
+    conversation_metadata_result_set = await conversation_store.search(
+        user_settings.active_workspace_id, None, 100
+    )
+
+    # Filter out old conversations as in search_conversations
+    now = datetime.now(timezone.utc)
+    max_age = config.conversation_max_age_seconds
+    filtered_results = []
+    for conversation in conversation_metadata_result_set.results:
+        if not hasattr(conversation, 'created_at'):
+            continue
+        age_seconds = (
+            now - conversation.created_at.replace(tzinfo=timezone.utc)
+        ).total_seconds()
+        if age_seconds > max_age:
+            continue
+        filtered_results.append(conversation)
+
+    if not filtered_results:
+        logger.info(
+            f'No recent conversations found for user {user_id}. Skipping start.'
+        )
+        return
+
+    # Sort by last_updated_at descending to get the latest
+    filtered_results.sort(
+        key=lambda c: c.last_updated_at or datetime.min.replace(tzinfo=timezone.utc),
+        reverse=True,
+    )
+    latest_conversation = filtered_results[0]
+    conversation_id = latest_conversation.conversation_id
+
+    logger.info(f'Starting latest conversation {conversation_id} for user {user_id}')
+
+    # Setup conversation init data
+    conversation_init_data = await setup_init_conversation_settings(
+        user_id, conversation_id, []
+    )
+
+    # Start the agent loop (which starts the container)
+    await conversation_manager.maybe_start_agent_loop(
+        conversation_id, conversation_init_data, user_id
+    )
 
 
 class InitSessionRequest(BaseModel):
@@ -146,12 +237,11 @@ async def new_conversation(
         return JSONResponse(
             content={
                 'status': 'error',
-                'message': "Please add a git provider token",
+                'message': 'Please add a git provider token',
                 'msg_id': RuntimeStatus.ERROR_LLM_AUTHENTICATION.value,
             },
             status_code=status.HTTP_400_BAD_REQUEST,
         )
-
 
     if suggested_task:
         initial_user_msg = suggested_task.get_prompt_for_task()
@@ -173,7 +263,7 @@ async def new_conversation(
     ):
         logger.warning(
             'No initial user message provided for REMOTE_API_KEY (BEARER auth) session. Proceeding with empty initial message.',
-            extra={'user_id': user_id}
+            extra={'user_id': user_id},
         )
 
     try:
@@ -230,14 +320,14 @@ async def new_conversation(
 
 
 async def trigger_default_llm_model(settings):
-    deafult_llm_model_base_url = "https://h2loop--qwen25-coder-32b-serve.modal.run/v1"
-    if(settings.llm_base_url == deafult_llm_model_base_url):
-        response = await asyncio.to_thread(
+    default_llm_model_base_url = 'https://h2loop--qwen25-coder-32b-serve.modal.run/v1'
+    if settings.llm_base_url == default_llm_model_base_url:
+        await asyncio.to_thread(
             requests.get,
-            deafult_llm_model_base_url,
+            default_llm_model_base_url,
             headers={
-                "Authorization": f"Bearer ${os.environ.get("DEFAULT_LLM_MODEL_SECRET_KEY")}"
-            }
+                'Authorization': f'Bearer {os.environ.get("DEFAULT_LLM_MODEL_SECRET_KEY")}'
+            },
         )
 
 
@@ -252,10 +342,12 @@ async def search_conversations(
 ) -> ConversationInfoResultSet:
     user_settings = await settings_store.load()
     if not user_settings:
-            logger.warning("User settings not found. Returning empty results.")
-            return ConversationInfoResultSet(results=[], next_page_id=None)
+        logger.warning('User settings not found. Returning empty results.')
+        return ConversationInfoResultSet(results=[], next_page_id=None)
 
-    conversation_metadata_result_set = await conversation_store.search(user_settings.active_workspace_id, page_id, limit)
+    conversation_metadata_result_set = await conversation_store.search(
+        user_settings.active_workspace_id, page_id, limit
+    )
 
     # Filter out conversations older than max_age and conversations from the same workspace
     # Apply filters at API level
@@ -421,7 +513,7 @@ def generate_prompt(
         },
     ]
 
-    raw_prompt = ConversationManagerImpl.request_llm_completion(
+    raw_prompt = conversation_manager.request_llm_completion(
         'remember_prompt', conversation_id, llm_config, messages
     )
     prompt = re.search(r'<update_prompt>(.*?)</update_prompt>', raw_prompt, re.DOTALL)

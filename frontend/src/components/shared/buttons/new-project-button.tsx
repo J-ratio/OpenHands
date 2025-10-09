@@ -9,12 +9,14 @@ interface NewProjectButtonProps {
   disabled?: boolean;
   comparision?: boolean;
   useH2LoopModel?: boolean;
+  onClick?: () => void;
 }
 
 export function NewProjectButton({
   disabled = false,
   comparision = false,
   useH2LoopModel = false,
+  onClick,
 }: NewProjectButtonProps) {
   const { t } = useTranslation();
   const startNewProject = !comparision
@@ -27,9 +29,9 @@ export function NewProjectButton({
     <TooltipButton
       tooltip={startNewProject}
       ariaLabel={startNewProject}
-      navLinkTo="/"
+      navLinkTo={onClick ? undefined : "/"}
       testId="new-project-button"
-      onClick={() => createConversation({ use_h2loop_model: useH2LoopModel })}
+      onClick={onClick || (() => createConversation({ use_h2loop_model: useH2LoopModel }))}
       disabled={disabled}
     >
       {!comparision ? (
