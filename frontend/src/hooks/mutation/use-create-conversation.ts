@@ -21,6 +21,7 @@ interface CreateConversationVariables {
   conversationInstructions?: string;
   createMicroagent?: CreateMicroagent;
   use_h2loop_model?: boolean;
+  skipNavigation?: boolean;
 }
 
 export const useCreateConversation = (comparision: boolean = false) => {
@@ -44,6 +45,7 @@ export const useCreateConversation = (comparision: boolean = false) => {
         conversationInstructions,
         createMicroagent,
         use_h2loop_model,
+        skipNavigation,
       } = variables;
 
       if (variables.simulationMode) {
@@ -68,20 +70,24 @@ export const useCreateConversation = (comparision: boolean = false) => {
     },
     onSuccess: async (
       { conversation_id: conversationId },
-      { query, repository },
+      { query, repository, skipNavigation },
     ) => {
-      posthog.capture("initial_query_submitted", {
-        entry_point: "task_form",
-        query_character_length: query?.length,
-        has_repository: !!repository,
-      });
+      if (!skipNavigation) {
+        posthog.capture("initial_query_submitted", {
+          entry_point: "task_form",
+          query_character_length: query?.length,
+          has_repository: !!repository,
+        });
+      }
       await queryClient.invalidateQueries({
         queryKey: ["user", "conversations"],
       });
-      if (!comparision) {
-        navigate(`/conversations/${conversationId}`);
-      } else {
-        navigate(`/conversations/${conversationId}/compare`);
+      if (!skipNavigation) {
+        if (!comparision) {
+          navigate(`/conversations/${conversationId}`);
+        } else {
+          navigate(`/conversations/${conversationId}/compare`);
+        }
       }
     },
   });
