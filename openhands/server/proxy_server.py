@@ -1,10 +1,15 @@
 import asyncio
 import logging
+import os
 
 import httpx
+import uvicorn
 import websockets
+from dotenv import load_dotenv
 from fastapi import FastAPI, Request, WebSocket
 from fastapi.responses import Response
+
+load_dotenv('openhands/.env')
 
 app = FastAPI()
 
@@ -16,8 +21,11 @@ logger = logging.getLogger(__name__)
     '/{port}/{path:path}', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
 )
 async def proxy_http(request: Request, port: int, path: str):
-    """Proxies normal HTTP requests to localhost:<port>"""
-    target_url = f'http://localhost:{port}/{path}'
+    """Proxies normal HTTP requests to <host>:<port>"""
+    protocol = os.environ.get('PROXY_TARGET_PROTOCOL', 'http')
+    host = os.environ.get('PROXY_HOST', 'localhost')
+
+    target_url = f'{protocol}://{host}:{port}/{path}'
 
     async with httpx.AsyncClient() as client:
         method = request.method
@@ -47,7 +55,9 @@ async def proxy_ws(websocket: WebSocket, port: int, path: str):
 
     # Build target URL with query parameters
     query_string = str(websocket.url.query) if websocket.url.query else ''
-    target_url = f'ws://localhost:{port}/{path}'
+
+    host = os.environ.get('PROXY_HOST', 'localhost')
+    target_url = f'ws://{host}:{port}/{path}'
     if query_string:
         target_url += f'?{query_string}'
 
@@ -83,6 +93,5 @@ async def proxy_ws(websocket: WebSocket, port: int, path: str):
 
 
 if __name__ == '__main__':
-    import uvicorn
-
-    uvicorn.run(app, host='0.0.0.0', port=8002)
+    port = int(os.environ.get('PROXY_PORT', '8002'))
+    uvicorn.run(app, host='0.0.0.0', port=port)
