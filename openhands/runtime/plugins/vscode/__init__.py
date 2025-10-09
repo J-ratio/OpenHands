@@ -68,7 +68,6 @@ class VSCodePlugin(Plugin):
         base_path_flag = ''
         # Allow explicit override via environment
         explicit_base = os.getenv('OPENVSCODE_SERVER_BASE_PATH')
-        logger.info(f'Explicit base: {explicit_base}')
         if explicit_base:
             explicit_base = (
                 explicit_base if explicit_base.startswith('/') else f'/{explicit_base}'
@@ -88,8 +87,6 @@ class VSCodePlugin(Plugin):
         if not base_path_flag:
             base_path_flag = f' --server-base-path /{self.vscode_port}'
 
-        print(f'Base path flag: {base_path_flag}')
-
         cmd = (
             f"su - {username} -s /bin/bash << 'EOF'\n"
             f'sudo chown -R {username}:{username} /openhands/.openvscode-server\n'
@@ -97,8 +94,6 @@ class VSCodePlugin(Plugin):
             f'exec /openhands/.openvscode-server/bin/openvscode-server --host 0.0.0.0 --connection-token {self.vscode_connection_token} --port {self.vscode_port} --disable-workspace-trust{base_path_flag}\n'
             'EOF'
         )
-
-        print(f'Command vscode: {cmd}')
 
         # Using asyncio.create_subprocess_shell instead of subprocess.Popen
         # to avoid ASYNC101 linting error
