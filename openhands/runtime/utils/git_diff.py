@@ -22,7 +22,7 @@ def is_binary_file(filepath: Path) -> bool:
     # For files without extension or unknown, check content
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
-            f.read(512)
+            f.read(128)
         return False
     except (UnicodeDecodeError, UnicodeError):
         return True
