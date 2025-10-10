@@ -59,12 +59,23 @@ export function Sidebar() {
   const runningConversations = conversations.filter(conv => conv.status === "RUNNING" || conv.status === "STARTING");
   const existsRunningConversations = runningConversations.length > 0;
 
-  // Auto-create conversation if no conversations exist
+  const hasAttemptedAutoCreateConversation = React.useRef(false);
+
+  const hasProviderTokens = Object.values(settings?.PROVIDER_TOKENS_SET || {}).some(token => token !== null);
+
   React.useEffect(() => {
-    if (conversationsData && conversations.length === 0 && !isCreatingConversation && !isFetchingLinkedRepo) {
+    if (
+      conversationsData &&
+      conversations.length === 0 &&
+      !isCreatingConversation &&
+      !isFetchingLinkedRepo &&
+      !hasAttemptedAutoCreateConversation.current &&
+      hasProviderTokens
+    ) {
       createConversation({ skipNavigation: true });
+      hasAttemptedAutoCreateConversation.current = true;
     }
-  }, [conversationsData, conversations.length, isCreatingConversation, isFetchingLinkedRepo]);
+  }, [conversationsData, conversations.length, isCreatingConversation, isFetchingLinkedRepo, settings, hasProviderTokens]);
 
   // Load conversation on start when no conversations are running
   React.useEffect(() => {
