@@ -75,7 +75,7 @@ export function Sidebar() {
       createConversation({ skipNavigation: true });
       hasAttemptedAutoCreateConversation.current = true;
     }
-  }, [conversationsData, conversations.length, isCreatingConversation, isFetchingLinkedRepo, settings, hasProviderTokens]);
+  }, [conversationsData, conversations.length, isCreatingConversation, isFetchingLinkedRepo, settings]);
 
   // Load conversation on start when no conversations are running
   React.useEffect(() => {
