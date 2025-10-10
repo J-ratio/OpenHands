@@ -11,6 +11,24 @@ from pathlib import Path
 
 MAX_FILE_SIZE_FOR_GIT_DIFF = 1024 * 1024  # 1 Mb
 
+# Set of file extensions considered binary
+BINARY_FILE_EXTENSIONS = {'.o', '.a', '.so', '.dylib', '.dll', '.exe', '.bin'}
+
+def is_binary_file(filepath: Path) -> bool:
+    """Check if a file is binary based on file extension or content."""
+    if filepath.suffix.lower() in BINARY_FILE_EXTENSIONS:
+        return True
+
+    # For files without extension or unknown, check content
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            f.read(128)
+        return False
+    except (UnicodeDecodeError, UnicodeError):
+        return True
+    except OSError:
+        return False
+
 
 def get_closest_git_repo(path: Path) -> Path | None:
     while True:
@@ -78,6 +96,8 @@ def get_git_diff(relative_file_path: str) -> dict[str, str]:
     path = Path(os.getcwd(), relative_file_path).resolve()
     if os.path.getsize(path) > MAX_FILE_SIZE_FOR_GIT_DIFF:
         raise ValueError('file_to_large')
+    if is_binary_file(path):
+        return {'modified': '', 'original': ''}
     closest_git_repo = get_closest_git_repo(path)
     if not closest_git_repo:
         raise ValueError('no_repository')
