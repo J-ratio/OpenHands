@@ -1,3 +1,4 @@
+import os
 import uuid
 from types import MappingProxyType
 from typing import Any
@@ -67,7 +68,7 @@ async def initialize_conversation(
             selected_repository=selected_repository,
             selected_branch=selected_branch,
             git_provider=git_provider,
-            workspace_id= settings.active_workspace_id,
+            workspace_id=settings.active_workspace_id,
         )
 
         await conversation_store.save_metadata(conversation_metadata)
@@ -116,9 +117,15 @@ async def start_conversation(
         # Handle h2loop model selection
         if use_h2loop_model:
             # Override with h2loop predefined values
-            session_init_args['llm_model'] = 'hosted_vllm/Qwen/Qwen2.5-Coder-32B-Instruct-AWQ'
-            session_init_args['llm_base_url'] = 'https://h2loop--qwen25-coder-32b-serve.modal.run/v1'
-            session_init_args['llm_api_key'] = 'super-secret-key'
+            session_init_args['llm_model'] = (
+                'litellm_proxy/qwen/qwen3-coder-480b-a35b-instruct-maas'
+            )
+            session_init_args['llm_base_url'] = (
+                'https://litellm-prod-909645453767.asia-south1.run.app'
+            )
+            session_init_args['llm_api_key'] = os.environ.get(
+                'DEFAULT_LLM_MODEL_SECRET_KEY'
+            )
             logger.info('Using h2loop model configuration for conversation')
 
         # We could use litellm.check_valid_key for a more accurate check,
@@ -126,11 +133,15 @@ async def start_conversation(
         llm_api_key = session_init_args.get('llm_api_key')
         if (
             not llm_api_key
-            or (hasattr(llm_api_key, 'get_secret_value') and
-                llm_api_key.get_secret_value().isspace())
+            or (
+                hasattr(llm_api_key, 'get_secret_value')
+                and llm_api_key.get_secret_value().isspace()
+            )
             or (isinstance(llm_api_key, str) and llm_api_key.isspace())
         ):
-            logger.warning(f'Missing api key for model {session_init_args.get("llm_model")}')
+            logger.warning(
+                f'Missing api key for model {session_init_args.get("llm_model")}'
+            )
             raise LLMAuthenticationError(
                 'Error authenticating with the LLM provider. Please check your API key'
             )
@@ -241,7 +252,10 @@ def create_provider_tokens_object(
 
 
 async def setup_init_conversation_settings(
-    user_id: str | None, conversation_id: str, providers_set: list[ProviderType], use_h2loop_model: bool | None = None
+    user_id: str | None,
+    conversation_id: str,
+    providers_set: list[ProviderType],
+    use_h2loop_model: bool | None = None,
 ) -> ConversationInitData:
     """Set up conversation initialization data with provider tokens.
 
@@ -283,9 +297,15 @@ async def setup_init_conversation_settings(
 
     # Handle h2loop model selection for conversation restart
     if use_h2loop_model:
-        conversation_init_data.llm_model = 'hosted_vllm/Qwen/Qwen2.5-Coder-32B-Instruct-AWQ'
-        conversation_init_data.llm_base_url = 'https://h2loop--qwen25-coder-32b-serve.modal.run/v1'
-        conversation_init_data.llm_api_key = SecretStr('super-secret-key')
+        conversation_init_data.llm_model = (
+            'litellm_proxy/qwen/qwen3-coder-480b-a35b-instruct-maas'
+        )
+        conversation_init_data.llm_base_url = (
+            'https://litellm-prod-909645453767.asia-south1.run.app'
+        )
+        conversation_init_data.llm_api_key = SecretStr(
+            os.environ.get('DEFAULT_LLM_MODEL_SECRET_KEY') or ''
+        )
         logger.info('Using h2loop model configuration for conversation restart')
 
     # Set the use_h2loop_model flag for tracking

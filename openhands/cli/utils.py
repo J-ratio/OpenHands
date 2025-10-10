@@ -147,7 +147,7 @@ def organize_models_and_providers(
     return result_dict
 
 
-VERIFIED_PROVIDERS = ['hosted_vllm', 'anthropic', 'openai', 'mistral']
+VERIFIED_PROVIDERS = ['litellm_proxy', 'anthropic', 'openai', 'mistral']
 
 VERIFIED_OPENAI_MODELS = [
     'gpt-5-2025-08-07',
@@ -197,8 +197,8 @@ VERIFIED_OPENHANDS_MODELS = [
     'qwen3-coder-480b',
 ]
 
-VERIFIED_HOSTED_VLLM_MODELS = [
-    'hosted_vllm/Qwen/Qwen2.5-Coder-32B-Instruct-AWQ',
+VERIFIED_LITELLM_PROXY_MODELS = [
+    'litellm_proxy/qwen/qwen3-coder-480b-a35b-instruct-maas',
 ]
 
 

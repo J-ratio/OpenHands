@@ -1,6 +1,6 @@
 {
-  "llm_model": "hosted_vllm/Qwen/Qwen2.5-Coder-32B-Instruct-AWQ",
-  "llm_base_url": "https://h2loop--qwen25-coder-32b-serve.modal.run/v1",
+  "llm_model": "litellm_proxy/qwen/qwen3-coder-480b-a35b-instruct-maas",
+  "llm_base_url": "https://litellm-prod-909645453767.asia-south1.run.app",
   "llm_api_key": "",
   "secrets_store": {
     "provider_tokens": {

@@ -22,11 +22,11 @@ interface SettingsFormProps {
   onClose: () => void;
 }
 
-const DEFAULT_CUSTOM_PROVIDER = "hosted_vllm";
-const DEFAULT_CUSTOM_MODEL = "hosted_vllm/Qwen/Qwen2.5-Coder-32B-Instruct-AWQ";
+const DEFAULT_CUSTOM_PROVIDER = "litellm_proxy";
+const DEFAULT_CUSTOM_MODEL = "litellm_proxy/qwen/qwen3-coder-480b-a35b-instruct-maas";
 const DEFAULT_CUSTOM_BASE_URL =
-  "https://h2loop--qwen25-coder-32b-serve.modal.run/v1";
-const DEFAULT_CUSTOM_API_KEY = "super-secret-key";
+  "https://litellm-prod-909645453767.asia-south1.run.app";
+const DEFAULT_CUSTOM_API_KEY = "sk-1234";
 
 export function SettingsForm({ settings, models, onClose }: SettingsFormProps) {
   const { mutate: saveUserSettings } = useSaveSettings();

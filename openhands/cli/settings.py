@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -246,10 +247,10 @@ async def modify_llm_settings_basic(
 
     # Set default provider to custom vllm model (H2Loop Qwen2.5-Coder-32B)
     # If not present, fallback to anthropic or first provider
-    DEFAULT_CUSTOM_PROVIDER = 'hosted_vllm'
-    DEFAULT_CUSTOM_MODEL = 'hosted_vllm/Qwen/Qwen2.5-Coder-32B-Instruct-AWQ'
-    DEFAULT_CUSTOM_BASE_URL = 'https://h2loop--qwen25-coder-32b-serve.modal.run/v1'
-    DEFAULT_CUSTOM_API_KEY = 'super-secret-key'
+    DEFAULT_CUSTOM_PROVIDER = 'litellm_proxy'
+    DEFAULT_CUSTOM_MODEL = 'litellm_proxy/qwen/qwen3-coder-480b-a35b-instruct-maas'
+    DEFAULT_CUSTOM_BASE_URL = 'https://litellm-prod-909645453767.asia-south1.run.app'
+    DEFAULT_CUSTOM_API_KEY = os.environ.get('DEFAULT_LLM_MODEL_SECRET_KEY')
 
     provider = (
         DEFAULT_CUSTOM_PROVIDER
