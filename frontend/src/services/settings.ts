@@ -3,8 +3,8 @@ import { Settings } from "#/types/settings";
 export const LATEST_SETTINGS_VERSION = 5;
 
 export const DEFAULT_SETTINGS: Settings = {
-  LLM_MODEL: "hosted_vllm/Qwen/Qwen2.5-Coder-32B-Instruct-AWQ",
-  LLM_BASE_URL: "https://h2loop--qwen25-coder-32b-serve.modal.run/v1",
+  LLM_MODEL: "litellm_proxy/qwen/qwen3-coder-480b-a35b-instruct-maas",
+  LLM_BASE_URL: "https://litellm-prod-909645453767.asia-south1.run.app",
   LLM_API_KEY_SET: true,
   AGENT: "CodeActAgent",
   LANGUAGE: "en",
