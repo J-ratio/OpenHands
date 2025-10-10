@@ -61,7 +61,10 @@ export function Sidebar() {
 
   const hasAttemptedAutoCreateConversation = React.useRef(false);
 
-  const hasProviderTokens = Object.values(settings?.PROVIDER_TOKENS_SET || {}).some(token => token !== null);
+  const hasProviderTokens = React.useMemo(
+    () => Object.values(settings?.PROVIDER_TOKENS_SET || {}).some(token => token !== null),
+    [settings?.PROVIDER_TOKENS_SET]
+  );
 
   React.useEffect(() => {
     if (
