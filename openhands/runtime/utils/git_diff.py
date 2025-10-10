@@ -11,11 +11,12 @@ from pathlib import Path
 
 MAX_FILE_SIZE_FOR_GIT_DIFF = 1024 * 1024  # 1 Mb
 
+# Set of file extensions considered binary
+BINARY_FILE_EXTENSIONS = {'.o', '.a', '.so', '.dylib', '.dll', '.exe', '.bin'}
 
 def is_binary_file(filepath: Path) -> bool:
     """Check if a file is binary based on file extension or content."""
-    binary_extensions = {'.o', '.a', '.so', '.dylib', '.dll', '.exe', '.bin'}
-    if filepath.suffix.lower() in binary_extensions:
+    if filepath.suffix.lower() in BINARY_FILE_EXTENSIONS:
         return True
 
     # For files without extension or unknown, check content
