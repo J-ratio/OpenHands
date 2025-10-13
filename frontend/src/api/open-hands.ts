@@ -287,11 +287,13 @@ class OpenHands {
     limit: number = 20,
     pageId?: string,
   ): Promise<ResultSet<Conversation>> {
+    const activeWorkspaceId = sessionStorage.getItem("active_workspace_id");
     const { data } = await openHands.get<ResultSet<Conversation>>(
       "/api/conversations",
       {
         params: {
           limit: limit.toString(),
+          ...(activeWorkspaceId && { active_workspace_id: activeWorkspaceId }),
           ...(pageId && { page_id: pageId }),
         },
       },
