@@ -11,6 +11,10 @@ import { getAllDataSourcesByWorkspaceId } from "#/api/data-sources";
 import { useSaveSettings } from "#/hooks/mutation/use-save-settings";
 import { getWorkspaceNameFromId } from "#/utils/workspace-utils";
 
+const TAB_WORKSPACE_ID_SESSION_STORAGEKEY = 'h2loop_tab_workspace_id';
+
+const LINKED_REPO_SESSION_STORAGE_KEY = "linked_repo";
+
 interface WorkspaceContextType {
   selectedWorkspace: any;
   setSelectedWorkspace: (workspace: any) => void;
@@ -34,7 +38,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   const [selectedWorkspace, setSelectedWorkspace] = useState();
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<
     string | undefined
-  >(settings?.ACTIVE_WORKSPACE_ID || undefined);
+  >(getCurrentWorkspaceId(settings?.ACTIVE_WORKSPACE_ID));
   const [selectedWorkspaceName, setSelectedWorkspaceName] = useState<
     string | undefined
   >();
@@ -47,16 +51,32 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
 
   const { mutate: saveUserSettings } = useSaveSettings();
 
-  const handleRefreshLinkedRepo = () => setRefreshKey((k) => k + 1);
+  // Helper function to get current workspace ID with tab-specific priority
+  function getCurrentWorkspaceId(globalWorkspaceId?: string): string | undefined {
+    const tabWorkspaceId = sessionStorage.getItem(TAB_WORKSPACE_ID_SESSION_STORAGEKEY);
+    if (tabWorkspaceId) {
+      return tabWorkspaceId;
+    }
+    return globalWorkspaceId;
+  }
 
-  const linkedRepoLocalStorageKey = "linked_repo";
+  const setTabWorkspaceId = (workspaceId: string | undefined) => {
+    if (workspaceId) {
+      sessionStorage.setItem(TAB_WORKSPACE_ID_SESSION_STORAGEKEY, workspaceId);
+    } else {
+      sessionStorage.removeItem(TAB_WORKSPACE_ID_SESSION_STORAGEKEY);
+    }
+    setSelectedWorkspaceId(workspaceId);
+  };
+
+  const handleRefreshLinkedRepo = () => setRefreshKey((k) => k + 1);
 
   async function fetchLinkedRepo(workspaceId: string) {
     setIsFetchingLinkedRepo(true);
     try {
       if (!workspaceId) {
         setLinkedRepo(undefined);
-        localStorage.removeItem(linkedRepoLocalStorageKey);
+        sessionStorage.removeItem(LINKED_REPO_SESSION_STORAGE_KEY);
         return;
       }
       const res = await getAllDataSourcesByWorkspaceId(workspaceId);
@@ -66,14 +86,14 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
         );
         if (repo) {
           setLinkedRepo(repo);
-          localStorage.setItem(linkedRepoLocalStorageKey, repo.url);
+          sessionStorage.setItem(LINKED_REPO_SESSION_STORAGE_KEY, repo.url);
         } else {
           setLinkedRepo(undefined);
-          localStorage.removeItem(linkedRepoLocalStorageKey);
+          sessionStorage.removeItem(LINKED_REPO_SESSION_STORAGE_KEY);
         }
       } else {
         setLinkedRepo(undefined);
-        localStorage.removeItem(linkedRepoLocalStorageKey);
+        sessionStorage.removeItem(LINKED_REPO_SESSION_STORAGE_KEY);
       }
     } catch (error) {
       console.error(error);
@@ -83,22 +103,24 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   }
 
   useEffect(() => {
-    const activeWorkspaceId = settings?.ACTIVE_WORKSPACE_ID;
-    if (activeWorkspaceId) {
-      setSelectedWorkspaceId(activeWorkspaceId);
+    const globalWorkspaceId = settings?.ACTIVE_WORKSPACE_ID;
+    const currentWorkspaceId = getCurrentWorkspaceId(globalWorkspaceId);
+
+    if (currentWorkspaceId && currentWorkspaceId !== selectedWorkspaceId) {
+      setSelectedWorkspaceId(currentWorkspaceId);
       if (location.pathname === "/") {
-        fetchLinkedRepo(activeWorkspaceId);
+        fetchLinkedRepo(currentWorkspaceId);
       }
 
       setSelectedWorkspaceName(
-        getWorkspaceNameFromId(workspaces, Number(activeWorkspaceId)),
+        getWorkspaceNameFromId(workspaces, Number(currentWorkspaceId)),
       );
-    } else {
+    } else if (!currentWorkspaceId) {
       setLinkedRepo(undefined);
-      localStorage.removeItem(linkedRepoLocalStorageKey);
+      sessionStorage.removeItem(LINKED_REPO_SESSION_STORAGE_KEY);
     }
 
-    if (activeWorkspaceId === null) {
+    if (globalWorkspaceId === null) {
       saveUserSettings({
         ACTIVE_WORKSPACE_ID: selectedWorkspaceId?.toString(),
       });
@@ -106,8 +128,8 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   }, [settings?.ACTIVE_WORKSPACE_ID]);
 
   useEffect(() => {
-    fetchLinkedRepo(settings?.ACTIVE_WORKSPACE_ID ?? "");
-  }, [refreshKey]);
+    fetchLinkedRepo(selectedWorkspaceId ?? "");
+  }, [refreshKey, selectedWorkspaceId]);
 
   useEffect(() => {
     if (settings?.ACTIVE_WORKSPACE_ID) return;
@@ -116,13 +138,22 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     saveUserSettings({ ACTIVE_WORKSPACE_ID: selectedWorkspaceId?.toString() });
   }, [settings, selectedWorkspaceId]);
 
+  // Initialize tab workspace from global settings if not set
+  useEffect(() => {
+    const tabWorkspaceId = sessionStorage.getItem(TAB_WORKSPACE_ID_SESSION_STORAGEKEY);
+    if (!tabWorkspaceId && settings?.ACTIVE_WORKSPACE_ID) {
+      sessionStorage.setItem(TAB_WORKSPACE_ID_SESSION_STORAGEKEY, settings.ACTIVE_WORKSPACE_ID);
+      setSelectedWorkspaceId(settings.ACTIVE_WORKSPACE_ID);
+    }
+  }, [settings?.ACTIVE_WORKSPACE_ID]);
+
   return (
     <WorkspaceContext.Provider
       value={{
         selectedWorkspace,
         setSelectedWorkspace,
         selectedWorkspaceId,
-        setSelectedWorkspaceId,
+        setSelectedWorkspaceId: setTabWorkspaceId,
         workspaces,
         setWorkspaces,
         linkedRepo,
