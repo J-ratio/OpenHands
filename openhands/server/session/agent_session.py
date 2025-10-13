@@ -105,8 +105,9 @@ class AgentSession:
         initial_message: MessageAction | None = None,
         conversation_instructions: str | None = None,
         replay_json: str | None = None,
+        active_workspace_id: str | None = None,
         linked_repository: str | None = None,
-        settings: Settings | None = None
+        settings: Settings | None = None,
     ) -> None:
         """Starts the Agent session
         Parameters:
@@ -144,6 +145,7 @@ class AgentSession:
                 custom_secrets=custom_secrets,
                 selected_repository=selected_repository,
                 selected_branch=selected_branch,
+                active_workspace_id=active_workspace_id,
                 linked_repository=linked_repository,
                 settings=settings,
             )
@@ -308,8 +310,9 @@ class AgentSession:
         custom_secrets: CUSTOM_SECRETS_TYPE | None = None,
         selected_repository: str | None = None,
         selected_branch: str | None = None,
+        active_workspace_id: str | None = None,
         linked_repository: str | None = None,
-        settings: Settings | None = None
+        settings: Settings | None = None,
     ) -> bool:
         """Creates a runtime instance
 
@@ -328,12 +331,18 @@ class AgentSession:
         env_vars = custom_secrets_handler.get_env_vars()
 
         access_token = get_current_access_token()
-        token_value = access_token.get_secret_value() if access_token else ""
+        token_value = access_token.get_secret_value() if access_token else ''
 
-        env_vars.update({
-            "H2LOOP_ACTIVE_WORKSPACE_ID": settings.active_workspace_id or "" if settings else "",
-            "H2LOOP_AUTH_ACCESS_TOKEN": token_value
-        })
+        workspace_id = active_workspace_id or (
+            settings.active_workspace_id if settings else None
+        )
+
+        env_vars.update(
+            {
+                'H2LOOP_ACTIVE_WORKSPACE_ID': workspace_id or '',
+                'H2LOOP_AUTH_ACCESS_TOKEN': token_value,
+            }
+        )
 
         if not selected_repository and linked_repository:
             config.sandbox.selected_repo = linked_repository
@@ -392,7 +401,9 @@ class AgentSession:
             return False
 
         await self.runtime.clone_or_init_repo(
-            git_provider_tokens, selected_repository or linked_repository, selected_branch
+            git_provider_tokens,
+            selected_repository or linked_repository,
+            selected_branch,
         )
         await call_sync_from_async(self.runtime.maybe_run_setup_script)
         await call_sync_from_async(self.runtime.maybe_setup_git_hooks)

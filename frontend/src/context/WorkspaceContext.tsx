@@ -11,7 +11,7 @@ import { getAllDataSourcesByWorkspaceId } from "#/api/data-sources";
 import { useSaveSettings } from "#/hooks/mutation/use-save-settings";
 import { getWorkspaceNameFromId } from "#/utils/workspace-utils";
 
-const TAB_WORKSPACE_ID_SESSION_STORAGEKEY = 'h2loop_tab_workspace_id';
+const ACTIVE_WORKSPACE_ID_SESSION_STORAGEKEY = 'active_workspace_id';
 
 const LINKED_REPO_SESSION_STORAGE_KEY = "linked_repo";
 
@@ -53,7 +53,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
 
   // Helper function to get current workspace ID with tab-specific priority
   function getCurrentWorkspaceId(globalWorkspaceId?: string): string | undefined {
-    const tabWorkspaceId = sessionStorage.getItem(TAB_WORKSPACE_ID_SESSION_STORAGEKEY);
+    const tabWorkspaceId = sessionStorage.getItem(ACTIVE_WORKSPACE_ID_SESSION_STORAGEKEY);
     if (tabWorkspaceId) {
       return tabWorkspaceId;
     }
@@ -62,9 +62,9 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
 
   const setTabWorkspaceId = (workspaceId: string | undefined) => {
     if (workspaceId) {
-      sessionStorage.setItem(TAB_WORKSPACE_ID_SESSION_STORAGEKEY, workspaceId);
+      sessionStorage.setItem(ACTIVE_WORKSPACE_ID_SESSION_STORAGEKEY, workspaceId);
     } else {
-      sessionStorage.removeItem(TAB_WORKSPACE_ID_SESSION_STORAGEKEY);
+      sessionStorage.removeItem(ACTIVE_WORKSPACE_ID_SESSION_STORAGEKEY);
     }
     setSelectedWorkspaceId(workspaceId);
   };
@@ -140,9 +140,9 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
 
   // Initialize tab workspace from global settings if not set
   useEffect(() => {
-    const tabWorkspaceId = sessionStorage.getItem(TAB_WORKSPACE_ID_SESSION_STORAGEKEY);
+    const tabWorkspaceId = sessionStorage.getItem(ACTIVE_WORKSPACE_ID_SESSION_STORAGEKEY);
     if (!tabWorkspaceId && settings?.ACTIVE_WORKSPACE_ID) {
-      sessionStorage.setItem(TAB_WORKSPACE_ID_SESSION_STORAGEKEY, settings.ACTIVE_WORKSPACE_ID);
+      sessionStorage.setItem(ACTIVE_WORKSPACE_ID_SESSION_STORAGEKEY, settings.ACTIVE_WORKSPACE_ID);
       setSelectedWorkspaceId(settings.ACTIVE_WORKSPACE_ID);
     }
   }, [settings?.ACTIVE_WORKSPACE_ID]);

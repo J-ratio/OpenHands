@@ -91,6 +91,7 @@ def is_start_conversation_on_login_enabled() -> bool:
 async def login(
     background_tasks: BackgroundTasks,
     user_id: str = Depends(get_user_id),
+    active_workspace_id: str | None = None,
     conversation_store: ConversationStore = Depends(get_conversation_store),
     settings_store: SettingsStore = Depends(get_user_settings_store),
 ) -> dict:
@@ -101,9 +102,16 @@ async def login(
             'message': 'Login successful, conversation auto-start disabled',
         }
 
+    if not active_workspace_id:
+        return {
+            'status': 'ok',
+            'message': 'Login successful, active workspace id not provided',
+        }
+
     background_tasks.add_task(
         start_latest_conversation,
         user_id,
+        active_workspace_id,
         conversation_store,
         settings_store,
         conversation_manager,
@@ -116,20 +124,27 @@ async def login(
 
 async def start_latest_conversation(
     user_id: str,
+    active_workspace_id: str | None,
     conversation_store: ConversationStore,
     settings_store: SettingsStore,
     conversation_manager: ConversationManager,
 ):
     """Start the latest conversation's container to pre-warm conversations on login."""
 
-    user_settings = await settings_store.load()
-    if not user_settings:
-        logger.warning('User settings not found. Skipping latest conversation start.')
+    if not active_workspace_id:
+        logger.warning(
+            'Active workspace not found. Skipping latest conversation start.'
+        )
         return
+
+    # user_settings = await settings_store.load()
+    # if not user_settings:
+    #     logger.warning('User settings not found. Skipping latest conversation start.')
+    #     return
 
     # Search for recent conversations
     conversation_metadata_result_set = await conversation_store.search(
-        user_settings.active_workspace_id, None, 100
+        active_workspace_id, None, 100
     )
 
     # Filter out old conversations as in search_conversations
@@ -186,6 +201,7 @@ class InitSessionRequest(BaseModel):
     mcp_config: MCPConfig | None = None
     use_h2loop_model: bool | None = None
     linked_repository: str | None = None
+    active_workspace_id: str | None = None
     # Only nested runtimes require the ability to specify a conversation id, and it could be a security risk
     if os.getenv('ALLOW_SET_CONVERSATION_ID', '0') == '1':
         conversation_id: str = Field(default_factory=lambda: uuid.uuid4().hex)
@@ -229,6 +245,7 @@ async def new_conversation(
     git_provider = data.git_provider
     conversation_instructions = data.conversation_instructions
     use_h2loop_model = data.use_h2loop_model
+    active_workspace_id = data.active_workspace_id
     linked_repository = data.linked_repository
 
     conversation_trigger = ConversationTrigger.GUI
@@ -288,6 +305,7 @@ async def new_conversation(
             conversation_id=conversation_id,
             mcp_config=data.mcp_config,
             use_h2loop_model=use_h2loop_model,
+            active_workspace_id=active_workspace_id,
             linked_repository=linked_repository,
         )
 
@@ -335,18 +353,19 @@ async def trigger_default_llm_model(settings):
 async def search_conversations(
     page_id: str | None = None,
     limit: int = 20,
+    active_workspace_id: str | None = None,
     selected_repository: str | None = None,
     conversation_trigger: ConversationTrigger | None = None,
     conversation_store: ConversationStore = Depends(get_conversation_store),
     settings_store: SettingsStore = Depends(get_user_settings_store),
 ) -> ConversationInfoResultSet:
-    user_settings = await settings_store.load()
-    if not user_settings:
-        logger.warning('User settings not found. Returning empty results.')
-        return ConversationInfoResultSet(results=[], next_page_id=None)
+    # user_settings = await settings_store.load()
+    # if not user_settings:
+    #     logger.warning('User settings not found. Returning empty results.')
+    #     return ConversationInfoResultSet(results=[], next_page_id=None)
 
     conversation_metadata_result_set = await conversation_store.search(
-        user_settings.active_workspace_id, page_id, limit
+        active_workspace_id, page_id, limit
     )
 
     # Filter out conversations older than max_age and conversations from the same workspace
