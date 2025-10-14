@@ -87,11 +87,16 @@ def is_start_conversation_on_login_enabled() -> bool:
     return os.environ.get('START_CONVERSATION_ON_LOGIN', 'false').lower() == 'true'
 
 
+class LoginRequest(BaseModel):
+    active_workspace_id: str | None = None
+    model_config = ConfigDict(extra='forbid')
+
+
 @app.post('/login')
 async def login(
     background_tasks: BackgroundTasks,
+    login_request: LoginRequest,
     user_id: str = Depends(get_user_id),
-    active_workspace_id: str | None = None,
     conversation_store: ConversationStore = Depends(get_conversation_store),
     settings_store: SettingsStore = Depends(get_user_settings_store),
 ) -> dict:
@@ -102,6 +107,7 @@ async def login(
             'message': 'Login successful, conversation auto-start disabled',
         }
 
+    active_workspace_id = login_request.active_workspace_id
     if not active_workspace_id:
         return {
             'status': 'ok',
