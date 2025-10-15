@@ -76,7 +76,7 @@ class VSCodePlugin(Plugin):
         else:
             # If runtime_id passed explicitly (preferred), use it
             runtime_url = os.getenv('RUNTIME_URL', '')
-            print(f'Runtime url: {runtime_url}')
+            logger.debug('Runtime url: %s', runtime_url)
             if runtime_url and runtime_id:
                 parsed = urlparse(runtime_url)
                 path = parsed.path or '/'
