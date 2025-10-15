@@ -729,8 +729,7 @@ class DockerRuntime(ActionExecutionClient):
 
         protocol = os.environ.get('PROXY_TARGET_PROTOCOL', 'http')
         host = os.environ.get('PROXY_HOST', 'localhost')
-        proxy_port = os.environ.get('PROXY_PORT', '8002')
-        proxy_base = f'{protocol}://{host}:{proxy_port}'
+        proxy_base = f'{protocol}://{host}'
 
         vscode_url = (
             f'{proxy_base}/{self._vscode_port}/?tkn={token}&folder={folder_path}'
