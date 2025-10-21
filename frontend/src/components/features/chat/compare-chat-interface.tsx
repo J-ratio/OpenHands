@@ -139,6 +139,9 @@ export function CompareChatInterface() {
     console.log(`Comparison load timestamp: ${comparisonLoadTimestamp}`)
   }, [params.conversationId]);
 
+  console.log("Parsed events: ");
+  console.log(parsedEvents);
+
   let events = [
     ...parsedEvents.filter((event) =>
       shouldRenderEvent(event) &&
@@ -146,7 +149,8 @@ export function CompareChatInterface() {
     ),
     ...localEvents
   ];
-  console.log(`Events: ${events}`);
+  console.log("Events: ");
+  console.log(events);
   // const events = localEvents;
 
   const { curStatusMessage } = useSelector((state: RootState) => state.status);
@@ -220,7 +224,7 @@ export function CompareChatInterface() {
       setStaticModelOneResponse("");
       setStaticModelTwoResponse("");
       // Clear local events for regular messages to avoid conflicts
-      setLocalEvents([]);
+      // setLocalEvents([]);
       try {
         if (modelOne === "h2loop" || modelTwo === "h2loop") {
           send(
