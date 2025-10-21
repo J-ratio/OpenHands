@@ -135,6 +135,7 @@ export function CompareChatInterface() {
   React.useEffect(() => {
     setIsInitialLoad(true);
     setComparisonLoadTimestamp(getLocalISOString(new Date()));
+    console.log(`Comparison load timestamp: ${comparisonLoadTimestamp}`)
   }, [params.conversationId]);
 
   let events = [
@@ -144,6 +145,7 @@ export function CompareChatInterface() {
     ),
     ...localEvents
   ];
+  console.log(`Events: ${events}`);
   // const events = localEvents;
 
   const { curStatusMessage } = useSelector((state: RootState) => state.status);
