@@ -125,7 +125,7 @@ export function CompareChatInterface() {
     (OpenHandsAction | OpenHandsObservation)[]
   >([]);
   const [isInitialLoad, setIsInitialLoad] = React.useState(true);
-  const [comparisonLoadTimestamp, setComparisonLoadTimestamp] = React.useState<string | null>(null);
+  const [comparisonLoadTimestamp, setComparisonLoadTimestamp] = React.useState<string | null>(getLocalISOString(new Date()));
 
   const getLocalISOString = (date: Date) => {
     const pad = (num: number, size: number) => String(num).padStart(size, '0');
