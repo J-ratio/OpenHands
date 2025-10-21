@@ -124,8 +124,27 @@ export function CompareChatInterface() {
   const [localEvents, setLocalEvents] = React.useState<
     (OpenHandsAction | OpenHandsObservation)[]
   >([]);
-  // let events = [...parsedEvents.filter(shouldRenderEvent), ...localEvents];
-  const events = localEvents;
+  const [isInitialLoad, setIsInitialLoad] = React.useState(true);
+  const [comparisonLoadTimestamp, setComparisonLoadTimestamp] = React.useState<string | null>(null);
+
+  const getLocalISOString = (date: Date) => {
+    const pad = (num: number, size: number) => String(num).padStart(size, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1, 2)}-${pad(date.getDate(), 2)}T${pad(date.getHours(), 2)}:${pad(date.getMinutes(), 2)}:${pad(date.getSeconds(), 2)}.${pad(date.getMilliseconds(), 3)}`;
+  };
+
+  React.useEffect(() => {
+    setIsInitialLoad(true);
+    setComparisonLoadTimestamp(getLocalISOString(new Date()));
+  }, [params.conversationId]);
+
+  let events = [
+    ...parsedEvents.filter((event) =>
+      shouldRenderEvent(event) &&
+      (!comparisonLoadTimestamp || event.timestamp >= comparisonLoadTimestamp)
+    ),
+    ...localEvents
+  ];
+  // const events = localEvents;
 
   const { curStatusMessage } = useSelector((state: RootState) => state.status);
   const { webSocketStatus } = useWsClient();
@@ -245,6 +264,7 @@ export function CompareChatInterface() {
     }
 
     setMessageToSend(null);
+    setIsInitialLoad(false);
 
     if (requiresStaticResponse && userSuggestion) {
       const userMessage: OpenHandsAction = {
