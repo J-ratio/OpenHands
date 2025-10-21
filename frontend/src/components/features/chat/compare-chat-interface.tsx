@@ -126,16 +126,12 @@ export function CompareChatInterface() {
   >([]);
   const [isInitialLoad, setIsInitialLoad] = React.useState(true);
 
-  const getLocalISOString = (date: Date) => {
-    const pad = (num: number, size: number) => String(num).padStart(size, '0');
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1, 2)}-${pad(date.getDate(), 2)}T${pad(date.getHours(), 2)}:${pad(date.getMinutes(), 2)}:${pad(date.getSeconds(), 2)}.${pad(date.getMilliseconds(), 3)}`;
-  };
-  const [comparisonLoadTimestamp, setComparisonLoadTimestamp] = React.useState<string | null>(getLocalISOString(new Date()));
+  const [comparisonLoadTimestamp, setComparisonLoadTimestamp] = React.useState<string | null>(new Date().toISOString());
 
 
   React.useEffect(() => {
     setIsInitialLoad(true);
-    setComparisonLoadTimestamp(getLocalISOString(new Date()));
+    setComparisonLoadTimestamp(new Date().toISOString());
     console.log(`Comparison load timestamp: ${comparisonLoadTimestamp}`)
   }, [params.conversationId]);
 
