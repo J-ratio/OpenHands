@@ -124,7 +124,8 @@ export function CompareChatInterface() {
   const [localEvents, setLocalEvents] = React.useState<
     (OpenHandsAction | OpenHandsObservation)[]
   >([]);
-  let events = [...parsedEvents.filter(shouldRenderEvent), ...localEvents];
+  // let events = [...parsedEvents.filter(shouldRenderEvent), ...localEvents];
+  const events = localEvents;
 
   const { curStatusMessage } = useSelector((state: RootState) => state.status);
   const { webSocketStatus } = useWsClient();
@@ -402,7 +403,7 @@ export function CompareChatInterface() {
           {isSimulationMode && (
             <ChatSimulator
               messages={GENERATE_CLASS_DIAGRAM_MESSAGES}
-              onComplete={() => {}}
+              onComplete={() => { }}
             />
           )}
           {!isSimulationMode && isLoadingMessages && (
@@ -426,51 +427,51 @@ export function CompareChatInterface() {
                   modelOneResponse={modelOneResponse}
                   modelTwoResponse={modelTwoResponse}
                   modelHistory={modelHistory}
-                  // sideBySideResponse={
-                  //   <div className="flex gap-16 px-16 py-8 max-w-8xl mx-auto">
-                  //     <div className="flex-1 bg-base-secondary rounded-xl p-6 border border-tertiary-light/20 shadow-lg hover:shadow-xl transition-shadow">
-                  //       <div className="flex items-center gap-3 mb-4">
-                  //         <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                  //           <span className="text-white text-sm font-medium">
-                  //             AI
-                  //           </span>
-                  //         </div>
-                  //         <h3 className="text-primary-text font-semibold">
-                  //           {modelOne} Response
-                  //         </h3>
-                  //       </div>
-                  //       <div className="prose prose-invert prose-sm max-w-none">
-                  //         <CompareChatMessage
-                  //           type="agent"
-                  //           message={modelOneResponse}
-                  //           enableTypewriter={true}
-                  //           isLatestMessage={true}
-                  //         />
-                  //       </div>
-                  //     </div>
+                // sideBySideResponse={
+                //   <div className="flex gap-16 px-16 py-8 max-w-8xl mx-auto">
+                //     <div className="flex-1 bg-base-secondary rounded-xl p-6 border border-tertiary-light/20 shadow-lg hover:shadow-xl transition-shadow">
+                //       <div className="flex items-center gap-3 mb-4">
+                //         <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                //           <span className="text-white text-sm font-medium">
+                //             AI
+                //           </span>
+                //         </div>
+                //         <h3 className="text-primary-text font-semibold">
+                //           {modelOne} Response
+                //         </h3>
+                //       </div>
+                //       <div className="prose prose-invert prose-sm max-w-none">
+                //         <CompareChatMessage
+                //           type="agent"
+                //           message={modelOneResponse}
+                //           enableTypewriter={true}
+                //           isLatestMessage={true}
+                //         />
+                //       </div>
+                //     </div>
 
-                  //     <div className="flex-1 bg-base-secondary rounded-xl p-6 border border-tertiary-light/20 shadow-lg hover:shadow-xl transition-shadow">
-                  //       <div className="flex items-center gap-3 mb-4">
-                  //         <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
-                  //           <span className="text-white text-sm font-medium">
-                  //             AI
-                  //           </span>
-                  //         </div>
-                  //         <h3 className="text-primary-text font-semibold">
-                  //           {modelTwo} Response
-                  //         </h3>
-                  //       </div>
-                  //       <div className="prose prose-invert prose-sm max-w-none">
-                  //         <CompareChatMessage
-                  //           type="agent"
-                  //           message={modelTwoResponse}
-                  //           enableTypewriter={true}
-                  //           isLatestMessage={true}
-                  //         />
-                  //       </div>
-                  //     </div>
-                  //   </div>
-                  // }
+                //     <div className="flex-1 bg-base-secondary rounded-xl p-6 border border-tertiary-light/20 shadow-lg hover:shadow-xl transition-shadow">
+                //       <div className="flex items-center gap-3 mb-4">
+                //         <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
+                //           <span className="text-white text-sm font-medium">
+                //             AI
+                //           </span>
+                //         </div>
+                //         <h3 className="text-primary-text font-semibold">
+                //           {modelTwo} Response
+                //         </h3>
+                //       </div>
+                //       <div className="prose prose-invert prose-sm max-w-none">
+                //         <CompareChatMessage
+                //           type="agent"
+                //           message={modelTwoResponse}
+                //           enableTypewriter={true}
+                //           isLatestMessage={true}
+                //         />
+                //       </div>
+                //     </div>
+                //   </div>
+                // }
                 />
               </div>
             )}
