@@ -42,7 +42,7 @@ export function Sidebar() {
   const { logout } = useLogoutToken();
   const { isFetchingLinkedRepo } = useWorkspace();
   const isSavingSettings = useIsMutating({ mutationKey: ["save-settings"] }) > 0;
-  const { data: conversationsData } = usePaginatedConversations(50);
+  const { data: conversationsData, refetch: refetchConversations } = usePaginatedConversations(50);
 
   // const [settingsModalIsOpen, setSettingsModalIsOpen] = React.useState(false);
 
@@ -85,6 +85,8 @@ export function Sidebar() {
     if (conversationsData && conversations.length > 0 && runningConversations.length === 0) {
       OpenHands.loadConversationOnStart().catch((error) => {
         console.warn("Failed to trigger load conversation on start:", error);
+      }).then(() => {
+        refetchConversations();
       });
     }
   }, [conversationsData, conversations.length, runningConversations.length]);
