@@ -81,7 +81,7 @@ export function DataTable({ columns, data, loading, error }) {
           label="Filter by Workspace"
         /> */}
       </div>
-      <div className="rounded-md border h-[70vh] 2xl:h-[80vh] overflow-y-scroll">
+      <div className="rounded-md border min-h-[200px] max-h-[70vh] overflow-y-scroll">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

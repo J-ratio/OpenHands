@@ -62,7 +62,7 @@ const WorkspacePage = () => {
 
   return (
     <div className="flex flex-1">
-      <div className="p-2 md:p-10 rounded-tl-2xl border border-neutral-200 dark:border-neutral-700 bg-logo dark:bg-neutral-900 flex flex-col gap-2 flex-1 w-full h-full py-12 overflow-y-auto">
+      <div className="p-2 md:p-10 rounded-tl-2xl border border-neutral-200 dark:border-neutral-700 bg-logo dark:bg-neutral-900 flex flex-col gap-2 flex-1 w-full h-full py-12">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-3xl font-bold">Your Workspaces</h2>

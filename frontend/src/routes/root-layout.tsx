@@ -199,7 +199,7 @@ export default function MainApp() {
       <SimulationProvider>
         <div
           data-testid="root-layout"
-          className="bg-base p-3 h-screen md:min-w-[1024px] flex flex-col md:flex-row gap-3 overflow-y-hidden"
+          className="bg-base p-3 h-screen md:min-w-[1024px] flex flex-col md:flex-row gap-3 overflow-y-auto"
         >
           <Toaster />
           <Sidebar />
