@@ -165,6 +165,8 @@ async def handle_commands(
         )
     elif command == '/tools':
         await handle_tools_command(config)
+    elif command == '/mcp':
+        await handle_mcp_command(config)
     elif command.startswith('/'):
         print_formatted_text(
             HTML(
@@ -174,8 +176,6 @@ async def handle_commands(
         close_repl, new_session_requested = await handle_resume_command(
             event_stream, agent_state
         )
-    elif command == '/mcp':
-        await handle_mcp_command(config)
     else:
         close_repl = True
         action = MessageAction(content=command)
