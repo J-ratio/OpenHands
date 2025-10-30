@@ -75,7 +75,7 @@ async def collect_input(config: OpenHandsConfig, prompt_text: str) -> str | None
 
 def restart_cli() -> None:
     """Restart the CLI by replacing the current process."""
-    print_formatted_text('🔄 Restarting OpenHands CLI...')
+    print_formatted_text('🔄 Restarting H2Loop CLI...')
 
     # Get the current Python executable and script arguments
     python_executable = sys.executable
@@ -88,14 +88,14 @@ def restart_cli() -> None:
     except Exception as e:
         print_formatted_text(f'❌ Failed to restart CLI: {e}')
         print_formatted_text(
-            'Please restart OpenHands manually for changes to take effect.'
+            'Please restart H2Loop manually for changes to take effect.'
         )
 
 
 async def prompt_for_restart(config: OpenHandsConfig) -> bool:
     """Prompt user if they want to restart the CLI and return their choice."""
     print_formatted_text('📝 MCP server configuration updated successfully!')
-    print_formatted_text('The changes will take effect after restarting OpenHands.')
+    print_formatted_text('The changes will take effect after restarting H2Loop.')
 
     prompt_session = create_prompt_session(config)
 
@@ -103,9 +103,7 @@ async def prompt_for_restart(config: OpenHandsConfig) -> bool:
         try:
             with patch_stdout():
                 response = await prompt_session.prompt_async(
-                    HTML(
-                        '<gold>Would you like to restart OpenHands now? (y/n): </gold>'
-                    )
+                    HTML('<gold>Would you like to restart H2Loop now? (y/n): </gold>')
                 )
                 response = response.strip().lower() if response else ''
 

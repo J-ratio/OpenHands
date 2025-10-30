@@ -1,4 +1,4 @@
-"""GUI launcher for OpenHands CLI."""
+"""GUI launcher for H2Loop CLI."""
 
 import os
 import shutil
@@ -67,22 +67,20 @@ def check_docker_requirements() -> bool:
 
 
 def ensure_config_dir_exists() -> Path:
-    """Ensure the OpenHands configuration directory exists and return its path."""
-    config_dir = Path.home() / '.openhands'
+    """Ensure the H2Loop configuration directory exists and return its path."""
+    config_dir = Path.home() / '.h2loop'
     config_dir.mkdir(exist_ok=True)
     return config_dir
 
 
 def launch_gui_server(mount_cwd: bool = False, gpu: bool = False) -> None:
-    """Launch the OpenHands GUI server using Docker.
+    """Launch the H2Loop GUI server using Docker.
 
     Args:
         mount_cwd: If True, mount the current working directory into the container.
         gpu: If True, enable GPU support by mounting all GPUs into the container via nvidia-docker.
     """
-    print_formatted_text(
-        HTML('<ansiblue>🚀 Launching OpenHands GUI server...</ansiblue>')
-    )
+    print_formatted_text(HTML('<ansiblue>🚀 Launching H2Loop GUI server...</ansiblue>'))
     print_formatted_text('')
 
     # Check Docker requirements
@@ -121,7 +119,7 @@ def launch_gui_server(mount_cwd: bool = False, gpu: bool = False) -> None:
 
     print_formatted_text('')
     print_formatted_text(
-        HTML('<ansigreen>✅ Starting OpenHands GUI server...</ansigreen>')
+        HTML('<ansigreen>✅ Starting H2Loop GUI server...</ansigreen>')
     )
     print_formatted_text(
         HTML('<grey>The server will be available at: http://localhost:3000</grey>')
@@ -207,13 +205,13 @@ def launch_gui_server(mount_cwd: bool = False, gpu: bool = False) -> None:
     except subprocess.CalledProcessError as e:
         print_formatted_text('')
         print_formatted_text(
-            HTML('<ansired>❌ Failed to start OpenHands GUI server.</ansired>')
+            HTML('<ansired>❌ Failed to start H2Loop GUI server.</ansired>')
         )
         print_formatted_text(HTML(f'<grey>Error: {e}</grey>'))
         sys.exit(1)
     except KeyboardInterrupt:
         print_formatted_text('')
         print_formatted_text(
-            HTML('<ansigreen>✓ OpenHands GUI server stopped successfully.</ansigreen>')
+            HTML('<ansigreen>✓ H2Loop GUI server stopped successfully.</ansigreen>')
         )
         sys.exit(0)

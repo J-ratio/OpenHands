@@ -1,4 +1,4 @@
-"""Shell configuration management for OpenHands CLI aliases.
+"""Shell configuration management for H2Loop CLI aliases.
 
 This module provides a simplified, more maintainable approach to managing
 shell aliases across different shell types and platforms.
@@ -23,24 +23,24 @@ class ShellConfigManager:
     # Shell configuration templates
     ALIAS_TEMPLATES = {
         'bash': Template("""
-# OpenHands CLI aliases
-alias openhands="{{ command }}"
-alias oh="{{ command }}"
+# H2Loop CLI aliases
+alias h2loop="{{ command }}"
+alias h2="{{ command }}"
 """),
         'zsh': Template("""
-# OpenHands CLI aliases
-alias openhands="{{ command }}"
-alias oh="{{ command }}"
+# H2Loop CLI aliases
+alias h2loop="{{ command }}"
+alias h2="{{ command }}"
 """),
         'fish': Template("""
-# OpenHands CLI aliases
-alias openhands="{{ command }}"
-alias oh="{{ command }}"
+# H2Loop CLI aliases
+alias h2loop="{{ command }}"
+alias h2="{{ command }}"
 """),
         'powershell': Template("""
-# OpenHands CLI aliases
-function openhands { {{ command }} $args }
-function oh { {{ command }} $args }
+# H2Loop CLI aliases
+function h2loop { {{ command }} $args }
+function h2 { {{ command }} $args }
 """),
     }
 
@@ -62,26 +62,24 @@ function oh { {{ command }} $args }
     # Regex patterns for detecting existing aliases
     ALIAS_PATTERNS = {
         'bash': [
-            r'^\s*alias\s+openhands\s*=',
-            r'^\s*alias\s+oh\s*=',
+            r'^\s*alias\s+h2loop\s*=',
+            r'^\s*alias\s+h2\s*=',
         ],
         'zsh': [
-            r'^\s*alias\s+openhands\s*=',
-            r'^\s*alias\s+oh\s*=',
+            r'^\s*alias\s+h2loop\s*=',
+            r'^\s*alias\s+h2\s*=',
         ],
         'fish': [
-            r'^\s*alias\s+openhands\s*=',
-            r'^\s*alias\s+oh\s*=',
+            r'^\s*alias\s+h2loop\s*=',
+            r'^\s*alias\s+h2\s*=',
         ],
         'powershell': [
-            r'^\s*function\s+openhands\s*\{',
-            r'^\s*function\s+oh\s*\{',
+            r'^\s*function\s+h2loop\s*\{',
+            r'^\s*function\s+h2\s*\{',
         ],
     }
 
-    def __init__(
-        self, command: str = 'uvx --python 3.12 --from openhands-ai openhands'
-    ):
+    def __init__(self, command: str = 'uvx --python 3.12 --from h2loop-ai h2loop'):
         """Initialize the shell config manager.
 
         Args:
@@ -166,7 +164,7 @@ function oh { {{ command }} $args }
             return 'bash'  # Default fallback
 
     def aliases_exist(self, config_path: Optional[Path] = None) -> bool:
-        """Check if OpenHands aliases already exist in the shell config.
+        """Check if H2Loop aliases already exist in the shell config.
 
         Args:
             config_path: Path to check. If None, will detect automatically.
@@ -196,7 +194,7 @@ function oh { {{ command }} $args }
             return False
 
     def add_aliases(self, config_path: Optional[Path] = None) -> bool:
-        """Add OpenHands aliases to the shell configuration.
+        """Add H2Loop aliases to the shell configuration.
 
         Args:
             config_path: Path to modify. If None, will detect automatically.
@@ -262,13 +260,13 @@ function oh { {{ command }} $args }
 
 # Convenience functions that use the ShellConfigManager
 def add_aliases_to_shell_config() -> bool:
-    """Add OpenHands aliases to the shell configuration."""
+    """Add H2Loop aliases to the shell configuration."""
     manager = ShellConfigManager()
     return manager.add_aliases()
 
 
 def aliases_exist_in_shell_config() -> bool:
-    """Check if OpenHands aliases exist in the shell configuration."""
+    """Check if H2Loop aliases exist in the shell configuration."""
     manager = ShellConfigManager()
     return manager.aliases_exist()
 
@@ -285,13 +283,13 @@ def alias_setup_declined() -> bool:
     Returns:
         True if user has declined alias setup, False otherwise.
     """
-    marker_file = Path.home() / '.openhands' / '.cli_alias_setup_declined'
+    marker_file = Path.home() / '.h2loop' / '.cli_alias_setup_declined'
     return marker_file.exists()
 
 
 def mark_alias_setup_declined() -> None:
     """Mark that the user has declined alias setup."""
-    openhands_dir = Path.home() / '.openhands'
-    openhands_dir.mkdir(exist_ok=True)
-    marker_file = openhands_dir / '.cli_alias_setup_declined'
+    h2loop_dir = Path.home() / '.h2loop'
+    h2loop_dir.mkdir(exist_ok=True)
+    marker_file = h2loop_dir / '.cli_alias_setup_declined'
     marker_file.touch()
