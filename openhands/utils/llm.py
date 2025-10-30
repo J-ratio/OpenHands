@@ -55,6 +55,7 @@ def get_supported_llm_models(config: OpenHandsConfig) -> list[str]:
 
     # Always include the custom model
     model_list.append('hosted_vllm/Qwen/Qwen2.5-Coder-32B-Instruct-AWQ')
+    model_list.append('litellm_proxy/qwen/qwen3-coder-480b-a35b-instruct-maas')
     # Add OpenHands provider models
     openhands_models = [
         'openhands/claude-sonnet-4-20250514',
