@@ -349,14 +349,14 @@ async def run_session(
         mcp_error_collector.clear_errors()
         mcp_error_collector.enable_collection()
 
-        # Add OpenHands' MCP server by default
-        _, openhands_mcp_stdio_servers = (
+        # Add H2Loop's MCP server by default
+        _, h2loop_mcp_stdio_servers = (
             OpenHandsMCPConfigImpl.create_default_mcp_server_config(
                 config.mcp_host, config, None
             )
         )
 
-        runtime.config.mcp.stdio_servers.extend(openhands_mcp_stdio_servers)
+        runtime.config.mcp.stdio_servers.extend(h2loop_mcp_stdio_servers)
 
         await add_mcp_tools_to_agent(agent, runtime, memory)
 
@@ -412,10 +412,10 @@ async def run_session(
                 # Start with base authentication error message
                 welcome_message = 'Authentication error with the LLM provider. Please check your API key.'
 
-                # Add OpenHands-specific guidance if using an OpenHands model
+                # Add H2Loop-specific guidance if using H2Loop model
                 llm_config = config.get_llm_config()
-                if llm_config.model.startswith('openhands/'):
-                    welcome_message += "\nIf you're using OpenHands models, get a new API key from https://app.all-hands.dev/settings/api-keys"
+                if llm_config.model.startswith('h2loop/'):
+                    welcome_message += "\nIf you're using H2Loop models, get a new API key from https://app.h2loop.ai/settings/api-keys"
             else:
                 # For other errors, use the standard message
                 initial_message = (
@@ -496,7 +496,7 @@ def run_alias_setup_flow(config: OpenHandsConfig) -> None:
         config: OpenHands configuration
     """
     print_formatted_text('')
-    print_formatted_text(HTML('<gold>🚀 Welcome to OpenHands CLI!</gold>'))
+    print_formatted_text(HTML('<gold>🚀 Welcome to H2Loop CLI!</gold>'))
     print_formatted_text('')
 
     # Show the normal setup flow
@@ -509,13 +509,11 @@ def run_alias_setup_flow(config: OpenHandsConfig) -> None:
     )
     print_formatted_text(
         HTML(
-            '<grey>  • <b>openhands</b> → uvx --python 3.12 --from openhands-ai openhands</grey>'
+            '<grey>  • <b>h2loop</b> → uvx --python 3.12 --from h2loop-ai h2loop</grey>'
         )
     )
     print_formatted_text(
-        HTML(
-            '<grey>  • <b>oh</b> → uvx --python 3.12 --from openhands-ai openhands</grey>'
-        )
+        HTML('<grey>  • <b>h2</b> → uvx --python 3.12 --from h2loop-ai h2loop</grey>')
     )
     print_formatted_text('')
     print_formatted_text(
@@ -591,7 +589,7 @@ async def main_with_loop(loop: asyncio.AbstractEventLoop, args) -> None:
     # If `config.toml` does not exist in current directory, use the file under home directory
     if not os.path.exists(args.config_file):
         home_config_file = os.path.join(
-            os.path.expanduser('~'), '.openhands', 'config.toml'
+            os.path.expanduser('~'), '.h2loop', 'config.toml'
         )
         logger.info(
             f'Config file {args.config_file} does not exist, using default config file in home directory: {home_config_file}.'

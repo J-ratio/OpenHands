@@ -402,7 +402,7 @@ def display_command_output(output: str) -> None:
     lines = output.split('\n')
     formatted_lines = []
     for line in lines:
-        if line.startswith('[Python Interpreter') or line.startswith('openhands@'):
+        if line.startswith('[Python Interpreter') or line.startswith('h2loop@'):
             # TODO: clean this up once we clean up terminal output
             continue
         formatted_lines.append(line)

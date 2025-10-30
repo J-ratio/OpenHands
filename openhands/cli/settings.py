@@ -345,7 +345,7 @@ async def modify_llm_settings_basic(
                 m for m in provider_models if m not in VERIFIED_MISTRAL_MODELS
             ]
             provider_models = VERIFIED_MISTRAL_MODELS + provider_models
-        if provider == 'openhands':
+        if provider == 'h2loop':
             provider_models = [
                 m for m in provider_models if m not in VERIFIED_OPENHANDS_MODELS
             ]
@@ -366,7 +366,7 @@ async def modify_llm_settings_basic(
             default_model = VERIFIED_OPENAI_MODELS[0]
         elif provider == 'mistral' and VERIFIED_MISTRAL_MODELS:
             default_model = VERIFIED_MISTRAL_MODELS[0]
-        elif provider == 'openhands' and VERIFIED_OPENHANDS_MODELS:
+        elif provider == 'h2loop' and VERIFIED_OPENHANDS_MODELS:
             # Use the first model in the VERIFIED_OPENHANDS_MODELS list as it's the best/newest
             default_model = VERIFIED_OPENHANDS_MODELS[0]
         else:
@@ -374,16 +374,16 @@ async def modify_llm_settings_basic(
                 provider_models[0] if provider_models else 'claude-sonnet-4-20250514'
             )
 
-        # For OpenHands provider, directly show all verified models without the "use default" option
-        if provider == 'openhands':
+        # For H2Loop provider, directly show all verified models without the "use default" option
+        if provider == 'h2loop':
             # Create a list of models for the cli_confirm function
             model_choices = VERIFIED_OPENHANDS_MODELS
 
             model_choice = cli_confirm(
                 config,
                 (
-                    '(Step 2/3) Select Available OpenHands Model:\n'
-                    + 'LLM usage is billed at the providers’ rates with no markup. Details: https://docs.all-hands.dev/usage/llms/openhands-llms'
+                    '(Step 2/3) Select Available H2Loop Model:\n'
+                    + 'LLM usage is billed at the providers’ rates with no markup.'
                 ),
                 model_choices,
                 initial_selection=_get_initial_model_index(
@@ -457,10 +457,10 @@ async def modify_llm_settings_basic(
         #     )
         #     base_url = None
 
-        if provider == 'openhands':
+        if provider == 'h2loop':
             print_formatted_text(
                 HTML(
-                    '\nYou can find your OpenHands LLM API Key in the <a href="https://app.all-hands.dev/settings/api-keys">API Keys</a> tab of OpenHands Cloud: https://app.all-hands.dev/settings/api-keys'
+                    '\nYou can find your H2Loop LLM API Key in the <a href="https://app.h2loop.ai/settings/api-keys">API Keys</a> tab of H2Loop Cloud: https://app.h2loop.ai/settings/api-keys'
                 )
             )
 

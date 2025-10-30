@@ -56,7 +56,7 @@ def download_latest_vsix_from_github() -> str | None:
 
 
 def attempt_vscode_extension_install():
-    """Checks if running in a supported editor and attempts to install the OpenHands companion extension.
+    """Checks if running in a supported editor and attempts to install the H2Loop companion extension.
     This is a best-effort, one-time attempt.
     """
     # 1. Check if we are in a supported editor environment
@@ -80,9 +80,9 @@ def attempt_vscode_extension_install():
         editor_command, editor_name, flag_suffix = 'code', 'VS Code', 'vscode'
 
     # 3. Check if we've already successfully installed the extension.
-    flag_dir = pathlib.Path.home() / '.openhands'
+    flag_dir = pathlib.Path.home() / '.h2loop'
     flag_file = flag_dir / f'.{flag_suffix}_extension_installed'
-    extension_id = 'openhands.openhands-vscode'
+    extension_id = 'h2loop.h2loop-vscode'
 
     try:
         flag_dir.mkdir(parents=True, exist_ok=True)
@@ -96,14 +96,14 @@ def attempt_vscode_extension_install():
 
     # 4. Check if the extension is already installed (even without our flag).
     if _is_extension_installed(editor_command, extension_id):
-        print(f'INFO: OpenHands {editor_name} extension is already installed.')
+        print(f'INFO: H2Loop {editor_name} extension is already installed.')
         # Create flag to avoid future checks
         _mark_installation_successful(flag_file, editor_name)
         return
 
     # 5. Extension is not installed, attempt installation.
     print(
-        f'INFO: First-time setup: attempting to install the OpenHands {editor_name} extension...'
+        f'INFO: First-time setup: attempting to install the H2Loop {editor_name} extension...'
     )
 
     # Attempt 1: Install from bundled .vsix
@@ -123,11 +123,9 @@ def attempt_vscode_extension_install():
 
     # If all attempts failed, inform the user (but don't create flag - allow retry).
     print(
-        'INFO: Automatic installation failed. Please check the OpenHands documentation for manual installation instructions.'
+        'INFO: Automatic installation failed. Please check the H2Loop documentation for manual installation instructions.'
     )
-    print(
-        f'INFO: Will retry installation next time you run OpenHands in {editor_name}.'
-    )
+    print(f'INFO: Will retry installation next time you run H2Loop in {editor_name}.')
 
 
 def _mark_installation_successful(flag_file: pathlib.Path, editor_name: str) -> None:
@@ -145,7 +143,7 @@ def _mark_installation_successful(flag_file: pathlib.Path, editor_name: str) -> 
 
 
 def _is_extension_installed(editor_command: str, extension_id: str) -> bool:
-    """Check if the OpenHands extension is already installed.
+    """Check if the H2Loop extension is already installed.
 
     Args:
         editor_command: The command to run the editor (e.g., 'code', 'windsurf')
@@ -202,7 +200,7 @@ def _attempt_github_install(editor_command: str, editor_name: str) -> bool:
         )
         if process.returncode == 0:
             print(
-                f'INFO: OpenHands {editor_name} extension installed successfully from GitHub.'
+                f'INFO: H2Loop {editor_name} extension installed successfully from GitHub.'
             )
             github_success = True
         else:
@@ -225,7 +223,7 @@ def _attempt_github_install(editor_command: str, editor_name: str) -> bool:
 def _attempt_bundled_install(editor_command: str, editor_name: str) -> bool:
     """Attempt to install the extension from the bundled VSIX file.
 
-    Uses the VSIX file packaged with the OpenHands installation.
+    Uses the VSIX file packaged with the H2Loop installation.
 
     Args:
         editor_command: The command to run the editor (e.g., 'code', 'windsurf')
@@ -277,7 +275,7 @@ def _attempt_marketplace_install(
 ) -> bool:
     """Attempt to install the extension from the marketplace.
 
-    This method is currently unused as the OpenHands extension is not yet published
+    This method is currently unused as the H2Loop extension is not yet published
     to the VS Code/Windsurf marketplace. It's kept here for future use when the
     extension becomes available.
 

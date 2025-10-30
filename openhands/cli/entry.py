@@ -1,4 +1,4 @@
-"""Main entry point for OpenHands CLI with subcommand support."""
+"""Main entry point for H2Loop CLI with subcommand support."""
 
 import sys
 
@@ -28,7 +28,7 @@ def main():
 
         sys.exit(0)
 
-    # Special case: no subcommand provided, simulate "openhands cli"
+    # Special case: no subcommand provided, simulate "h2loop cli"
     if len(sys.argv) == 1 or (
         len(sys.argv) > 1 and sys.argv[1] not in ['cli', 'serve']
     ):

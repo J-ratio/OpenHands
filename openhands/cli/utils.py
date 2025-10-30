@@ -105,7 +105,7 @@ def extract_model_and_provider(model: str) -> ModelInfo:
         if split[0] in VERIFIED_MISTRAL_MODELS:
             return ModelInfo(provider='mistral', model=split[0], separator='/')
         if split[0] in VERIFIED_OPENHANDS_MODELS:
-            return ModelInfo(provider='openhands', model=split[0], separator='/')
+            return ModelInfo(provider='h2loop', model=split[0], separator='/')
         # return as model only
         return ModelInfo(provider='', model=model, separator='')
 

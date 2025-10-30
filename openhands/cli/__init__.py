@@ -1,1 +1,1 @@
-"""OpenHands CLI module."""
+"""H2Loop CLI module."""
