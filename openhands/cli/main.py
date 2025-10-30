@@ -629,7 +629,7 @@ async def main_with_loop(loop: asyncio.AbstractEventLoop, args) -> None:
         # Handle LLM configuration with proper precedence:
         # 1. CLI parameters (-l) have highest precedence (already handled in setup_config_from_args)
         # 2. config.toml in current directory has next highest precedence (already loaded)
-        # 3. ~/.openhands/settings.json has lowest precedence (handled here)
+        # 3. ~/.h2loop/settings.json has lowest precedence (handled here)
 
         # Only apply settings from settings.json if:
         # - No LLM config was specified via CLI arguments (-l)

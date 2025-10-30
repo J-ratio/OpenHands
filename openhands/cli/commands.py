@@ -527,14 +527,14 @@ def handle_mcp_errors_command() -> None:
 
 
 def get_config_file_path() -> Path:
-    """Get the path to the config file. By default, we use config.toml in the current working directory. If not found, we use ~/.openhands/config.toml."""
+    """Get the path to the config file. By default, we use config.toml in the current working directory. If not found, we use ~/.h2loop/config.toml."""
     # Check if config.toml exists in the current directory
     current_dir = Path.cwd() / 'config.toml'
     if current_dir.exists():
         return current_dir
 
     # Fallback to the user's home directory
-    return Path.home() / '.openhands' / 'config.toml'
+    return Path.home() / '.h2loop' / 'config.toml'
 
 
 def load_config_file(file_path: Path) -> dict:
