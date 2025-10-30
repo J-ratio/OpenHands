@@ -141,7 +141,7 @@ def launch_gui_server(mount_cwd: bool = False, gpu: bool = False) -> None:
         '-v',
         '/var/run/docker.sock:/var/run/docker.sock',
         '-v',
-        f'{config_dir}:/.openhands',
+        f'{config_dir}:/.h2loop',
     ]
 
     # Add GPU support if requested
