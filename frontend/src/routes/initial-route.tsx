@@ -8,13 +8,17 @@ export default function InitialRoute() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      navigate("/login", { replace: true });
+    if (!isLoading && isAuthenticated) {
+      navigate("/", { replace: true });
     }
   }, [isAuthenticated, isLoading, token, navigate]);
 
-  if (!isAuthenticated) {
+  if (isLoading) {
     return null;
+  }
+
+  if (!isAuthenticated) {
+    return null; // Will be handled by auth layout
   }
 
   return <HomeScreen />;

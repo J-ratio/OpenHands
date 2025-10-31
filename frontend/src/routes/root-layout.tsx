@@ -5,6 +5,7 @@ import {
   Outlet,
   useNavigate,
   useLocation,
+  Navigate,
 } from "react-router";
 import { useTranslation } from "react-i18next";
 import { I18nKey } from "#/i18n/declaration";
@@ -179,6 +180,15 @@ export default function MainApp() {
     // When auth status changes (especially on logout), recheck login method
     setLoginMethodExists(checkLoginMethodExists());
   }, [isAuthenticated, checkLoginMethodExists]);
+
+  // If not authenticated and not loading, redirect to login
+  if (!isAuthenticated && !isFetchingAuth && !isOnTosPage) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (isFetchingAuth) {
+    return null;
+  }
 
   const renderAuthModal =
     !isAuthenticated &&
