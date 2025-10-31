@@ -42,15 +42,16 @@ const ExportDocumentContent = ({ editor, hiddenEditor, title }) => {
         startOnLoad: true,
         theme: "default",
         securityLevel: "loose",
+        maxTextSize: 90000,
         flowchart: {
-            subGraphTitleMargin: {
-                top: 0,
-                bottom: 50,
-            },
-            nodeSpacing: 70,
-            rankSpacing: 100,
-            padding: 20,
-            diagramPadding: 40,
+          subGraphTitleMargin: {
+            top: 0,
+            bottom: 20,
+          },
+          nodeSpacing: 50,
+          rankSpacing: 50,
+          padding: 10,
+          diagramPadding: 10,
         },
         themeCSS: \`
         g.classGroup rect {
@@ -97,8 +98,9 @@ const ExportDocumentContent = ({ editor, hiddenEditor, title }) => {
           stroke: #f8f8f2;
           stroke-width: 1;
         }\`,
+        maxTextSize: 90000,
         fontFamily: "Fira Code",
-    });
+      });
     </script>`
       : ""
   }
@@ -190,17 +192,41 @@ const ExportDocumentContent = ({ editor, hiddenEditor, title }) => {
       // Add print-specific styles to make pagination more predictable
       const printStyles = `
       @media print {
-        body {
-          width: 210mm;
-          padding: 15mm;
+        @page {
+          size: A4;
+          margin: 15mm;
+        }
+        html, body {
+          width: 100%;
+          height: auto;
+          padding: 0;
           margin: 0;
+          overflow: visible;
         }
         pre, .mermaid, img {
-          page-break-inside: avoid;
+          page-break-inside: avoid !important;
           max-width: 100%;
         }
+        .mermaid {
+          page-break-inside: avoid !important;
+          page-break-before: avoid !important;
+          page-break-after: avoid !important;
+          margin-bottom: 20px;
+        }
+        [data-display-type="chart"] {
+          page-break-inside: avoid !important;
+          page-break-before: avoid !important;
+          page-break-after: avoid !important;
+          margin-bottom: 30px;
+          height: auto !important;
+          min-height: auto !important;
+        }
+        [data-display-type="chart"] > div > div {
+          height: auto !important;
+          min-height: auto !important;
+        }
         h1, h2, h3 {
-          page-break-after: avoid;
+          page-break-after: avoid !important;
         }
       }
     `;

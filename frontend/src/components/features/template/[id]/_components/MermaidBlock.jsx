@@ -137,10 +137,31 @@ export const MermaidBlock = createReactBlockSpec(
     toExternalHTML: (props) => {
       const content = props.block.content[0];
       return (
-        <div className="grid w-full grid-cols-4 gap-2 group">
+        <div
+          className="grid w-full grid-cols-4 gap-2 group"
+          data-display-type="chart"
+        >
           <div className="col-span-3">
             {content && (
-              <Mermaid chart={content.props.code} displayEditor={false} />
+              <div style={{ display: "flex", width: "100%" }}>
+                <pre
+                  className="mermaid"
+                  style={{
+                    flex: "1 1 0%",
+                    border: "1px solid rgb(204, 204, 204)",
+                    position: "relative",
+                    width: "100%",
+                    margin: "10px 0",
+                    padding: "15px",
+                    backgroundColor: "#f9f9f9",
+                    borderRadius: "5px",
+                    whiteSpace: "pre-wrap",
+                    wordWrap: "break-word",
+                  }}
+                >
+                  {content.props.code}
+                </pre>
+              </div>
             )}
           </div>
         </div>
