@@ -14,6 +14,8 @@ const GenerateDocPage = () => {
   const { selectedWorkspaceId } = useWorkspace();
 
   useEffect(() => {
+    if (!selectedWorkspaceId) return;
+
     async function getData() {
       setLoading(true);
       const data = await getAllDocuments(selectedWorkspaceId);
