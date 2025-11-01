@@ -1,5 +1,9 @@
 from litellm import ChatCompletionToolParam, ChatCompletionToolParamFunctionChunk
 
+from openhands.agenthub.codeact_agent.tools.security_utils import (
+    RISK_LEVELS,
+    SECURITY_RISK_DESC,
+)
 from openhands.llm.tool_names import STR_REPLACE_EDITOR_TOOL_NAME
 
 _DETAILED_STR_REPLACE_EDITOR_DESCRIPTION = """Custom editing tool for viewing, creating and editing files in plain-text format
@@ -99,6 +103,13 @@ def create_str_replace_editor_tool(
                         'description': 'Optional parameter of `view` command when `path` points to a file. If none is given, the full file is shown. If provided, the file will be shown in the indicated line number range, e.g. [11, 12] will show lines 11 and 12. Indexing at 1 to start. Setting `[start_line, -1]` shows all lines from `start_line` to the end of the file.',
                         'items': {'type': 'integer'},
                         'type': 'array',
+                    },
+                    'security_risk': {
+                        'type': 'string',
+                        'description': (
+                            'Optional parameter signifying ' + SECURITY_RISK_DESC
+                        ),
+                        'enum': RISK_LEVELS,
                     },
                 },
                 'required': ['command', 'path'],
