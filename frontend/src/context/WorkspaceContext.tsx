@@ -105,16 +105,15 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const globalWorkspaceId = settings?.ACTIVE_WORKSPACE_ID;
     const currentWorkspaceId = getCurrentWorkspaceId(globalWorkspaceId);
+    setSelectedWorkspaceName(
+      getWorkspaceNameFromId(workspaces, Number(currentWorkspaceId)),
+    );
 
     if (currentWorkspaceId && currentWorkspaceId !== selectedWorkspaceId) {
       setSelectedWorkspaceId(currentWorkspaceId);
       if (location.pathname === "/") {
         fetchLinkedRepo(currentWorkspaceId);
       }
-
-      setSelectedWorkspaceName(
-        getWorkspaceNameFromId(workspaces, Number(currentWorkspaceId)),
-      );
     } else if (!currentWorkspaceId) {
       setLinkedRepo(undefined);
       sessionStorage.removeItem(LINKED_REPO_SESSION_STORAGE_KEY);
