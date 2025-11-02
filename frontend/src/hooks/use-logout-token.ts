@@ -6,6 +6,7 @@ export function useLogoutToken() {
   const navigate = useNavigate();
   const logout = useCallback(() => {
     localStorage.removeItem("token");
+    sessionStorage.clear();
     queryClient.clear();
     navigate("/login", { replace: true });
   }, [navigate]);
