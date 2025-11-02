@@ -55,7 +55,7 @@ async def initialize_conversation(
         conversation_title = get_default_conversation_title(conversation_id)
 
         settings_store = await SettingsStoreImpl.get_instance(config, user_id)
-        settings = await settings_store.load()
+        await settings_store.load()
         logger.info('Settings loaded')
 
         logger.info(f'Saving metadata for conversation {conversation_id}')
@@ -67,7 +67,6 @@ async def initialize_conversation(
             selected_repository=selected_repository,
             selected_branch=selected_branch,
             git_provider=git_provider,
-            workspace_id= settings.active_workspace_id,
         )
 
         await conversation_store.save_metadata(conversation_metadata)
@@ -94,6 +93,7 @@ async def start_conversation(
     conversation_instructions: str | None,
     mcp_config: MCPConfig | None = None,
     use_h2loop_model: bool | None = None,
+    active_workspace_id: str | None = None,
     linked_repository: str | None = None,
 ) -> AgentLoopInfo:
     logger.info(
@@ -116,8 +116,12 @@ async def start_conversation(
         # Handle h2loop model selection
         if use_h2loop_model:
             # Override with h2loop predefined values
-            session_init_args['llm_model'] = 'hosted_vllm/Qwen/Qwen2.5-Coder-32B-Instruct-AWQ'
-            session_init_args['llm_base_url'] = 'https://h2loop--qwen25-coder-32b-serve.modal.run/v1'
+            session_init_args['llm_model'] = (
+                'hosted_vllm/Qwen/Qwen2.5-Coder-32B-Instruct-AWQ'
+            )
+            session_init_args['llm_base_url'] = (
+                'https://h2loop--qwen25-coder-32b-serve.modal.run/v1'
+            )
             session_init_args['llm_api_key'] = 'super-secret-key'
             logger.info('Using h2loop model configuration for conversation')
 
@@ -126,11 +130,15 @@ async def start_conversation(
         llm_api_key = session_init_args.get('llm_api_key')
         if (
             not llm_api_key
-            or (hasattr(llm_api_key, 'get_secret_value') and
-                llm_api_key.get_secret_value().isspace())
+            or (
+                hasattr(llm_api_key, 'get_secret_value')
+                and llm_api_key.get_secret_value().isspace()
+            )
             or (isinstance(llm_api_key, str) and llm_api_key.isspace())
         ):
-            logger.warning(f'Missing api key for model {session_init_args.get("llm_model")}')
+            logger.warning(
+                f'Missing api key for model {session_init_args.get("llm_model")}'
+            )
             raise LLMAuthenticationError(
                 'Error authenticating with the LLM provider. Please check your API key'
             )
@@ -145,6 +153,7 @@ async def start_conversation(
     session_init_args['selected_branch'] = conversation_metadata.selected_branch
     session_init_args['git_provider'] = conversation_metadata.git_provider
     session_init_args['conversation_instructions'] = conversation_instructions
+    session_init_args['active_workspace_id'] = active_workspace_id
     if mcp_config:
         session_init_args['mcp_config'] = mcp_config
     if linked_repository:
@@ -198,6 +207,7 @@ async def create_new_conversation(
     conversation_id: str | None = None,
     mcp_config: MCPConfig | None = None,
     use_h2loop_model: bool | None = None,
+    active_workspace_id: str | None = None,
     linked_repository: str | None = None,
 ) -> AgentLoopInfo:
     conversation_metadata = await initialize_conversation(
@@ -224,6 +234,7 @@ async def create_new_conversation(
         conversation_instructions,
         mcp_config,
         use_h2loop_model,
+        active_workspace_id,
         linked_repository,
     )
 
@@ -241,7 +252,10 @@ def create_provider_tokens_object(
 
 
 async def setup_init_conversation_settings(
-    user_id: str | None, conversation_id: str, providers_set: list[ProviderType], use_h2loop_model: bool | None = None
+    user_id: str | None,
+    conversation_id: str,
+    providers_set: list[ProviderType],
+    use_h2loop_model: bool | None = None,
 ) -> ConversationInitData:
     """Set up conversation initialization data with provider tokens.
 
@@ -283,8 +297,12 @@ async def setup_init_conversation_settings(
 
     # Handle h2loop model selection for conversation restart
     if use_h2loop_model:
-        conversation_init_data.llm_model = 'hosted_vllm/Qwen/Qwen2.5-Coder-32B-Instruct-AWQ'
-        conversation_init_data.llm_base_url = 'https://h2loop--qwen25-coder-32b-serve.modal.run/v1'
+        conversation_init_data.llm_model = (
+            'hosted_vllm/Qwen/Qwen2.5-Coder-32B-Instruct-AWQ'
+        )
+        conversation_init_data.llm_base_url = (
+            'https://h2loop--qwen25-coder-32b-serve.modal.run/v1'
+        )
         conversation_init_data.llm_api_key = SecretStr('super-secret-key')
         logger.info('Using h2loop model configuration for conversation restart')
 

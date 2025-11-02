@@ -239,6 +239,7 @@ class Session:
             selected_branch = settings.selected_branch
             custom_secrets = settings.custom_secrets
             conversation_instructions = settings.conversation_instructions
+            active_workspace_id = settings.active_workspace_id
             linked_repository = settings.linked_repository
 
         try:
@@ -257,6 +258,7 @@ class Session:
                 initial_message=initial_message,
                 conversation_instructions=conversation_instructions,
                 replay_json=replay_json,
+                active_workspace_id=active_workspace_id,
                 linked_repository=linked_repository,
                 settings=settings,
             )
