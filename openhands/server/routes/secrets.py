@@ -110,10 +110,10 @@ async def store_provider_tokens(
     if provider_err_msg:
         # We don't have direct access to user_id here, but we can log the provider info
         logger.info(
-            f'Returning 401 Unauthorized - Provider token error: {provider_err_msg}'
+            f'Returning 403 Forbidden - Provider token error: {provider_err_msg}'
         )
         return JSONResponse(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_403_FORBIDDEN,
             content={'error': provider_err_msg},
         )
 
@@ -202,9 +202,9 @@ async def load_custom_secrets_names(
 
     except Exception as e:
         logger.warning(f'Failed to load secret names: {e}')
-        logger.info('Returning 401 Unauthorized - Failed to get secret names')
+        logger.info('Returning 403 Forbidden - Failed to get secret names')
         return JSONResponse(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_403_FORBIDDEN,
             content={'error': 'Failed to get secret names'},
         )
 

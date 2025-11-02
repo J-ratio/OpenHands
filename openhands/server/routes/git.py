@@ -92,9 +92,7 @@ async def get_user_repositories(
 
         except AuthenticationError as e:
             logger.warning(f'Authentication error for user {user_id}: {e}')
-            return JSONResponse(
-                content=str(e), status_code=status.HTTP_401_UNAUTHORIZED
-            )
+            return JSONResponse(content=str(e), status_code=status.HTTP_403_FORBIDDEN)
 
         except UnknownException as e:
             return JSONResponse(
@@ -258,7 +256,7 @@ async def get_repository_branches(
         except AuthenticationError as e:
             return JSONResponse(
                 content=str(e),
-                status_code=status.HTTP_401_UNAUTHORIZED,
+                status_code=status.HTTP_403_FORBIDDEN,
             )
 
         except UnknownException as e:

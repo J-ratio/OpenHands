@@ -71,6 +71,13 @@ app.add_middleware(LocalhostCORSMiddleware)
 
 @app.exception_handler(AuthenticationError)
 async def authentication_error_handler(request: Request, exc: AuthenticationError):
+    # Git provider token errors should return 403 to allow users to update tokens
+    # instead of 401 which triggers automatic logout
+    if request.url.path.startswith('/api/user/'):
+        return JSONResponse(
+            status_code=403,
+            content=str(exc),
+        )
     return JSONResponse(
         status_code=401,
         content=str(exc),
