@@ -31,7 +31,8 @@ export const useCreateConversation = (comparision: boolean = false) => {
   const { enableSimulation, disableSimulation } = useSimulationMode();
   const { linkedRepo } = useWorkspace();
   const linkedRepoUrl =
-    localStorage.getItem("linked_repo") ?? linkedRepo?.url ?? "";
+    sessionStorage.getItem("linked_repo") ?? linkedRepo?.url ?? "";
+  const activeWorkspaceId = sessionStorage.getItem("active_workspace_id") ?? "";
 
   return useMutation({
     mutationKey: ["create-conversation"],
@@ -65,6 +66,7 @@ export const useCreateConversation = (comparision: boolean = false) => {
         conversationInstructions,
         createMicroagent,
         use_h2loop_model,
+        activeWorkspaceId,
         linkedRepoUrl,
       );
     },

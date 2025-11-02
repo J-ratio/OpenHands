@@ -287,11 +287,13 @@ class OpenHands {
     limit: number = 20,
     pageId?: string,
   ): Promise<ResultSet<Conversation>> {
+    const activeWorkspaceId = sessionStorage.getItem("active_workspace_id");
     const { data } = await openHands.get<ResultSet<Conversation>>(
       "/api/conversations",
       {
         params: {
           limit: limit.toString(),
+          ...(activeWorkspaceId && { active_workspace_id: activeWorkspaceId }),
           ...(pageId && { page_id: pageId }),
         },
       },
@@ -334,6 +336,7 @@ class OpenHands {
     conversationInstructions?: string,
     createMicroagent?: CreateMicroagent,
     use_h2loop_model?: boolean,
+    activeWorkspaceId?: string,
     linkedRepository?: string,
   ): Promise<Conversation> {
     const body = {
@@ -345,6 +348,7 @@ class OpenHands {
       conversation_instructions: conversationInstructions,
       create_microagent: createMicroagent,
       use_h2loop_model,
+      active_workspace_id: activeWorkspaceId,
       linked_repository: linkedRepository,
     };
 
@@ -741,8 +745,12 @@ class OpenHands {
     status: string;
     message: string;
   }> {
+    const activeWorkspaceId = sessionStorage.getItem("active_workspace_id");
     const { data } = await openHands.post<{ status: string; message: string }>(
       "/api/login",
+      {
+        active_workspace_id: activeWorkspaceId,
+      },
     );
     return data;
   }
