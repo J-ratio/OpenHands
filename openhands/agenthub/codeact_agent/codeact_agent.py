@@ -9,8 +9,6 @@ from openhands.llm.streaming_llm import StreamingLLM
 
 if TYPE_CHECKING:
     from litellm import ChatCompletionToolParam
-
-    from openhands.events.action import Action
     from openhands.llm.llm import ModelResponse
 
 import openhands.agenthub.codeact_agent.function_calling as codeact_function_calling
@@ -34,8 +32,8 @@ from openhands.controller.state.state import State
 from openhands.core.config import AgentConfig
 from openhands.core.logger import openhands_logger as logger
 from openhands.core.message import Message
-from openhands.events.action import AgentFinishAction, MessageAction, StreamingMessageAction
-from openhands.events.event import Event
+from openhands.events.action import Action, AgentFinishAction, MessageAction, StreamingMessageAction
+from openhands.events.event import Event, EventSource
 from openhands.llm.llm_utils import check_tools
 from openhands.memory.condenser import Condenser
 from openhands.memory.condenser.condenser import Condensation, View
@@ -276,16 +274,22 @@ class CodeActAgent(Agent):
                 response = self.llm.completion(**params)
                 accumulated_content = response.choices[0].message.content if response.choices else ""
 
-        # Run the async streaming in the current event loop
+        # Run the async streaming
         try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                # If we're already in an async context, create a task
-                task = asyncio.create_task(handle_streaming())
-                # We need to wait for it to complete
-                loop.run_until_complete(task)
-            else:
-                loop.run_until_complete(handle_streaming())
+            # For now, we'll use a simpler approach and run in a new event loop
+            # This avoids issues with nested event loops
+            import asyncio
+            try:
+                # Try to get the current loop
+                loop = asyncio.get_running_loop()
+                # If we're in an async context, we need to handle this differently
+                # For now, fall back to regular completion to avoid complexity
+                logger.warning("Already in async context, falling back to regular completion")
+                response = self.llm.completion(**params)
+                accumulated_content = response.choices[0].message.content if response.choices else ""
+            except RuntimeError:
+                # No running loop, we can create a new one
+                asyncio.run(handle_streaming())
         except Exception as e:
             logger.error(f'Error running streaming: {e}')
             # Fallback to regular completion
