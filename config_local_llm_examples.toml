@@ -1,0 +1,60 @@
+# OpenHands Local LLM Configuration Examples
+# Choose the configuration that matches your local LLM setup
+
+# ===== OLLAMA SETUP =====
+# If you're using Ollama (default port 11434)
+[llm.ollama]
+model = "ollama/llama3.1:8b"  # Replace with your Ollama model
+base_url = "http://localhost:11434"
+enable_streaming = true
+temperature = 0.0
+timeout = 120
+
+# ===== OPENAI-COMPATIBLE API (like text-generation-webui, vLLM, etc.) =====
+# If you're using an OpenAI-compatible API server
+[llm.openai_compatible]
+model = "local-model"  # Your model name
+base_url = "http://localhost:5000/v1"  # Replace with your API endpoint
+api_key = "sk-no-key-required"  # Some servers require a placeholder key
+enable_streaming = true
+temperature = 0.0
+timeout = 120
+
+# ===== LLAMACPP SERVER =====
+# If you're using llama.cpp server
+[llm.llamacpp]
+model = "local"
+base_url = "http://localhost:8080/v1"  # Default llama.cpp server port
+api_key = "no-key"
+enable_streaming = true
+temperature = 0.0
+timeout = 120
+
+# ===== VLLM SERVER =====
+# If you're using vLLM OpenAI-compatible server
+[llm.vllm]
+model = "meta-llama/Llama-3.1-8B-Instruct"  # Your model path/name
+base_url = "http://localhost:8000/v1"  # Default vLLM port
+api_key = "token-abc123"  # vLLM might require a token
+enable_streaming = true
+temperature = 0.0
+timeout = 120
+
+# ===== COMMON CONFIGURATION =====
+# These settings work for all local LLM setups
+[core]
+workspace_base = "./workspace"
+persist_sandbox = true
+
+[agent]
+name = "CodeActAgent"
+
+[security]
+confirmation_mode = false
+
+# ===== INSTRUCTIONS =====
+# 1. Copy the appropriate [llm.xxx] section above to your config.toml
+# 2. Rename it to just [llm] (remove the .xxx part)
+# 3. Update the base_url to match your local LLM server
+# 4. Update the model name to match your specific model
+# 5. Start OpenHands and enjoy streaming responses!

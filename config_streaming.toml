@@ -1,10 +1,13 @@
-# OpenHands Configuration with Streaming Enabled
-# This configuration enables streaming responses from the LLM
+# OpenHands Configuration with Streaming Enabled for Local LLM
+# This configuration enables streaming responses from a local LLM
 
 [llm]
-model = "claude-sonnet-4-20250514"
+model = "openai/local-model"  # Generic OpenAI-compatible model name
+base_url = "http://localhost:11434/v1"  # Replace with your local LLM endpoint
+api_key = "ollama"  # Placeholder API key for local models
 enable_streaming = true
 temperature = 0.0
+timeout = 60
 
 [core]
 workspace_base = "./workspace"
