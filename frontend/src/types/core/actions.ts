@@ -50,6 +50,16 @@ export interface AssistantMessageAction
   };
 }
 
+export interface StreamingMessageAction
+  extends OpenHandsActionEvent<"streaming_message"> {
+  source: "agent";
+  args: {
+    content: string;
+    is_complete: boolean;
+    stream_id: string | null;
+  };
+}
+
 export interface IPythonAction extends OpenHandsActionEvent<"run_ipython"> {
   source: "agent";
   args: {
@@ -188,6 +198,7 @@ export interface TaskTrackingAction
 export type OpenHandsAction =
   | UserMessageAction
   | AssistantMessageAction
+  | StreamingMessageAction
   | SystemMessageAction
   | CommandAction
   | IPythonAction

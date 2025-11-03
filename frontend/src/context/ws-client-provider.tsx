@@ -25,6 +25,7 @@ import {
   isOpenHandsObservation,
   isStatusUpdate,
   isUserMessage,
+  isStreamingMessage,
 } from "#/types/core/guards";
 import { useOptimisticUserMessage } from "#/hooks/use-optimistic-user-message";
 import { useWSErrorMessage } from "#/hooks/use-ws-error-message";
@@ -75,6 +76,7 @@ interface UseWsClient {
   isLoadingMessages: boolean;
   events: Record<string, unknown>[];
   parsedEvents: (OpenHandsAction | OpenHandsObservation)[];
+  streamingMessages: Map<string, string>;
   send: (event: Record<string, unknown>) => void;
 }
 
@@ -83,6 +85,7 @@ const WsClientContext = React.createContext<UseWsClient>({
   isLoadingMessages: true,
   events: [],
   parsedEvents: [],
+  streamingMessages: new Map(),
   send: () => {
     throw new Error("not connected");
   },
@@ -142,6 +145,7 @@ export function WsClientProvider({
   const [parsedEvents, setParsedEvents] = React.useState<
     (OpenHandsAction | OpenHandsObservation)[]
   >([]);
+  const [streamingMessages, setStreamingMessages] = React.useState<Map<string, string>>(new Map());
   const lastEventRef = React.useRef<Record<string, unknown> | null>(null);
   const { providers } = useUserProviders();
 
@@ -186,6 +190,25 @@ export function WsClientProvider({
         setErrorMessage(errorMessage);
 
         return;
+      }
+
+      // Handle streaming messages separately
+      if (isStreamingMessage(event)) {
+        const { stream_id, content, is_complete } = event.args;
+        if (stream_id) {
+          setStreamingMessages((prev) => {
+            const newMap = new Map(prev);
+            if (is_complete) {
+              // Remove completed streaming message
+              newMap.delete(stream_id);
+            } else {
+              // Accumulate streaming content
+              const existing = newMap.get(stream_id) || "";
+              newMap.set(stream_id, existing + content);
+            }
+            return newMap;
+          });
+        }
       }
 
       if (isOpenHandsAction(event) || isOpenHandsObservation(event)) {
@@ -290,6 +313,7 @@ export function WsClientProvider({
     // reset events when conversationId changes
     setEvents([]);
     setParsedEvents([]);
+    setStreamingMessages(new Map());
     setWebSocketStatus("CONNECTING");
   }, [conversationId]);
 
@@ -382,6 +406,7 @@ export function WsClientProvider({
       isLoadingMessages: messageRateHandler.isUnderThreshold,
       events,
       parsedEvents,
+      streamingMessages,
       send,
     }),
     [
@@ -389,6 +414,7 @@ export function WsClientProvider({
       messageRateHandler.isUnderThreshold,
       events,
       parsedEvents,
+      streamingMessages,
     ],
   );
 

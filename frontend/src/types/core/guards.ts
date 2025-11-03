@@ -2,6 +2,7 @@ import { OpenHandsParsedEvent } from ".";
 import {
   UserMessageAction,
   AssistantMessageAction,
+  StreamingMessageAction,
   OpenHandsAction,
   SystemMessageAction,
   CommandAction,
@@ -49,6 +50,13 @@ export const isAssistantMessage = (
   isOpenHandsAction(event) &&
   event.source === "agent" &&
   (event.action === "message" || event.action === "finish");
+
+export const isStreamingMessage = (
+  event: OpenHandsParsedEvent,
+): event is StreamingMessageAction =>
+  isOpenHandsAction(event) &&
+  event.source === "agent" &&
+  event.action === "streaming_message";
 
 export const isErrorObservation = (
   event: OpenHandsParsedEvent,

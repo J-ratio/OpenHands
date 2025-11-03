@@ -6,6 +6,10 @@ class ActionType(str, Enum):
     """Represents a message.
     """
 
+    STREAMING_MESSAGE = 'streaming_message'
+    """Represents a streaming message chunk.
+    """
+
     SYSTEM = 'system'
     """Represents a system message.
     """

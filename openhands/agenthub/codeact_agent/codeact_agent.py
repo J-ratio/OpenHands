@@ -1,9 +1,11 @@
 import os
 import sys
+import uuid
 from collections import deque
 from typing import TYPE_CHECKING
 
 from openhands.llm.llm_registry import LLMRegistry
+from openhands.llm.streaming_llm import StreamingLLM
 
 if TYPE_CHECKING:
     from litellm import ChatCompletionToolParam
@@ -32,7 +34,7 @@ from openhands.controller.state.state import State
 from openhands.core.config import AgentConfig
 from openhands.core.logger import openhands_logger as logger
 from openhands.core.message import Message
-from openhands.events.action import AgentFinishAction, MessageAction
+from openhands.events.action import AgentFinishAction, MessageAction, StreamingMessageAction
 from openhands.events.event import Event
 from openhands.llm.llm_utils import check_tools
 from openhands.memory.condenser import Condenser
@@ -214,13 +216,97 @@ class CodeActAgent(Agent):
                 model_name=self.llm.config.model, agent_name=self.name
             )
         }
-        response = self.llm.completion(**params)
-        logger.debug(f'Response from LLM: {response}')
-        actions = self.response_to_actions(response)
-        logger.debug(f'Actions after response_to_actions: {actions}')
+        # Check if we should use streaming
+        if isinstance(self.llm, StreamingLLM):
+            return self._step_with_streaming(state, params)
+        else:
+            response = self.llm.completion(**params)
+            logger.debug(f'Response from LLM: {response}')
+            actions = self.response_to_actions(response)
+            logger.debug(f'Actions after response_to_actions: {actions}')
+            for action in actions:
+                self.pending_actions.append(action)
+            return self.pending_actions.popleft()
+
+    def _step_with_streaming(self, state: State, params: dict) -> Action:
+        """Handle streaming LLM responses by emitting streaming message actions."""
+        import asyncio
+
+        # Generate a unique stream ID for this response
+        stream_id = str(uuid.uuid4())
+        accumulated_content = ""
+
+        # Create an async function to handle the streaming
+        async def handle_streaming():
+            nonlocal accumulated_content
+            try:
+                # Use the streaming completion method
+                async for chunk in self.llm.async_streaming_completion(**params):
+                    if chunk.choices and len(chunk.choices) > 0:
+                        delta = chunk.choices[0].delta
+                        if hasattr(delta, 'content') and delta.content:
+                            accumulated_content += delta.content
+
+                            # Emit streaming action for each chunk
+                            streaming_action = StreamingMessageAction(
+                                content=delta.content,
+                                is_complete=False,
+                                stream_id=stream_id
+                            )
+                            streaming_action._source = EventSource.AGENT
+
+                            # Add to event stream (this will be sent to UI)
+                            if hasattr(state, 'event_stream') and state.event_stream:
+                                state.event_stream.add_event(streaming_action, EventSource.AGENT)
+
+                # Send final completion marker
+                final_streaming_action = StreamingMessageAction(
+                    content="",
+                    is_complete=True,
+                    stream_id=stream_id
+                )
+                final_streaming_action._source = EventSource.AGENT
+
+                if hasattr(state, 'event_stream') and state.event_stream:
+                    state.event_stream.add_event(final_streaming_action, EventSource.AGENT)
+
+            except Exception as e:
+                logger.error(f'Error in streaming: {e}')
+                # Fall back to regular completion
+                response = self.llm.completion(**params)
+                accumulated_content = response.choices[0].message.content if response.choices else ""
+
+        # Run the async streaming in the current event loop
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # If we're already in an async context, create a task
+                task = asyncio.create_task(handle_streaming())
+                # We need to wait for it to complete
+                loop.run_until_complete(task)
+            else:
+                loop.run_until_complete(handle_streaming())
+        except Exception as e:
+            logger.error(f'Error running streaming: {e}')
+            # Fallback to regular completion
+            response = self.llm.completion(**params)
+            accumulated_content = response.choices[0].message.content if response.choices else ""
+
+        # Create a mock response object for processing
+        mock_response = type('MockResponse', (), {
+            'choices': [type('Choice', (), {
+                'message': type('Message', (), {
+                    'content': accumulated_content
+                })()
+            })()]
+        })()
+
+        # Process the accumulated content as if it were a regular response
+        actions = self.response_to_actions(mock_response)
+        logger.debug(f'Actions after streaming response_to_actions: {actions}')
         for action in actions:
             self.pending_actions.append(action)
-        return self.pending_actions.popleft()
+        return self.pending_actions.popleft() if self.pending_actions else MessageAction(content=accumulated_content)
 
     def _get_initial_user_message(self, history: list[Event]) -> MessageAction:
         """Finds the initial user message action from the full history."""

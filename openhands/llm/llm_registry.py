@@ -9,6 +9,7 @@ from openhands.core.config.llm_config import LLMConfig
 from openhands.core.config.openhands_config import OpenHandsConfig
 from openhands.core.logger import openhands_logger as logger
 from openhands.llm.llm import LLM
+from openhands.llm.streaming_llm import StreamingLLM
 
 
 class RegistryEvent(BaseModel):
@@ -40,17 +41,25 @@ class LLMRegistry:
 
         agent_name = selected_agent_cls if selected_agent_cls is not None else 'agent'
         llm_config = self.config.get_llm_config_from_agent(agent_name)
-        self.active_agent_llm: LLM = self.get_llm('agent', llm_config)
+        self.active_agent_llm: LLM = self.get_llm('agent', llm_config, use_streaming=llm_config.enable_streaming)
 
     def _create_new_llm(
-        self, service_id: str, config: LLMConfig, with_listener: bool = True
+        self, service_id: str, config: LLMConfig, with_listener: bool = True, use_streaming: bool = False
     ) -> LLM:
-        if with_listener:
-            llm = LLM(
-                service_id=service_id, config=config, retry_listener=self.retry_listner
-            )
+        if use_streaming:
+            if with_listener:
+                llm = StreamingLLM(
+                    service_id=service_id, config=config, retry_listener=self.retry_listner
+                )
+            else:
+                llm = StreamingLLM(service_id=service_id, config=config)
         else:
-            llm = LLM(service_id=service_id, config=config)
+            if with_listener:
+                llm = LLM(
+                    service_id=service_id, config=config, retry_listener=self.retry_listner
+                )
+            else:
+                llm = LLM(service_id=service_id, config=config)
         self.service_to_llm[service_id] = llm
         self.notify(RegistryEvent(llm=llm, service_id=service_id))
         return llm
@@ -68,8 +77,12 @@ class LLMRegistry:
         response = llm.completion(messages=messages)
         return response.choices[0].message.content.strip()
 
-    def get_llm_from_agent_config(self, service_id: str, agent_config: AgentConfig):
+    def get_llm_from_agent_config(self, service_id: str, agent_config: AgentConfig, use_streaming: bool | None = None):
         llm_config = self.config.get_llm_config_from_agent_config(agent_config)
+        # Use streaming from config if not explicitly overridden
+        if use_streaming is None:
+            use_streaming = llm_config.enable_streaming
+
         if service_id in self.service_to_llm:
             if self.service_to_llm[service_id].config != llm_config:
                 # TODO: update llm config internally
@@ -77,12 +90,13 @@ class LLMRegistry:
                 pass
             return self.service_to_llm[service_id]
 
-        return self._create_new_llm(config=llm_config, service_id=service_id)
+        return self._create_new_llm(config=llm_config, service_id=service_id, use_streaming=use_streaming)
 
     def get_llm(
         self,
         service_id: str,
         config: LLMConfig | None = None,
+        use_streaming: bool = False,
     ):
         logger.info(
             f'[LLM registry {self.registry_id}]: Registering service for {service_id}'
@@ -103,7 +117,7 @@ class LLMRegistry:
         if not config:
             raise ValueError('Requesting new LLM without specifying LLM config')
 
-        return self._create_new_llm(config=config, service_id=service_id)
+        return self._create_new_llm(config=config, service_id=service_id, use_streaming=use_streaming)
 
     def get_active_llm(self) -> LLM:
         return self.active_agent_llm

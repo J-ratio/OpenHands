@@ -1,0 +1,17 @@
+# OpenHands Configuration with Streaming Enabled
+# This configuration enables streaming responses from the LLM
+
+[llm]
+model = "claude-sonnet-4-20250514"
+enable_streaming = true
+temperature = 0.0
+
+[core]
+workspace_base = "./workspace"
+persist_sandbox = true
+
+[agent]
+name = "CodeActAgent"
+
+[security]
+confirmation_mode = false

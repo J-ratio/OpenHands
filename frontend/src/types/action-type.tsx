@@ -5,6 +5,9 @@ enum ActionType {
   // Represents a message from the user or agent.
   MESSAGE = "message",
 
+  // Represents a streaming message chunk from the agent.
+  STREAMING_MESSAGE = "streaming_message",
+
   // Represents a system message for an agent, including the system prompt and available tools.
   SYSTEM = "system",
 

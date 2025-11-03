@@ -92,6 +92,10 @@ class LLMConfig(BaseModel):
         default=None,
         description='Safety settings for models that support them (like Mistral AI and Gemini)',
     )
+    enable_streaming: bool = Field(
+        default=False,
+        description='Enable streaming responses from the LLM for real-time UI updates',
+    )
 
     model_config = ConfigDict(extra='forbid')
 
